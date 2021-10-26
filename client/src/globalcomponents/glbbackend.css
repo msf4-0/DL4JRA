@@ -1,0 +1,15 @@
+.dl4j-backend-container .col{
+    padding: 0;
+}
+
+.cpu-gpu-container {
+    width: 100%;
+    text-align: center;
+    vertical-align: middle;
+    padding: .375rem .75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    margin: 0;
+    border: 1px black solid;
+    border-radius: 5px;
+}

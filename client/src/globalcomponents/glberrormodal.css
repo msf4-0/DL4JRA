@@ -1,0 +1,36 @@
+.error-modal .modal-header {
+    background: #FF4E4E;
+    border-bottom: none;
+    text-align: center;
+    justify-content: center;
+    padding: 35px;
+}
+
+.error-modal .icon-box {
+    color: #FFF;
+    width: 100px;
+    height: 100px;
+    display: inline-block;
+    border-radius: 50%;
+    border: 5px solid #FFF;
+    padding: 15px;
+    text-align: center;
+}
+
+.error-modal .btn, .error-modal .btn:active {
+    color: #FFF;
+	border-radius: 4px;
+	background: #EEB711 !important;
+	text-decoration: none;
+	transition: all 0.4s;
+	line-height: normal;
+	border-radius: 30px;
+	margin-top: 10px;
+	padding: 6px 20px;
+	border: none;
+}
+
+.error-modal .hover, .error-modal .btn:focus {
+    background: #EDA645 !important;
+    outline: none;
+}

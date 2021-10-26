@@ -1,0 +1,39 @@
+.classification-configuration-panel {
+    padding: 10px;
+    width: 350px !important;
+    height: calc(100vh - 100px);
+    position: fixed;
+    top: 50px;
+    left: 0;
+    border-right: 1px solid black;
+}
+
+.classification-configuration-panel .pair {
+    margin-top: 10px;
+}
+
+.classification-configuration-panel .col {
+    padding: 0;
+}
+
+.classification-main-content-container {
+    height: calc(100vh - 100px);
+    margin-left: 350px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}
+
+.classification-main-content-container .result-div {
+    text-align: center;
+    border-radius: 10px;
+    background-color: grey;
+    width: inherit;
+    height: 50px;
+    line-height: 50px;
+    margin: 0 auto;
+    font-weight: bold;
+    font-size: 20px;
+}

@@ -1,0 +1,48 @@
+.objectdetection-configuration-panel {
+    padding: 10px;
+    width: 350px !important;
+    height: calc(100vh - 100px);
+    position: fixed;
+    top: 50px;
+    left: 0;
+    border-right: 1px solid black;
+    overflow: hidden;
+    overflow-y: scroll;
+}
+
+.objectdetection-configuration-panel .pair {
+    margin-top: 10px;
+}
+
+.objectdetection-configuration-panel .col {
+    padding: 0;
+}
+
+.objectdetection-main-content-container {
+    height: calc(100vh - 100px);
+    margin-left: 350px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+}
+
+.webcam-canvas-container {
+    width: 1320px;
+    height: 650px;
+    display: flex;
+}
+
+.webcam-canvas-element {
+    flex: 1;
+    width: 650px;
+    height: 650px;
+    border: 1px solid black;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.webcam-canvas-element:first-child {
+    margin-right: 20px;
+}

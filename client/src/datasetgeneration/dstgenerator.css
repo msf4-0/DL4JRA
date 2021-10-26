@@ -1,0 +1,19 @@
+.dataset-generator-configuration-panel {
+    padding: 10px;
+    width: 350px !important;
+    height: calc(100vh - 100px);
+    position: fixed;
+    top: 50px;
+    left: 0;
+    border-right: 1px solid black;
+}
+
+.dataset-generator-main-content-container {
+    height: calc(100vh - 100px);
+    margin-left: 350px !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow-x: scroll;
+    overflow-y: hidden;
+}

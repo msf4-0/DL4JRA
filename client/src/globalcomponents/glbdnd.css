@@ -1,0 +1,48 @@
+.tabs {
+    height: 40px;
+    background-color: #9E9E9E;
+    border-bottom: 2px black solid;
+}
+
+.tabs .tab-component {
+    width: 150px;
+    display: inline-block;
+    list-style: none;
+    height: 100%;
+    border-right: 2px black solid;
+    vertical-align: middle;
+    cursor: pointer;
+    position: relative;
+    padding: 0.5rem 0.75rem;
+    font-size: 15px;
+    user-select: none;
+}
+
+.tabs .tab-component .tab-component-menu {
+    position: absolute;
+    z-index: 1000;
+    width: inherit;
+    padding: 5px;
+    background-color: white;
+    border: 2px black solid;
+    border-top: none;
+    top: 40px;
+    left: 0px;
+}
+
+.tabs .tab-component .tab-component-menu .btn {
+    background-color: cornflowerblue !important;
+    color: black;
+    font-size: 15px;
+    margin-top: 5px;
+}
+
+.tabs .add-tab-btn {
+    padding: 0 10px;
+    font-size: 20px;
+    height: 25px;
+    line-height: 25px;
+    color: black;
+    margin-left: 10px;
+    user-select: none;
+}

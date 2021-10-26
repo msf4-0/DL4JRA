@@ -1,0 +1,77 @@
+.cnnflow {
+    display: flex;
+    flex-direction: row;
+    height: calc(100vh - 100px); /*-HEADER (50px) - FOOTER (50px) */
+}
+
+.cnnflow .cnn-toolbar {
+  width: 220px;
+  padding: 15px 10px;
+  font-size: 12px !important;
+  background: #FCFCFC;
+  overflow-y: scroll;
+}
+
+.cnnflow .cnn-toolbar .toolbar-element {
+  font-size: 12px !important;
+  margin: 5px auto !important;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid black !important;
+  color: black !important;
+}
+
+.cnnflow .btn {
+  background-color: #FFE28C !important;
+}
+
+.cnnflow .cnn-toolbar .description {
+height: 30px;
+line-height: 30px;
+padding: 0 5px;
+font-size: 15px;
+font-weight: bold;
+user-select: none;
+}
+
+.cnnflow .cnn-toolbar .toolbar-node {
+  background-color: #9BD7FF;
+  display: flex;
+  /* padding-left: 20px; */
+  justify-content: center;
+  align-items: center;
+}
+
+.cnnflow .cnn-node {
+  min-width: 80px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  border-radius: 10px;
+  font-size: 15px;
+  padding: 5px 10px;
+  border: 1px black solid;
+}
+
+.node-custom-handle {
+    width: 10px!important;
+    height: 10px!important;
+    background: whitesmoke!important;
+    border: 1px solid black!important;
+}
+
+::-webkit-scrollbar {
+    width: 15px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F1F1F1; 
+}
+
+::-webkit-scrollbar-thumb {
+  background: #888; 
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555; 
+}

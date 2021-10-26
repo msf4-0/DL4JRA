@@ -1,0 +1,31 @@
+header {
+    height: 50px !important;
+    line-height: 50px !important;
+    width: 100%;
+    background-color: #343A40;
+    top: 0;
+    color: white;
+}
+
+header ul {
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    list-style-type: none;
+    margin: 0;
+    padding: 0;
+}
+
+header ul li {
+    height: 100%;
+    margin: 0 10px;
+    display: inline-block;
+}
+
+header ul li a {
+    padding: 0 10px !important;
+    height: 100%;
+    color: white;
+}

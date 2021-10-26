@@ -1,0 +1,17 @@
+.onoffmqttdetail-container {
+    width: 100%;
+    margin: 5px auto;
+    padding: 5px;
+    border: 1px black solid;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.onoffmqttdetail-container .col {
+    padding: 0;
+}
+
+.onoffmqttdetail-container .info {
+    white-space: nowrap;
+    overflow: hidden;
+}
