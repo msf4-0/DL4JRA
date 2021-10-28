@@ -22,7 +22,7 @@ public class CnnTest {
 	 */
 	public static void main(String[] args) {
 		/* Please change the values accordingly to your dataset */
-		String trainingdatasetpath = "";
+		String trainingdatasetpath = "D://CNNData/Test";
 		int inputwidth = 300;
 		int inputheight = 300;
 		int inputchannel = 3;
@@ -30,8 +30,8 @@ public class CnnTest {
 		int batchsize = 1;
 		int epochs = 10;
 		int scorelistener = 1;
-		String directorytosave = "";
-		String filename = ""; // Without .zip extension
+		String directorytosave = "D://AppGeneratedDataset";
+		String filename = "testmodel"; // Without .zip extension
 		try {
 			CNN cnn = new CNN();
 			cnn.LoadTrainingDataset(trainingdatasetpath, inputwidth, inputheight, inputchannel, numberlabels, batchsize);
