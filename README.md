@@ -11,22 +11,25 @@ The purpose of developing DL4JRA is to allow everyone, including those who have 
 - [x] Import server folder as maven project in Eclipse
 - [x]  Install [OpenCV for Java](https://opencv-java-tutorials.readthedocs.io/en/latest/01-installing-opencv-for-java.html)
 - [x] Download and install [Node.js](https://nodejs.org/en/download/)
-<br><br>
+- [x] Navigate to "client" directory and install all dependencies
+```
+> cd DL4JRA/client
+> npm install
+```
+<br>
 
 <!-- omit in toc -->
 ## **Launch application**
 <!-- omit in toc -->
 ### **Server (SpringBoot)**
 ```
-> cd basedirectory (DL4JRA)
-> cd server
+> cd DL4JRA/server
 > mvn spring-boot:run
 ```
 <!-- omit in toc -->
 ### **Client (ReactJS)**
 ```
-> cd basedirectory (DL4JRA)
-> cd client
+> cd DL4JRA/client
 > npm start
 ```
 
@@ -52,8 +55,8 @@ For enabling different backends at runtime, users can set the priority with the 
 To check which backend is used, the simplest approach is to look the at the "Backend section" located in "CNN", "Object Detection" and "Object Classification" page.
 
 <p align='center'>
-    <img src="./images/CPU.png" width='45%' />
-    <img src="./images/GPU.png" width='45%' />
+    <kbd><img src="./images/CPU.png" width='45%' /></kbd>
+    <kbd><img src="./images/GPU.png" width='45%' /></kbd>
 </p>
 <br><br>
 
@@ -100,7 +103,7 @@ Watch a [DEMO](https://drive.google.com/file/d/1ry6vZewW2sjsE2jFZlEQir1QS5roK-L9
 <!-- omit in toc -->
 ### **Screenshot (Example)**
 <p align='center'>
-    <img src="./images/FlowScreenshot.png" width='80%'>
+    <kbd><img src="./images/FlowScreenshot.png" width='80%'></kbd>
 </p>
 <br><br>
 
