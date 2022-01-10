@@ -8,6 +8,7 @@ import { Handle, Position, NodeProps } from 'react-flow-renderer'
 enum NodeBackgroundColors  {
     ErrorBackground = "#FF5050",
     ImagePreprocessing = "#D4FFCB",
+    DatasetAutoSplit = "#CBFFF8",
     TrainingDataset = "#CBFFF8",
     ValidationDataset = "#F5FFCB",
     CNNStartNode = "#4B5191",
@@ -16,6 +17,7 @@ enum NodeBackgroundColors  {
     SubsamplingLayer = "#4B5191",
     DenseLayer = "#4B5191",
     OutputLayer = "#4B5191",
+    LocalResponseNormalizationLayer = "#4B5191",   // ===============================
     SetInputType = "#4B5191",
     ConstructCNN = "#4B5191",
     TrainCNN = "#4B5191",
@@ -31,6 +33,7 @@ enum NodeBackgroundColors  {
 enum NodeTextColors {
     Error= "black",
     ImagePreprocessing = "black",
+    DatasetAutoSplit = 'black',
     TrainingDataset = "black",
     ValidationDataset = "black",
     CNNStartNode = "white",
@@ -39,6 +42,7 @@ enum NodeTextColors {
     SubsamplingLayer = "white",
     DenseLayer = "white",
     OutputLayer = "white",
+    LocalResponseNormalizationLayer = "white",  // ===============================
     SetInputType = "white",
     ConstructCNN = "white",
     TrainCNN = "white",
@@ -123,6 +127,22 @@ export class ResizeImage extends Component<NodeProps> {
                 color: this.props.data.error? NodeTextColors.Error : NodeTextColors.ImagePreprocessing, 
             }}>
                 <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// DatasetAutoSplitStartNode node
+export class DatasetAutoSplitStartNode extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.DatasetAutoSplit, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.DatasetAutoSplit, 
+            }}>
                 <div>{this.props.data.name}</div>
                 <OutgoingConnectionHandle />
             </div>
@@ -280,6 +300,24 @@ export class DenseLayer extends Component<NodeProps> {
     }
 }
 
+// OutputLayer node
+export class LocalResponseNormalizationLayer extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.LocalResponseNormalizationLayer, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.LocalResponseNormalizationLayer,
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// =============================================================================================================
 // OutputLayer node
 export class OutputLayer extends Component<NodeProps> {
     render = () => {

@@ -1,7 +1,10 @@
 package com.dl4jra.server.testing;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.ConvolutionMode;
+import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
@@ -22,28 +25,51 @@ public class CnnTest {
 	 */
 	public static void main(String[] args) {
 		/* Please change the values accordingly to your dataset */
-		String trainingdatasetpath = "D://CNNData/Test";
-		int inputwidth = 300;
-		int inputheight = 300;
+		String datasetpath = "C:\\Users\\User\\.deeplearning4j\\data\\dog-breed-identification";
+		int inputwidth = 224;
+		int inputheight = 224;
 		int inputchannel = 3;
-		int numberlabels = 2;
-		int batchsize = 1;
+		int numberlabels = 5;
+		int batchsize = 32;
 		int epochs = 10;
 		int scorelistener = 1;
 		String directorytosave = "D://AppGeneratedDataset";
 		String filename = "testmodel"; // Without .zip extension
 		try {
 			CNN cnn = new CNN();
-			cnn.LoadTrainingDataset(trainingdatasetpath, inputwidth, inputheight, inputchannel, numberlabels, batchsize);
-			cnn.GenerateTrainingDatasetIterator();
-			cnn.InitializeConfigurations(1234, 0.0001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT);
-			cnn.AppendConvolutionLayer(0, inputchannel, 10, 2, 2, 2, 2, Activation.RELU);
-			cnn.AppendSubsamplingLayer(1, 2, 2, 2, 2, PoolingType.MAX);
-			cnn.AppendDenseLayer(2, 10, Activation.RELU);
-			cnn.AppendOutputLayer(3, numberlabels, Activation.SOFTMAX, LossFunction.NEGATIVELOGLIKELIHOOD);
+//			cnn.LoadTrainingDataset(datasetpath, inputwidth, inputheight, inputchannel, numberlabels, batchsize);
+//			cnn.LoadValidationDataset();
+//			cnn.GenerateTrainingDatasetIterator();
+//			cnn.GenerateValidationDatasetIterator();
+			cnn.LoadDatasetAutoSplit(datasetpath, inputwidth, inputheight, inputchannel, numberlabels, batchsize);
+			cnn.GenerateDatasetAutoSplitIterator();
+			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT,
+					ConvolutionMode.Same, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer);
+			cnn.AppendConvolutionLayer(0,  inputchannel, 96, 11, 11, 4, 4,
+					0, 0, null, 0, 0, ConvolutionMode.Truncate);
+			cnn.AppendLocalResponseNormalizationLayer(1);
+			cnn.AppendSubsamplingLayer(2, 3, 3, 2, 2, 1, 1,
+					PoolingType.MAX, null);
+			cnn.AppendConvolutionLayer(3, inputchannel,256 , 5,5, 1, 1,
+					2, 2, null, 0, 0.1, ConvolutionMode.Truncate);
+			cnn.AppendSubsamplingLayer(4, 3, 3, 2, 2, 0, 0,
+					PoolingType.MAX, ConvolutionMode.Truncate);
+			cnn.AppendLocalResponseNormalizationLayer(5);
+			cnn.AppendConvolutionLayer(6, inputchannel,384 , 3,3, 1, 1, 0, 0,
+					null, 0, 0, ConvolutionMode.Same);
+			cnn.AppendConvolutionLayer(7,  inputchannel,384 , 3,3, 1, 1, 0, 0,
+					null, 0.2, 0.1, null);
+			cnn.AppendConvolutionLayer(8,inputchannel, 256 , 3,3, 1, 1, 0, 0,
+					null, 0.2, 0.1, null);
+			cnn.AppendSubsamplingLayer(9, 3, 3, 2, 2, 0, 0,
+					PoolingType.MAX, ConvolutionMode.Truncate);
+			cnn.AppendDenseLayer(10, 4096, null, 0.5, 0.1, WeightInit.XAVIER);
+			cnn.AppendDenseLayer(11, 4096, null, 0.5, 0.1, WeightInit.XAVIER);
+			cnn.AppendOutputLayer(12, numberlabels, Activation.SOFTMAX, LossFunction.NEGATIVELOGLIKELIHOOD, WeightInit.XAVIER);
 			cnn.SetInputType(inputwidth, inputheight, inputchannel);
 			cnn.ConstructNetwork();
 			cnn.TrainNetwork(epochs, scorelistener);
+			cnn.ValidateNetwork();
 			cnn.SaveModal(directorytosave, filename);
 		} catch (Exception exception) {
 			System.out.println("EXCEPTION : " + exception.getMessage());

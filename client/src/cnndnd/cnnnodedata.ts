@@ -1,4 +1,4 @@
-import {Dictionary, Flipmode, ActivationFunctionTypes, OptimizationAlgorithmTypes, LossFunctionTypes, PoolingType} from "../globalcomponents/interfaces"
+import {Dictionary, Flipmode, ActivationFunctionTypes, ConvolutionModeTypes, WeightInitTypes, GradientNormalizationTypes, OptimizationAlgorithmTypes, LossFunctionTypes, PoolingType} from "../globalcomponents/interfaces"
 
 class CNNNodeService {
     /**
@@ -16,6 +16,8 @@ class CNNNodeService {
                 return this.prepareRotateImage();
             case "ResizeImage":
                 return this.prepareResizeImage();
+            case "DatasetAutoSplitStartNode":
+                return { name: "(S) D-AS" };
             case "TrainingDatasetStartNode":
                 return { name: "(S) TD" };
             case "ValidationDatasetStartNode":
@@ -36,6 +38,8 @@ class CNNNodeService {
                 return this.prepareDenseLayer();
             case "OutputLayer":
                 return this.prepareOutputLayer();
+            case "LocalResponseNormalizationLayer":  // ==========================================================
+                return this.prepareLocalResponseNormalizationLayer();
             case "SetInputType":
                 return this.prepareSetInputType();
             case "ConstructCNN":
@@ -94,12 +98,12 @@ class CNNNodeService {
     */
     prepareLoadDataset = () : Dictionary => {
         let name = "Load dataset";
-        let path = "C://DatasetFolder";
-        let imagewidth = 50;
-        let imageheight = 50;
+        let path = "C://Users//User//.deeplearning4j//data//dog-breed-identification";
+        let imagewidth = 224;
+        let imageheight = 224;
         let channels = 3;
-        let numLabels = 2;
-        let batchsize = 1;
+        let numLabels = 5;
+        let batchsize = 32;
         return {name, path, imagewidth, imageheight, channels, numLabels, batchsize };
     }
 
@@ -114,7 +118,12 @@ class CNNNodeService {
         let seed=Math.floor(Math.random() * 1000);
         let learningrate = 0.001;
         let optimizationalgorithm = OptimizationAlgorithmTypes.STOCHASTIC_GRADIENT_DESCENT;
-        return {name, seed, learningrate, optimizationalgorithm, };
+        let convolutionMode = ConvolutionModeTypes.Truncate;
+        let activationfunction = ActivationFunctionTypes.RELU;
+        let weightInit = WeightInitTypes.XAVIER;     
+        let gradientNormalization = GradientNormalizationTypes.RenormalizeL2PerLayer
+        return {name, seed, learningrate, optimizationalgorithm, convolutionMode, activationfunction, weightInit,
+             gradientNormalization};
     }
 
     /**
@@ -127,12 +136,18 @@ class CNNNodeService {
     */
     prepareConvolutionLayer = () : Dictionary => {
         let name = "Convolutional Layer";
+        // let ifEdit = true;
         let kernalx = 2, kernaly = 2;
         let stridex = 1, stridey = 1;
+        // ===========================================================================
+        let paddingx = 0, paddingy = 0;
         let nIn = 3;
         let nOut = 10;
-        let activationfunction = ActivationFunctionTypes.RELU;
-        return {name, kernalx, kernaly, stridex, stridey, nIn, nOut, activationfunction};
+        let activationfunction = ActivationFunctionTypes.RELU;        
+        let dropOut = 0, biasInit = 0;
+        let convolutionMode = ConvolutionModeTypes.Truncate;
+        return {name, kernalx, kernaly, stridex, stridey, paddingx, paddingy, nIn, nOut, activationfunction,
+             dropOut, biasInit, convolutionMode};
     }
 
     /**
@@ -145,8 +160,12 @@ class CNNNodeService {
         let name = "Subsampling Layer";
         let kernalx = 2, kernaly = 2;
         let stridex = 1, stridey = 1;
+        // ===========================================================================
+        let paddingx = 0, paddingy = 0;
         let poolingtype = PoolingType.MAX;
-        return { name, kernalx, kernaly, stridex, stridey, poolingtype };
+        let convolutionMode = ConvolutionModeTypes.Truncate;
+        return { name, kernalx, kernaly, stridex, stridey, paddingx, paddingy, poolingtype,
+            convolutionMode};
     }
 
     /**
@@ -159,8 +178,10 @@ class CNNNodeService {
         let name = "Dense Layer";
         let nIn = 0;
         let nOut = 5;
-        let activationfunction = ActivationFunctionTypes.RELU;
-        return {name, nIn, nOut, activationfunction};
+        let activationfunction = ActivationFunctionTypes.RELU;        
+        let dropOut = 0, biasInit = 0;
+        let weightInit = WeightInitTypes.XAVIER
+        return {name, nIn, nOut, activationfunction, dropOut, biasInit, weightInit};
     }
 
     /**
@@ -172,12 +193,20 @@ class CNNNodeService {
     */
     prepareOutputLayer = () : Dictionary => {
         let name = "Output Layer";
-        let nIn = 10;
+        let nIn = 3;
         let nOut = 2;
         let activationfunction = ActivationFunctionTypes.RELU;
         let lossfunction = LossFunctionTypes.NEGATIVELOGLIKELIHOOD;
-        return { name, nIn, nOut, activationfunction, lossfunction };
+        let weightInit = WeightInitTypes.XAVIER
+        return { name, nIn, nOut, activationfunction, lossfunction, weightInit };
     }
+
+    //========================================================================================
+    prepareLocalResponseNormalizationLayer = () : Dictionary => {
+        let name = "Local Response Normalization Layer";
+        return { name };
+    }
+    
 
     /**
      * SetInputType node data

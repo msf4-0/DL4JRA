@@ -8,10 +8,11 @@ import { waitFor } from 'wait-for-event'
 // CUSTOM IMPORT
 import Toolbar from './cnntoolbar'
 import ConfigurationPanel from './cnnconfigpanel'
+// =======================================================================================
 import {FlipImage, RotateImage, ResizeImage, 
-    TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
+    DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
     CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, 
-    SetInputType, ConstructCNN, TrainCNN, ValidateCNN, ExportCNN } from './cnnlayers'
+    SetInputType, ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer } from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -123,9 +124,9 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.nodeTypes = 
         {
             FlipImage, RotateImage, ResizeImage,
-            TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
+            DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
             CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, SetInputType, 
-            ConstructCNN, TrainCNN, ValidateCNN, ExportCNN,
+            ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer,
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -425,6 +426,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.setprogressmodalactive(true);
         this.setprogressmodalheader("RUNNING CNN SEQUENCE");
         await this.sendmessage("/server/cnn/startnewsequence", "");
+        await this.ConstructDatasetAutoSplitFlowSequence();
         await this.ConstructTrainingDatasetFlowSequence();
         await this.ConstructValidationDatasetFlowSequence();
         await this.ConstructCNNFlowSequence();
@@ -466,6 +468,34 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
     sendmessage = (destination: string, message: string) : Promise<any> => {
         this.cnnwebsocket.sendmessage(destination, message);
         return waitFor("processcompleted", this.eventemitter);
+    }
+
+/**
+     * Get and run the sequence of Auto Split Dataset
+     * 1. Find first node of type "DATASET AUTO-SPLIT (D-AS)"
+     * 2. Get the whole sequence if "DS-AP" node exists
+     * 3. Loop through the sequence and process each node
+     * 4. Wait for current node to complete before proceed to next node 
+    */
+    ConstructDatasetAutoSplitFlowSequence = async () : Promise<void> => {
+        let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("DatasetAutoSplitStartNode");
+        if (startnodeId === null) return;
+        let autosplitsequences : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
+        for(let index = 0; index < autosplitsequences.length; index++) {
+            if (! this.seqcancontinue) return;
+            let element = autosplitsequences[index];
+            if (element.type === "LoadDataset") {
+                await this.processnode("/server/cnn/loaddatasetautosplit", element.id, element.data);
+            } else if (element.type === "FlipImage") {
+                await this.processnode("/server/cnn/fliptrainingdataset", element.id, element.data);
+            } else if (element.type === "RotateImage") {
+                await this.processnode("/server/cnn/rotatetrainingdataset", element.id, element.data);
+            } else if (element.type === "ResizeImage") {
+                await this.processnode("/server/cnn/resizetrainingdataset", element.id, element.data);
+            } else if (element.type === "GenerateDatasetIterator") {
+                await this.processnode("/server/cnn/generatedatasetautosplititerator", element.id, element.data);
+            }
+        }
     }
 
     /**
@@ -554,7 +584,10 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 } else if (element.type === "OutputLayer") {
                     await this.processnodewithordering("/server/cnn/appendoutputlayer", element.id, element.data, ordering);
                     ordering++;
-                } else if (element.type === "SetInputType") {
+                } else if (element.type === "LocalResponseNormalizationLayer") {
+                    await this.processnodewithordering("/server/cnn/appendlocalresponsenormalizationlayer", element.id, element.data, ordering);
+                    ordering++;
+                }else if (element.type === "SetInputType") {
                     await this.processnode("/server/cnn/setinputtype", element.id, element.data);
                 } else if (element.type === "ConstructCNN") {
                     await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
@@ -594,19 +627,22 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         if (this.seqcancontinue)
             await this.processnode("/server/cnn/initializeconfiguration", "003", { seed: 1234, learningrate: 0.005, optimizationalgorithm: "STOCHASTIC_GRADIENT_DESCENT"});
         if (this.seqcancontinue)
-            await this.processnodewithordering("/server/cnn/appendconvolutionlayer", "004", {kernalx: 2, kernaly: 2, stridex: 1, stridey: 1, nIn: 1, nOut: 10, activationfunction: "RELU"}, 0);
+            await this.processnodewithordering("/server/cnn/appendconvolutionlayer", "004", {kernalx: 2, kernaly: 2, stridex: 1, stridey: 1, paddingx: 0, paddingy: 0, nIn: 1, nOut: 10, activationfunction: "RELU"}, 0);
         if (this.seqcancontinue)
-            await this.processnodewithordering("/server/cnn/appendsubsamplinglayer", "005", {kernalx: 2, kernaly: 2, stridex: 1, stridey: 1, poolingtype: "MAX"}, 1);
+            await this.processnodewithordering("/server/cnn/appendsubsamplinglayer", "005", {kernalx: 2, kernaly: 2, stridex: 1, stridey: 1, paddingx: 0, paddingy: 0, poolingtype: "MAX"}, 2);
         if (this.seqcancontinue)
-            await this.processnodewithordering("/server/cnn/appenddenselayer", "006", {nOut: 50, activationfunction: "RELU"}, 2);
+            await this.processnodewithordering("/server/cnn/appenddenselayer", "006", {nOut: 50, activationfunction: "RELU"}, 3);
         if (this.seqcancontinue)
-            await this.processnodewithordering("/server/cnn/appendoutputlayer", "007", {nOut: 2, activationfunction: "SOFTMAX", lossfunction: "NEGATIVELOGLIKELIHOOD"}, 3);
+            await this.processnodewithordering("/server/cnn/appendoutputlayer", "007", {nOut: 2, activationfunction: "SOFTMAX", lossfunction: "NEGATIVELOGLIKELIHOOD"}, 4);
         if (this.seqcancontinue)
-            await this.processnode("/server/cnn/setinputtype", "008", {imagewidth: 50, imageheight: 50, channels: 1});
+            await this.processnodewithordering("/server/cnnappendlocalresponsenormalizationlayer", "008", {}, 5)
         if (this.seqcancontinue)
-            await this.processnode("/server/cnn/constructnetwork", "009", {});
+            await this.processnode("/server/cnn/setinputtype", "009", {imagewidth: 50, imageheight: 50, channels: 1});
         if (this.seqcancontinue)
-            await this.processnode("/server/cnn/trainnetwork", "010", {epochs: 50, scoreListener: 1});
+            await this.processnode("/server/cnn/constructnetwork", "010", {});
+        if (this.seqcancontinue)
+            await this.processnode("/server/cnn/trainnetwork", "011", {epochs: 50, scoreListener: 1});
+            
         this.setprogressmodalcanclose(true);
         this.setprogresscanabort(false);
         this.setprogressbaranimated(false);

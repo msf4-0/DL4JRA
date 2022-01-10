@@ -1,7 +1,7 @@
-import React, {Component} from 'react'
+import React, {Component, useState} from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Button } from 'reactstrap'
 import {ActivationFunctionTypes, Dictionary, OptimizationAlgorithmTypes, PoolingType 
-, LossFunctionTypes, Flipmode } from "../globalcomponents/interfaces"
+, LossFunctionTypes, Flipmode, ConvolutionModeTypes, WeightInitTypes, GradientNormalizationTypes } from "../globalcomponents/interfaces"
 
 /**
  * CNN Configuration Panel props
@@ -19,6 +19,7 @@ interface ConfigurationPanelProps {
 interface ConfigurationPanelStates {
     active: boolean;
     data: Dictionary;
+    disabled: boolean;
 }
 
 
@@ -29,7 +30,8 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
         super(props);
         this.state = {
             active: false,
-            data: {}
+            data: {},
+            disabled: true,
         }
     }
 
@@ -48,7 +50,7 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
     handledataOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
         this.setState({
             data : { ...this.state.data, [event.target.name] : event.target.value }
-        });
+        }); 
     }
 
     /**
@@ -68,10 +70,14 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
         this.setState( { active : false, data : {} } )
     }
 
+    // onExit = () => {
+    //     setTitle("Goodbye 😀");
+    //   };
+
     render = () => {
         return (
             <>
-                <Modal isOpen={this.state.active} centered={true}>
+                <Modal isOpen={this.state.active} centered={true} onclose>
                     <ModalHeader>Node Configurations</ModalHeader>
                     <ModalBody>
                         <Form>
@@ -92,7 +98,7 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                             return (
                                                 <FormGroup key={config}>
                                                     <Label for="nIn">nIn</Label>
-                                                    <Input type='number' name='nIn' id='nIn' value={value} onChange={this.handledataOnchange} disabled={true}/>
+                                                    <Input type='number' name='nIn' id='nIn' value={value} disabled={true} onChange={this.handledataOnchange} />
                                                 </FormGroup>
                                             )
                                         case "learningrate":
@@ -104,8 +110,13 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         case "seed":
                                         case "kernalx":
                                         case "kernaly":
+                                        //===============================================================
                                         case "stridex":
                                         case "stridey":
+                                        case "paddingx":
+                                        case "paddingy":
+                                        case "dropOut":
+                                        case "biasInit":
                                         case "angle":
                                         case "nOut":
                                         case "epochs":
@@ -123,6 +134,39 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                     <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
                                                         { Object.keys(ActivationFunctionTypes).map( type => 
                                                                 <option key={type} value={ActivationFunctionTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                            </FormGroup>
+                                            )
+                                        case "convolutionMode":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>CONVOLUTION MODE</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(ConvolutionModeTypes).map( type => 
+                                                                <option key={type} value={ConvolutionModeTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                            </FormGroup>
+                                            )
+                                        case "weightInit":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>WEIGHT INIT</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(WeightInitTypes).map( type => 
+                                                                <option key={type} value={WeightInitTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                            </FormGroup>
+                                            )
+                                        case "gradientNormalization":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>Gradient Normalization</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(GradientNormalizationTypes).map( type => 
+                                                                <option key={type} value={GradientNormalizationTypes[type]}>{type}</option>
                                                         )}
                                                     </Input>
                                             </FormGroup>
@@ -189,6 +233,7 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                         <Button color='info' onClick={this.updatenodedata}>Update</Button>
                         <Button color="secondary" onClick={this.hidemodal}>Close</Button>
                     </ModalFooter>
+                
                 </Modal>
             </>
         )

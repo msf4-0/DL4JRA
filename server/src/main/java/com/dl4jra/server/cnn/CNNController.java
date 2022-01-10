@@ -4,8 +4,13 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
+
+import com.dl4jra.server.cnn.request.*;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.ConvolutionMode;
+import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
+import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.slf4j.Logger;
@@ -16,20 +21,6 @@ import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
-import com.dl4jra.server.cnn.request.CNNException;
-import com.dl4jra.server.cnn.request.Convolayernode;
-import com.dl4jra.server.cnn.request.Denselayernode;
-import com.dl4jra.server.cnn.request.Flipdatasetnode;
-import com.dl4jra.server.cnn.request.Inputnode;
-import com.dl4jra.server.cnn.request.Loaddatasetnode;
-import com.dl4jra.server.cnn.request.Mlconfigurationnode;
-import com.dl4jra.server.cnn.request.Modalsavingnode;
-import com.dl4jra.server.cnn.request.Nodeclass;
-import com.dl4jra.server.cnn.request.Outputlayernode;
-import com.dl4jra.server.cnn.request.Resizedatasetnode;
-import com.dl4jra.server.cnn.request.Rotatedatasetnode;
-import com.dl4jra.server.cnn.request.Subsamplinglayernode;
-import com.dl4jra.server.cnn.request.Trainnetworknode;
 import com.dl4jra.server.cnn.response.ErrorResponse;
 import com.dl4jra.server.cnn.response.RBProcessCompleted;
 import com.dl4jra.server.cnn.response.UpdateResponse;
@@ -98,6 +89,28 @@ public class CNNController {
 			throw new CNNException(exception.getMessage(), data.getNodeId());
 		}
 	}
+	/**
+	 * [WEBSOCKET] Load data set then auto split it into training and testing
+	 * @param data - Load dataset data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loaddatasetautosplit")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted LoadDatasetAutoSplit (Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.LoadDatasetAutoSplit(data.getPath(), data.getImagewidth(), data.getImageheight(), data.getChannels(), data.getNumLabels(), data.getBatchsize());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Dataset (Auto-split) loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
 
 	/**
 	 * [WEBSOCKET] Flip training dataset
@@ -186,7 +199,29 @@ public class CNNController {
 			throw new CNNException("Failed to initialize training dataset iterator", data.getNodeId());
 		}
 	}
-	
+
+	/**
+	 * Generate dataset (auto-split) iterator
+	 * @param data Generate ataset (auto-split) iterator data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generatedatasetautosplititerator")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted GenerateDatasetAutoSplitIterator(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.GenerateDatasetAutoSplitIterator();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Training and validating iterator has been generated");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to initialize dataset (auto-split) iterator", data.getNodeId());
+		}
+	}
+
 	/**
 	 * Load validation dataset
 	 * @param data - Load validation dataset data
@@ -297,7 +332,7 @@ public class CNNController {
 			throw new CNNException("Failed to initialize validation dataset iterator", data.getNodeId());
 		}
 	}
-	
+
 	/**
 	 *  Initialize configuration
 	 * @param data - CNN configuration data
@@ -309,8 +344,33 @@ public class CNNController {
 	public RBProcessCompleted InitializeConfigurations(Mlconfigurationnode data) throws Exception {
 		try
 		{
+            ConvolutionMode convolutionMode;
+            if (data.getConvolutionMode().equals("null")){
+                convolutionMode = null;
+            }
+            else{
+                convolutionMode = ConvolutionMode.valueOf(data.getConvolutionMode());
+            }
+
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			WeightInit weightInit;
+			if (data.getWeightInit().equals("null")){
+				weightInit = null;
+			}
+			else{
+				weightInit = WeightInit.valueOf(data.getWeightInit());
+			}
+
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.InitializeConfigurations(data.getSeed(), data.getLearningrate(), OptimizationAlgorithm.valueOf(data.getOptimizationalgorithm()));
+			this.cnn.InitializeConfigurations(data.getSeed(), data.getLearningrate(), OptimizationAlgorithm.valueOf(data.getOptimizationalgorithm()),
+                    convolutionMode, activation, weightInit, GradientNormalization.valueOf(data.getGradientNormalization()));
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("CNN has been initialized");
 		}
@@ -319,7 +379,7 @@ public class CNNController {
 			throw new CNNException("Failed to initialize CNN configurations", data.getNodeId());
 		}
 	}
-	
+
 	/**
 	 * Append convolution layer
 	 * @param data - Convolution layer configuration data
@@ -332,8 +392,26 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.AppendConvolutionLayer(data.getOrdering(), data.getnIn(), data.getnOut(), 
-					data.getKernalx(), data.getKernaly(), data.getStridex(), data.getStridey(), Activation.fromString(data.getActivationfunction()));
+
+			ConvolutionMode convolutionMode;
+			if (data.getConvolutionMode().equals("null")){
+				convolutionMode = null;
+			}
+			else{
+				convolutionMode = ConvolutionMode.valueOf(data.getConvolutionMode());
+			}
+
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			this.cnn.AppendConvolutionLayer(data.getOrdering(), data.getnIn(), data.getnOut(), data.getKernalx(), data.getKernaly(),
+					data.getStridex(), data.getStridey(), data.getPaddingx(), data.getPaddingy(), activation,
+					data.getDropOut(), data.getBiasInit(), convolutionMode);
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Convolution layer has been appended to CNN (ordering: " + data.getOrdering() + ")");
 		}
@@ -355,8 +433,16 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			ConvolutionMode convolutionMode;
+			if (data.getConvolutionMode().equals("null")){
+				convolutionMode = null;
+			}
+			else{
+				convolutionMode = ConvolutionMode.valueOf(data.getConvolutionMode());
+			}
 			this.cnn.AppendSubsamplingLayer(data.getOrdering(), data.getKernalx(), data.getKernaly(), data.getStridex(), 
-					data.getStridey(), PoolingType.valueOf(data.getPoolingtype()));
+					data.getStridey(), data.getPaddingx(), data.getPaddingy(), PoolingType.valueOf(data.getPoolingtype()),
+					convolutionMode);
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Subsampling layer has been appended to CNN (ordering: " + data.getOrdering() + ")");
 		} 
@@ -378,7 +464,24 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.AppendDenseLayer(data.getOrdering(), data.getnOut(), Activation.fromString(data.getActivationfunction()));
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			WeightInit weightInit;
+			if (data.getWeightInit().equals("null")){
+				weightInit = null;
+			}
+			else{
+				weightInit = WeightInit.valueOf(data.getWeightInit());
+			}
+
+			this.cnn.AppendDenseLayer(data.getOrdering(),data.getnOut(), activation,
+					data.getDropOut(), data.getBiasInit(), weightInit);
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Dense layer has been appended to CNN (ordering: " + data.getOrdering() + ")");
 		} 
@@ -401,12 +504,52 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			WeightInit weightInit;
+			if (data.getWeightInit().equals("null")){
+				weightInit = null;
+			}
+			else{
+				weightInit = WeightInit.valueOf(data.getWeightInit());
+			}
+
 			this.cnn.AppendOutputLayer(data.getOrdering(), data.getnOut(), 
-					Activation.valueOf(data.getActivationfunction()), LossFunction.valueOf(data.getLossfunction()));
+					activation, LossFunction.valueOf(data.getLossfunction()), weightInit);
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Output layer has been appended to CNN (ordering: " + data.getOrdering() + ")");
 		} 
 		catch (Exception exception) 
+		{
+			throw new CNNException("Failed to append output layer", data.getNodeId());
+		}
+	}
+
+//	===============================================================================================================================
+	/**
+	 * Append Local Response Normalization layer
+	 * @param data - Local Response Normalization layer configuration data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/appendlocalresponsenormalizationlayer")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted AppendLocalResponseNormalizationLayer(LocalResponseNormalizaionNode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.AppendLocalResponseNormalizationLayer(data.getOrdering());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Local Response Normalization layer has been appended to CNN (ordering: " + data.getOrdering() + ")");
+		}
+		catch (Exception exception)
 		{
 			throw new CNNException("Failed to append output layer", data.getNodeId());
 		}
@@ -448,6 +591,7 @@ public class CNNController {
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
 			this.cnn.ConstructNetwork();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			System.out.println("OHHHHHHHHHHHHHHHH");
 			return new RBProcessCompleted("Convolutional network has been initialized and is ready to be trained");
 		} 
 		catch (Exception exception) 
@@ -467,6 +611,7 @@ public class CNNController {
 	public RBProcessCompleted TrainNetwork(Trainnetworknode data) throws Exception {
 		try 
 		{
+			System.out.println(new RBProcessCompleted("START TRAINING"));
 			this.cnn.TrainNetwork(data.getEpochs(), data.getScoreListener(), template);
 			return new RBProcessCompleted("Network training completed");
 		}

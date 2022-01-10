@@ -1,11 +1,15 @@
 package com.dl4jra.server.cnn;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Random;
 
+import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
+import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
 import org.datavec.image.transform.FlipImageTransform;
@@ -23,8 +27,21 @@ public class CNNDatasetGenerator {
 	private ArrayList<Pair<ImageTransform, Double>> transforms = new ArrayList<Pair<ImageTransform, Double>>();
 
 	private int numLabels, batchsize;
+	private int trainPerc = 80;
 	private FileSplit filesplit;
+	private InputSplit trainData,testData;
 	private ImageRecordReader recordReader;
+	//Images are of format given by allowedExtension
+	private static final String [] allowedExtensions = BaseImageLoader.ALLOWED_FORMATS;
+	//Random number generator
+	private static final Random rng  = new Random(123);
+	//scale input to 0 - 1
+	private static DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+	private static ImageTransform transform;
+	private int height, width, channels;
+
+	public CNNDatasetGenerator() {
+	}
 
 	/**
 	 * Load image dataset
@@ -54,6 +71,46 @@ public class CNNDatasetGenerator {
 
 		ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
 		this.recordReader = new ImageRecordReader(imagewidth, imageheight, channels, labelMaker);
+	}
+
+
+	/**
+	 * Load image dataset
+	 * @param path - Path to image dataset
+	 * @param imagewidth - Width of image dataset
+	 * @param imageheight - Height of image dataset
+	 * @param channels - Channel of image dataset
+	 * @param numLabels - Number of labels
+	 * @param batchsize - Iterator batch size
+	 * @param randomize - Randomize dataset ordering
+	 * @throws Exception
+	 */
+	public void LoadDataAutoSplit(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize,
+						 boolean randomize) throws Exception {
+
+		this.numLabels = numLabels;
+		this.batchsize = batchsize;
+		this.height = imageheight;
+		this.width = imagewidth;
+		this.channels = channels;
+
+		ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
+
+		File parentDir = new File(path);
+		this.filesplit = new FileSplit(parentDir, allowedExtensions, rng);
+		BalancedPathFilter pathFilter = new BalancedPathFilter(rng, allowedExtensions, labelMaker);
+
+		if (trainPerc >= 100) {
+			throw new IllegalArgumentException("Percentage of data set aside for training has to be less than 100%. Test percentage = 100 - training percentage, has to be greater than 0");
+		}
+
+		//Split the image files into train and test
+		InputSplit[] filesInDirSplit = this.filesplit.sample(pathFilter, trainPerc, 100-trainPerc);
+//        this.trainData = filesInDirSplit[0];
+//        this.testData = filesInDirSplit[1];
+		trainData = filesInDirSplit[0];
+        testData = filesInDirSplit[1];
+//		this.recordReader = new ImageRecordReader(imagewidth, imageheight, channels, labelMaker);
 	}
 
 	/**
@@ -95,7 +152,31 @@ public class CNNDatasetGenerator {
 		this.recordReader.initialize(this.filesplit, new PipelineImageTransform(transforms, false));
 		DataSetIterator dataIter = new RecordReaderDataSetIterator(this.recordReader, this.batchsize, 1,
 				this.numLabels);
-		DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+//		DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+		scaler.fit(dataIter);
+		dataIter.setPreProcessor(scaler);
+		return dataIter;
+	}
+
+	public DataSetIterator trainIterator() throws Exception {
+		return makeIterator(trainData, true);
+	}
+
+	public DataSetIterator testIterator() throws Exception {
+		return makeIterator(testData, false);
+	}
+
+
+	private DataSetIterator makeIterator(InputSplit split, boolean training) throws Exception {
+		ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
+		recordReader = new ImageRecordReader(height, width, channels, labelMaker);
+		if (training && transform != null){
+			recordReader.initialize(split,transform);
+		}else{
+			recordReader.initialize(split);
+		}
+		DataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchsize, 1,
+				numLabels);
 		scaler.fit(dataIter);
 		dataIter.setPreProcessor(scaler);
 		return dataIter;

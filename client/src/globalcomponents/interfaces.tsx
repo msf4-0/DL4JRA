@@ -25,6 +25,59 @@ export enum ActivationFunctionTypes {
     TANH = "TANH",
     SIGMOID = "SIGMOID",
     SOFTMAX = "SOFTMAX",
+    null = "null",
+}
+
+/**
+ * Convolution Mode types
+*/
+export enum ConvolutionModeTypes {
+    Truncate = "Truncate",
+    Same = "Same",
+    Causal = "Causal",
+    Strict = "Strict",
+    null = "null",
+}
+
+
+/**
+ * Weight Init types
+*/
+export enum WeightInitTypes {
+    DISTRIBUTION = "DISTRIBUTION", 
+    ZERO = "ZERO", 
+    ONES = "ONES", 
+    SIGMOID_UNIFORM = "SIGMOID_UNIFORM", 
+    NORMAL = "NORMAL", 
+    LECUN_NORMAL = "LECUN_NORMAL", 
+    UNIFORM = "UNIFORM", 
+    XAVIER = "XAVIER", 
+    XAVIER_UNIFORM = "XAVIER_UNIFORM", 
+    XAVIER_FAN_IN = "XAVIER_FAN_IN", 
+    XAVIER_LEGACY = "XAVIER_LEGACY", 
+    RELU = "RELU",
+    RELU_UNIFORM = "RELU_UNIFORM", 
+    IDENTITY = "IDENTITY", 
+    LECUN_UNIFORM = "LECUN_UNIFORM", 
+    VAR_SCALING_NORMAL_FAN_IN = "VAR_SCALING_NORMAL_FAN_IN", 
+    VAR_SCALING_NORMAL_FAN_OUT = "VAR_SCALING_NORMAL_FAN_OUT", 
+    VAR_SCALING_NORMAL_FAN_AVG = "VAR_SCALING_NORMAL_FAN_AVG",
+    VAR_SCALING_UNIFORM_FAN_IN = "VAR_SCALING_UNIFORM_FAN_IN", 
+    VAR_SCALING_UNIFORM_FAN_OUT = "VAR_SCALING_UNIFORM_FAN_OUT", 
+    VAR_SCALING_UNIFORM_FAN_AVG = "VAR_SCALING_UNIFORM_FAN_AVG",
+    null = "null",
+}
+
+/**
+ * Weight Init types
+*/
+export enum GradientNormalizationTypes {
+    None = "None", 
+    RenormalizeL2PerLayer = "RenormalizeL2PerLayer", 
+    RenormalizeL2PerParamType = "RenormalizeL2PerParamType", 
+    ClipElementWiseAbsoluteValue = "ClipElementWiseAbsoluteValue", 
+    ClipL2PerLayer = "ClipL2PerLayer", 
+    ClipL2PerParamType = "ClipL2PerParamType",
 }
 
 /**

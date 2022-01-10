@@ -81,6 +81,7 @@ export default class WebcamCapture extends Component <webcamprops, webcamstates>
 
     /** Get all available video source connected to user device */
     getallvideodevices = () : void => {
+	navigator.mediaDevices.getUserMedia({audio: true, video: true})
         navigator.mediaDevices.enumerateDevices().then(this.updatecameradevices);
     }
 
@@ -90,7 +91,9 @@ export default class WebcamCapture extends Component <webcamprops, webcamstates>
      * @param mediadevices - All media devices detected (including audio, video etc.)
     */
     updatecameradevices = (mediadevices: MediaDeviceInfo[]) : void => {
+	console.log(mediadevices);
         let cameradevices = mediadevices.filter( ({kind}) => kind === "videoinput");
+	console.log(cameradevices); 
         this.setCameraDevices(cameradevices);
     }
 

@@ -58,6 +58,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 <div style={{ margin: 5, padding: 5, }}>   
                     <div className='description'>DATASETS</div>
                     
+                    {/* DATASET AUTO SPLIT STARTNODE  */}
+                    <ToolboxNode nodetype="DatasetAutoSplitStartNode" nodename="DS-AS (S)" />
+
                     {/* TRAINING DATASET STARTNODE  */}
                     <ToolboxNode nodetype="TrainingDatasetStartNode" nodename="TDS (S)" />
 
@@ -93,6 +96,10 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                      {/* OUTPUT LAYER */}
                      <ToolboxNode nodetype="OutputLayer" nodename="Output" />
+
+                    {/* ============================================================================================ */}
+                    {/* LOCAL RESPONSE NORMALIZATION LAYER */}
+                    <ToolboxNode nodetype="LocalResponseNormalizationLayer" nodename="Local Response Normalization" />
 
                      {/* SET INPUT TYPE */}
                      <ToolboxNode nodetype="SetInputType" nodename="I.Type" />

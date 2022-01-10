@@ -4,19 +4,21 @@ public class Outputlayernode extends Nodeclass{
 	/* Output layer node data */
 
 	private int ordering, nIn, nOut;
-	private String activationfunction, lossfunction;
+	private String activationfunction, lossfunction, weightInit;
 	
 	public Outputlayernode() {
 		
 	}
 	
-	public Outputlayernode(String nodeId, int ordering, int nIn, int nOut, String activationfunction, String lossfunction) {
+	public Outputlayernode(String nodeId, int ordering, int nIn, int nOut, String activationfunction, String lossfunction,
+						   String weightInit) {
 		super(nodeId);
 		this.ordering = ordering;
 		this.nIn = nIn;
 		this.nOut = nOut;
 		this.activationfunction = activationfunction;
 		this.lossfunction = lossfunction;
+		this.weightInit = weightInit;
 	}
 
 	public int getOrdering() {
@@ -58,5 +60,12 @@ public class Outputlayernode extends Nodeclass{
 	public void setLossfunction(String lossfunction) {
 		this.lossfunction = lossfunction;
 	}
-	
+
+	public String getWeightInit() {
+		return weightInit;
+	}
+
+	public void setWeightInit(String weightInit) {
+		this.weightInit = weightInit;
+	}
 }

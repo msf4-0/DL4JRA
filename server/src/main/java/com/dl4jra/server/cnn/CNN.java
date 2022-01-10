@@ -3,12 +3,19 @@ package com.dl4jra.server.cnn;
 import java.io.File;
 
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.ConvolutionMode;
+import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.optimize.api.InvocationType;
+import org.deeplearning4j.optimize.listeners.EvaluativeListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
+import org.slf4j.Logger;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -20,7 +27,7 @@ public class CNN {
 	private CNNConfiguration cnnconfig;
 	private MultiLayerNetwork network;
 	private boolean networkconstructed;
-	
+
 	// Training dataset properties
 	private DataSetIterator TrainingDatasetIterator;
 	private CNNDatasetGenerator TrainingDatasetGenerator;
@@ -28,8 +35,8 @@ public class CNN {
 	// Validation dataset properties
 	private CNNDatasetGenerator ValidationDatasetGenerator;
 	private DataSetIterator ValidationDatasetIterator;
-	
-	
+
+
 	// Constructor
 	public CNN() {
 		this.network = null;
@@ -55,6 +62,10 @@ public class CNN {
 	 */
 	public void LoadTrainingDataset(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception{
 		this.TrainingDatasetGenerator.LoadData(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
+	}
+
+	public void LoadDatasetAutoSplit(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception{
+		this.TrainingDatasetGenerator.LoadDataAutoSplit(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
 	}
 	
 	/**
@@ -92,7 +103,20 @@ public class CNN {
 	public void GenerateTrainingDatasetIterator() throws Exception{
 		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.GetDatasetIterator();
 	}
-	
+
+	public void GenerateDatasetAutoSplitIterator() throws Exception{
+		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainIterator();
+		this.ValidationDatasetIterator = this.TrainingDatasetGenerator.testIterator();
+	}
+
+	public void GenerateTrainningDatasetAutoSplitIterator() throws Exception{
+		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainIterator();
+	}
+
+	public void GenerateValidatingDatasetAutoSplitIterator() throws Exception{
+		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.testIterator();
+	}
+
 	/**
 	 * Load validation dataset
 	 * @param path - Path to validation dataset
@@ -149,8 +173,11 @@ public class CNN {
 	 * @param learningrate - Learning rate of network
 	 * @param optimizationalgorithm - Optimization algorithm
 	 */
-	public void InitializeConfigurations(int seed, double learningrate, OptimizationAlgorithm optimizationalgorithm) {
-		this.cnnconfig.Initialize(seed, learningrate, optimizationalgorithm);
+	public void InitializeConfigurations(int seed, double learningrate, OptimizationAlgorithm optimizationalgorithm,
+										 ConvolutionMode convolutionMode, Activation activation, WeightInit weightInit,
+										 GradientNormalization gradientNormalization) {
+		this.cnnconfig.Initialize(seed, learningrate, optimizationalgorithm, convolutionMode, activation, weightInit,
+				gradientNormalization);
 	}
 
 	/**
@@ -165,9 +192,31 @@ public class CNN {
 	 * @param activationfunction - Layer's activation function
 	 * @throws Exception
 	 */
-	public void AppendConvolutionLayer(int ordering, int nIn, int nOut, int kernalx, int kernaly, int stridex, int stridey, Activation activationfunction) throws Exception{
-		this.cnnconfig.AppendConvolutionLayer(ordering, nIn, nOut, kernalx, kernaly, stridex, stridey, activationfunction);
+	public void AppendConvolutionLayer(int ordering, int nIn, int nOut, int kernalx, int kernaly, int stridex, int stridey,
+									   int paddingx, int paddingy, Activation activationfunction, double dropOut, double biasInit,
+									   ConvolutionMode convolutionMode) throws Exception{
+		int numChannel = 3;
+		int firstLayer = 0;
+		boolean boo = (nIn == numChannel && ordering != firstLayer);
+		System.out.printf(String.valueOf(boo));
+		if(boo){
+			AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
+					activationfunction, dropOut, biasInit, convolutionMode);
+		}
+		else {
+			this.cnnconfig.AppendConvolutionLayer(ordering, nIn, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
+					activationfunction, dropOut, biasInit, convolutionMode);
+		}
 	}
+
+
+	public void AppendConvolutionLayer(int ordering, int nOut, int kernalx, int kernaly, int stridex, int stridey,
+									   int paddingx, int paddingy, Activation activationfunction, double dropOut, double biasInit,
+									   ConvolutionMode convolutionMode) throws Exception{
+		this.cnnconfig.AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
+				activationfunction, dropOut, biasInit, convolutionMode);
+	}
+
 	
 	/**
 	 * Append subsampling layer
@@ -179,8 +228,10 @@ public class CNN {
 	 * @param poolingType - Pooling type (min/max/average)
 	 * @throws Exception
 	 */
-	public void AppendSubsamplingLayer (int ordering, int kernalx, int kernaly, int stridex, int stridey, PoolingType poolingType) throws Exception {
-		this.cnnconfig.AppendSubsamplingLayer(ordering, kernalx, kernaly, stridex, stridey, poolingType);
+	public void AppendSubsamplingLayer (int ordering, int kernalx, int kernaly, int stridex, int stridey,
+										int paddingx, int paddingy, PoolingType poolingType,
+										ConvolutionMode convolutionMode) throws Exception {
+		this.cnnconfig.AppendSubsamplingLayer(ordering, kernalx, kernaly, stridex, stridey, paddingx, paddingy, poolingType, convolutionMode);
 	}
 	
 	/**
@@ -188,10 +239,12 @@ public class CNN {
 	 * @param ordering - Ordering of layer
 	 * @param nOut - Number of node
 	 * @param activationfunction - Layer's activation function
+	 * @param dropOut
 	 * @throws Exception
 	 */
-	public void AppendDenseLayer (int ordering, int nOut, Activation activationfunction) throws Exception {
-		this.cnnconfig.AppendDenseLayer(ordering, nOut, activationfunction);
+	public void AppendDenseLayer(int ordering, int nOut, Activation activationfunction, double dropOut, double biasInit,
+								 WeightInit weightInit) throws Exception {
+		this.cnnconfig.AppendDenseLayer(ordering, nOut, activationfunction, dropOut, biasInit, weightInit);
 	}
 	
 	/**
@@ -202,8 +255,14 @@ public class CNN {
 	 * @param lossfunction - Layer's loss function
 	 * @throws Exception
 	 */
-	public void AppendOutputLayer (int ordering, int nOut, Activation activationfunction, LossFunction lossfunction) throws Exception {
-		this.cnnconfig.AppendOutputLayer(ordering, nOut, activationfunction, lossfunction);
+	public void AppendOutputLayer (int ordering, int nOut, Activation activationfunction, LossFunction lossfunction,
+								   WeightInit weightInit) throws Exception {
+		this.cnnconfig.AppendOutputLayer(ordering, nOut, activationfunction, lossfunction, weightInit);
+	}
+
+//	=============================================================================================================================
+	public void AppendLocalResponseNormalizationLayer (int ordering) throws Exception {
+		this.cnnconfig.AppendLocalResponseNormalizationLayer(ordering);
 	}
 
 	/**
@@ -225,6 +284,11 @@ public class CNN {
 		this.network = new MultiLayerNetwork(this.cnnconfig.build());
 		this.network.init();
 		this.networkconstructed = true;
+		this.network.setListeners(
+				new ScoreIterationListener(5),
+				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
+				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+		);
 	}
 	
 	/**
