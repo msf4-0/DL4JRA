@@ -12,7 +12,9 @@ import ConfigurationPanel from './cnnconfigpanel'
 import {FlipImage, RotateImage, ResizeImage, 
     DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
     CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, 
-    SetInputType, ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer } from './cnnlayers' 
+    SetInputType, ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer,
+    LoadDatasetCSV, TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV ,RNNStartNode, RNNConfiguration, RnnOutputLayer,
+    AddInput, SetOutput, LSTM, ConstructNetworkRNN} from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -127,6 +129,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
             CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, SetInputType, 
             ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer,
+            LoadDatasetCSV,TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV,
+            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, LSTM, ConstructNetworkRNN
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -429,7 +433,10 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         await this.ConstructDatasetAutoSplitFlowSequence();
         await this.ConstructTrainingDatasetFlowSequence();
         await this.ConstructValidationDatasetFlowSequence();
+        await this.ConstructTrainingDatasetFlowSequence_CSV();
+        await this.ConstructValidationDatasetFlowSequence_CSV();
         await this.ConstructCNNFlowSequence();
+        await this.ConstructRNNFlowSequence();
         this.setprogressmodalcanclose(true);
         this.setprogresscanabort(false);
     }
@@ -500,8 +507,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
 
     /**
      * Get and run the sequence of Training Dataset
-     * 1. Find first node of type "TRAINING DATASET STARTNODE (TDS)"
-     * 2. Get the whole sequence if "TDS" node exists
+     * 1. Find first node of type "TRAINING STARTNODE IMGAE"
+     * 2. Get the whole sequence if "TRAINING STARTNODE IMGAE" node exists
      * 3. Loop through the sequence and process each node
      * 4. Wait for current node to complete before proceed to next node 
     */
@@ -528,8 +535,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
 
     /**
      * Get and run the sequence of Training Dataset
-     * 1. Find first node of type "VALIDATION DATASET STARTNODE (VDS)"
-     * 2. Get the whole sequence if "VDS" node exists
+     * 1. Find first node of type "VALIDATION STARTNODE IMGAE(VDS)"
+     * 2. Get the whole sequence if "VALIDATION STARTNODE IMGAE" node exists
      * 3. Loop through the sequence and process each node
      * 4. Wait for current node to complete before proceed to next node 
     */
@@ -553,6 +560,62 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             }
         }
     }
+
+    /**
+     * Get and run the sequence of Training Dataset
+     * 1. Find first node of type "TRAINING STARTNODE CSV (TDS)"
+     * 2. Get the whole sequence if "TRAINING STARTNODE CSV " node exists
+     * 3. Loop through the sequence and process each node
+     * 4. Wait for current node to complete before proceed to next node 
+    */
+     ConstructTrainingDatasetFlowSequence_CSV = async () : Promise<any> => {
+        let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("TrainingDatasetStartNodeCSV");
+        if (startnodeId === null) return;
+        let trainingsequences : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
+        for(let index = 0; index < trainingsequences.length; index++) {
+            if (! this.seqcancontinue) return;
+            let element = trainingsequences[index];
+            if (element.type === "LoadDatasetCSV") {
+                await this.processnode("/server/cnn/loadtrainingdataset_csv", element.id, element.data);
+            } else if (element.type === "FlipImage") {
+                await this.processnode("/server/cnn/fliptrainingdataset", element.id, element.data);
+            } else if (element.type === "RotateImage") {
+                await this.processnode("/server/cnn/rotatetrainingdataset", element.id, element.data);
+            } else if (element.type === "ResizeImage") {
+                await this.processnode("/server/cnn/resizetrainingdataset", element.id, element.data);
+            } else if (element.type === "GenerateDatasetIteratorCSV") {
+                await this.processnode("/server/cnn/generatetrainingdatasetiterator_csv", element.id, element.data);
+            }
+        }
+    }
+
+        /**
+     * Get and run the sequence of Training Dataset
+     * 1. Find first node of type "VALIDATION STARTNODE CSV(VDS)"
+     * 2. Get the whole sequence if "VALIDATION STARTNODE CSV " node exists
+     * 3. Loop through the sequence and process each node
+     * 4. Wait for current node to complete before proceed to next node 
+    */
+         ConstructValidationDatasetFlowSequence_CSV = async () : Promise<any> => {
+            let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ValidationDatasetStartNodeCSV");
+            if (startnodeId === null) return;
+            let validationsequences : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
+            for(let index = 0; index < validationsequences.length; index++) {
+                if (! this.seqcancontinue) return;
+                let element = validationsequences[index];
+                if (element.type === "LoadDatasetCSV") {
+                    await this.processnode("/server/cnn/loadvalidationdataset_csv", element.id, element.data);
+                } else if (element.type === "FlipImage") {
+                    await this.processnode("/server/cnn/flipvalidationdataset", element.id, element.data);
+                } else if (element.type === "RotateImage") {
+                    await this.processnode("/server/cnn/rotatevalidationdataset", element.id, element.data);
+                } else if (element.type === "ResizeImage") {
+                    await this.processnode("/server/cnn/resizevalidationdataset", element.id, element.data);
+                } else if (element.type === "GenerateDatasetIteratorCSV") {
+                    await this.processnode("/server/cnn/generatevalidationdatasetiterator_csv", element.id, element.data);
+                }
+            }
+        }
 
     /**
      * Get and run the sequence of Training Dataset
@@ -602,6 +665,45 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         }
     }
 
+    
+    /**
+     * Get and run the sequence of Training Dataset
+     * 1. Find first node of type "CNN STARTNODE"
+     * 2. Get the whole sequence if "CNN STARTNODE" exists
+     * 3. Loop through the sequence and process each node
+     * 4. Wait for current node to complete before proceed to next node 
+    */
+     ConstructRNNFlowSequence = async () : Promise<any> => {
+        let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("RNNStartNode");
+        let cnnsequences : FlowElement[];
+        if (cnnstartnodeId !== null) {
+            cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
+            let ordering = 0;
+            for (let index = 0; index < cnnsequences.length; index ++) {
+                if (! this.seqcancontinue) return;
+                let element = cnnsequences[index];
+                if (element.type === "RNNConfiguration") {
+                    await this.processnode("/server/cnn/initializeconfiguration_rnn", element.id, element.data);
+                } else if (element.type === "AddInput") {
+                    await this.processnode("/server/cnn/addinput", element.id, element.data);
+                } else if (element.type === "SetOutput") {
+                    await this.processnode("/server/cnn/setoutput", element.id, element.data);
+                } else if (element.type === "LSTM") {
+                    await this.processnode("/server/cnn/appendlstm", element.id, element.data);
+                } else if (element.type === "RnnOutputLayer") {
+                    await this.processnode("/server/cnn/appendrnnoutputlayer", element.id, element.data);
+                } else if (element.type === "ConstructNetworkRNN") {
+                    await this.processnode("/server/cnn/constructnetwork_rnn", element.id, element.data);
+                }else if (element.type === "TrainCNN") {
+                    await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                } else if (element.type === "ValidateCNN") {
+                    await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
+                } else if (element.type === "ExportCNN") {
+                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                }
+            }
+        }
+    }
     /**
      * Test functionality of flow (without constructing node)
      * 1. Start new sequence

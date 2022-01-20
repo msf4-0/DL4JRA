@@ -5,7 +5,9 @@ import java.io.File;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.conf.RNNFormat;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
+import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
@@ -13,9 +15,10 @@ import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
-import org.slf4j.Logger;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -25,7 +28,8 @@ import com.dl4jra.server.globalresponse.Messageresponse;
 public class CNN {
 	// Neural network properties
 	private CNNConfiguration cnnconfig;
-	private MultiLayerNetwork network;
+	private MultiLayerNetwork multiLayerNetwork;
+	private ComputationGraph computationGraph;
 	private boolean networkconstructed;
 
 	// Training dataset properties
@@ -39,7 +43,8 @@ public class CNN {
 
 	// Constructor
 	public CNN() {
-		this.network = null;
+		this.multiLayerNetwork = null;
+		this.computationGraph = null;
 		this.networkconstructed = false;
 		this.cnnconfig = new CNNConfiguration();
 
@@ -67,7 +72,7 @@ public class CNN {
 	public void LoadDatasetAutoSplit(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception{
 		this.TrainingDatasetGenerator.LoadDataAutoSplit(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
 	}
-	
+
 	/**
 	 * Flip training dataset 
 	 * @param flipmode - Flip image (x-axis/y-axis/both axis)
@@ -107,14 +112,6 @@ public class CNN {
 	public void GenerateDatasetAutoSplitIterator() throws Exception{
 		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainIterator();
 		this.ValidationDatasetIterator = this.TrainingDatasetGenerator.testIterator();
-	}
-
-	public void GenerateTrainningDatasetAutoSplitIterator() throws Exception{
-		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainIterator();
-	}
-
-	public void GenerateValidatingDatasetAutoSplitIterator() throws Exception{
-		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.testIterator();
 	}
 
 	/**
@@ -166,6 +163,23 @@ public class CNN {
 	public void GenerateValidationDatasetIterator() throws Exception {
 		this.ValidationDatasetIterator = this.ValidationDatasetGenerator.GetDatasetIterator();
 	}
+
+	public void LoadTrainingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws Exception{
+		this.TrainingDatasetGenerator.LoadTrainDataCSV(path, numSkipLines, numClassLabels, batchsize, delimeter);
+	}
+
+	public void LoadTestingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws Exception{
+		this.ValidationDatasetGenerator.LoadTestDataCSV(path, numSkipLines, numClassLabels, batchsize, delimeter);
+	}
+
+
+	public void GenerateTrainingDatasetIteratorCSV() throws Exception {
+		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainDataSetIteratorCSV();
+	}
+
+	public void GenerateValidatingDatasetIteratorCSV() throws Exception{
+		this.ValidationDatasetIterator = this.ValidationDatasetGenerator.testDataSetIteratorCSV();
+	}
 	
 	/**
 	 * Initialize configuration
@@ -176,8 +190,13 @@ public class CNN {
 	public void InitializeConfigurations(int seed, double learningrate, OptimizationAlgorithm optimizationalgorithm,
 										 ConvolutionMode convolutionMode, Activation activation, WeightInit weightInit,
 										 GradientNormalization gradientNormalization) {
-		this.cnnconfig.Initialize(seed, learningrate, optimizationalgorithm, convolutionMode, activation, weightInit,
+		this.cnnconfig.InitializeListBuilder(seed, learningrate, optimizationalgorithm, convolutionMode, activation, weightInit,
 				gradientNormalization);
+	}
+
+	public void InitializeConfigurationsGraphBuilder(int seed, double learningrate, OptimizationAlgorithm optimizationalgorithm,
+													 WeightInit weightInit) {
+		this.cnnconfig.InitializeGraphBuilder(seed, learningrate, optimizationalgorithm, weightInit);
 	}
 
 	/**
@@ -198,7 +217,6 @@ public class CNN {
 		int numChannel = 3;
 		int firstLayer = 0;
 		boolean boo = (nIn == numChannel && ordering != firstLayer);
-		System.out.printf(String.valueOf(boo));
 		if(boo){
 			AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
 					activationfunction, dropOut, biasInit, convolutionMode);
@@ -265,6 +283,27 @@ public class CNN {
 		this.cnnconfig.AppendLocalResponseNormalizationLayer(ordering);
 	}
 
+	public void AppendLSTMLayer (String name, int nOut, Activation activationfunction, String layerInput) throws Exception {
+		int nIn = this.TrainingDatasetIterator.inputColumns();
+		this.cnnconfig.AppendLSTMLayer(name, nIn, nOut, activationfunction, layerInput);
+	}
+
+	public void AppendRnnOutputLayer(String name, RNNFormat rnnFormat, int nIn, int nOut, LossFunction lossFunction,
+									 Activation activationfunction, String layerInput) throws Exception {
+		this.cnnconfig.AppendRnnOutputLayer(name, rnnFormat, nIn, nOut, lossFunction, activationfunction, layerInput);
+	}
+
+	public void AddInput(String inputName){
+		this.cnnconfig.AddInput(inputName);
+	}
+
+	public void SetOutput(String outputName){
+		this.cnnconfig.SetOutput(outputName);
+	}
+
+
+
+
 	/**
 	 * Set input type
 	 * @param imagewidth - Width of image dataset
@@ -281,16 +320,46 @@ public class CNN {
 	 * @throws Exception
 	 */
 	public void ConstructNetwork() throws Exception{
-		this.network = new MultiLayerNetwork(this.cnnconfig.build());
-		this.network.init();
+		this.multiLayerNetwork = new MultiLayerNetwork(this.cnnconfig.build());
+		this.multiLayerNetwork.init();
 		this.networkconstructed = true;
-		this.network.setListeners(
+		this.multiLayerNetwork.setListeners(
 				new ScoreIterationListener(5),
 				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
 				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
 		);
 	}
-	
+
+	public void ConstructNetworkRNN(){
+		this.computationGraph = new ComputationGraph(this.cnnconfig.build_Graph());
+		this.computationGraph.init();
+		this.networkconstructed = true;
+		this.computationGraph.setListeners(
+				new ScoreIterationListener(5),
+				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
+				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+		);
+	}
+
+	public void EvaluateModelRNN(){
+		System.out.println("***** Test Evaluation *****");
+		Evaluation eval = new Evaluation(6);
+		ValidationDatasetIterator.reset();
+		DataSet testDataSet = ValidationDatasetIterator.next(1);
+		INDArray s = testDataSet.getFeatures();
+		System.out.println(s);
+		while(ValidationDatasetIterator.hasNext())
+		{
+			testDataSet = ValidationDatasetIterator.next();
+			INDArray[] predicted = this.computationGraph.output(testDataSet.getFeatures());
+			INDArray labels = testDataSet.getLabels();
+
+			eval.evalTimeSeries(labels, predicted[0], testDataSet.getLabelsMaskArray());
+		}
+		System.out.println(eval.stats());
+	}
+
+
 	/**
 	 * Network training
 	 * @param epochs - Number of epoch for network training
@@ -303,10 +372,18 @@ public class CNN {
 		if (! this.networkconstructed)
 			throw new Exception("Neural network is not constructed");
 		for (int counter = 0; counter < epochs; counter ++) {
-			this.network.fit(this.TrainingDatasetIterator);
-			if (epochs % scoreListener == 0)
-				System.out.println("Score in epoch " + counter + " : " + this.network.score());
+			if(this.multiLayerNetwork != null) {
+				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
+				if (epochs % scoreListener == 0)
+					System.out.println("Score in epoch " + counter + " : " + this.multiLayerNetwork.score());
+			}
+			if(this.computationGraph != null){
+				this.computationGraph.fit(this.TrainingDatasetIterator);
+				if (epochs % scoreListener == 0)
+					System.out.println("Score in epoch " + counter + " : " + this.computationGraph.score());
+			}
 			this.TrainingDatasetIterator.reset();
+			System.out.println("DONE2");
 		}
 	}
 	
@@ -331,11 +408,11 @@ public class CNN {
 		}
 		for (int counter = 0; counter < epochs; counter ++) {
 			this.TrainingDatasetIterator.reset();
-			this.network.fit(this.TrainingDatasetIterator);
+			this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
 			message = counter;
 			sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
 			if (counter % scoreListener == 0) {
-				message = "Score in epoch " + counter + " : " + String.format("%.2f", this.network.score());
+				message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
 				sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
 			}
 		}
@@ -360,10 +437,10 @@ public class CNN {
 		template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
 		for (int counter = 0; counter < epochs; counter ++) {
 			this.TrainingDatasetIterator.reset();
-			this.network.fit(this.TrainingDatasetIterator);
+			this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
 			if (counter % scoreListener == 0) {
-				String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.network.score());
+				String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
 				template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 			}
 		}
@@ -374,13 +451,23 @@ public class CNN {
 	 * @throws Exception
 	 */
 	public void ValidateNetwork() throws Exception{
+		Evaluation evaluation;
 		if (this.ValidationDatasetIterator == null)
 			throw new Exception("There is no validation dataset");
 		if (! this.networkconstructed)
 			throw new Exception("Neural network is not constructed");
-		Evaluation evaluation = this.network.evaluate(this.ValidationDatasetIterator);
-		System.out.println("Accuracy - " + evaluation.accuracy());
-		System.out.println("Network stats - \n" + evaluation.stats());
+		if(multiLayerNetwork != null) {
+			evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
+			System.out.println("Accuracy - " + evaluation.accuracy());
+			System.out.println("Network stats - \n" + evaluation.stats());
+		}
+		if(computationGraph != null){
+			evaluation = this.computationGraph.evaluate(this.ValidationDatasetIterator);
+			System.out.println("Accuracy - " + evaluation.accuracy());
+			System.out.println("Network stats - \n" + evaluation.stats());
+		}
+
+
 	}
 
 	/**
@@ -399,7 +486,7 @@ public class CNN {
 			sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
 			throw new Exception("Neural network is not constructed");
 		}
-		Evaluation evaluation = this.network.evaluate(this.ValidationDatasetIterator);
+		Evaluation evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
 		Object accuracy = "Network accuracy : " + evaluation.accuracy();
 		sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
 		Object message = "Network Validation Completed";
@@ -416,7 +503,7 @@ public class CNN {
 			throw new Exception("There is no validation dataset");
 		if (! this.networkconstructed)
 			throw new Exception("Neural network is not constructed");
-		Evaluation evaluation = this.network.evaluate(this.ValidationDatasetIterator);
+		Evaluation evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
 		String message = "Network accuracy : " + evaluation.accuracy();
 		template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 	}
@@ -433,7 +520,7 @@ public class CNN {
 			throw new Exception("Invalid path or not a directory");
 		if (! this.networkconstructed )
 			throw new Exception("Neural network is not constructed");
-		this.network.save(new File(path + "/" + name + ".zip"), true);
+		this.multiLayerNetwork.save(new File(path + "/" + name + ".zip"), true);
 	}
 	
 	/**
@@ -443,7 +530,7 @@ public class CNN {
 	 */
 	public void LoadModal(String path) throws Exception {
 		File location = new File(path);
-		this.network = MultiLayerNetwork.load(location, true);
+		this.multiLayerNetwork = MultiLayerNetwork.load(location, true);
 		this.networkconstructed = true;
 	}
 	

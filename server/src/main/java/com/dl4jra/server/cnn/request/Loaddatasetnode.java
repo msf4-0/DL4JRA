@@ -4,13 +4,15 @@ public class Loaddatasetnode extends Nodeclass{
 	/* Load dataset node data */
 	
 	private String path;
-	private int imagewidth, imageheight, channels, batchsize, numLabels;
+	private char delimeter;
+	private int imagewidth, imageheight, channels, batchsize, numLabels, numSkipLines, numClassLabels;
 	
 	public Loaddatasetnode() {
 		
 	}
 	
-	public Loaddatasetnode(String nodeId, String path, int imagewidth, int imageheight, int channels, int batchsize, int numLabels) {
+	public Loaddatasetnode(String nodeId, String path, int imagewidth, int imageheight, int channels, int batchsize, int numLabels,
+						   int numSkipLines, int numClassLabels, char delimeter) {
 		super(nodeId);
 		this.path = path;
 		this.imagewidth = imagewidth;
@@ -18,6 +20,9 @@ public class Loaddatasetnode extends Nodeclass{
 		this.channels = channels;
 		this.batchsize = batchsize;
 		this.numLabels = numLabels;
+		this.numSkipLines = numSkipLines;
+		this.numClassLabels = numClassLabels;
+		this.delimeter = delimeter;
 	}
 	
 	@Override
@@ -69,7 +74,31 @@ public class Loaddatasetnode extends Nodeclass{
 	public int getNumLabels() {
 		return numLabels;
 	}
-	
+
+	public char getDelimeter() {
+		return delimeter;
+	}
+
+	public void setDelimeter(char delimeter) {
+		this.delimeter = delimeter;
+	}
+
+	public int getNumSkipLines() {
+		return numSkipLines;
+	}
+
+	public void setNumSkipLines(int numSkipLines) {
+		this.numSkipLines = numSkipLines;
+	}
+
+	public int getNumClassLabels() {
+		return numClassLabels;
+	}
+
+	public void setNumClassLabels(int numClassLabels) {
+		this.numClassLabels = numClassLabels;
+	}
+
 	public void setNumLabels(int numLabels) {
 		this.numLabels = numLabels;
 	}

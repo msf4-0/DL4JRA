@@ -78,6 +78,7 @@ export enum GradientNormalizationTypes {
     ClipElementWiseAbsoluteValue = "ClipElementWiseAbsoluteValue", 
     ClipL2PerLayer = "ClipL2PerLayer", 
     ClipL2PerParamType = "ClipL2PerParamType",
+    null = "null",
 }
 
 /**
@@ -89,6 +90,7 @@ export enum OptimizationAlgorithmTypes {
     LBFGS = "LBFGS",
     LINE_GRADIENT_DESCENT = "LINE_GRADIENT_DESCENT",
     STOCHASTIC_GRADIENT_DESCENT = "STOCHASTIC_GRADIENT_DESCENT",
+    null = 'null',
 }
 
 /**
@@ -99,6 +101,8 @@ export enum LossFunctionTypes {
     MSE = "MSE",
     NEGATIVELOGLIKELIHOOD = "NEGATIVELOGLIKELIHOOD",
     POISSON = "POISSON",
+    MCXENT = "MCXENT",
+
 }
 
 /**
@@ -108,4 +112,11 @@ export enum PoolingType {
     MIN = "MIN",
     MAX = "MAX",
     AVERAGE = "AVERAGE",
+}
+
+
+//===============================
+export enum RNNFormatTypes {
+    NCW = "NCW",
+    NWC = "NWC",
 }

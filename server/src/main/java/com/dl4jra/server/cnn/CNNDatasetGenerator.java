@@ -7,8 +7,11 @@ import java.util.Random;
 
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.records.reader.SequenceRecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.datavec.api.split.InputSplit;
+import org.datavec.api.split.NumberedFileInputSplit;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -18,6 +21,7 @@ import org.datavec.image.transform.PipelineImageTransform;
 import org.datavec.image.transform.ResizeImageTransform;
 import org.datavec.image.transform.RotateImageTransform;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
+import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
@@ -26,7 +30,7 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 public class CNNDatasetGenerator {
 	private ArrayList<Pair<ImageTransform, Double>> transforms = new ArrayList<Pair<ImageTransform, Double>>();
 
-	private int numLabels, batchsize;
+	private int numLabels, batchsize, numClassLabels;
 	private int trainPerc = 80;
 	private FileSplit filesplit;
 	private InputSplit trainData,testData;
@@ -39,6 +43,8 @@ public class CNNDatasetGenerator {
 	private static DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
 	private static ImageTransform transform;
 	private int height, width, channels;
+	// For CSV loading
+	private SequenceRecordReader trainFeatures, trainLabels, testFeatures, testLabels;
 
 	public CNNDatasetGenerator() {
 	}
@@ -111,6 +117,50 @@ public class CNNDatasetGenerator {
 		trainData = filesInDirSplit[0];
         testData = filesInDirSplit[1];
 //		this.recordReader = new ImageRecordReader(imagewidth, imageheight, channels, labelMaker);
+	}
+
+	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+		this.numClassLabels = numClassLabels;
+		this.batchsize = batchsize;
+		String locDelimeter = Character.toString(delimeter);
+
+		File trainBaseDir = new File(path);
+		File trainFeaturesDir = new File(trainBaseDir, "features");
+		File trainLabelsDir = new File(trainBaseDir, "labels");
+
+		trainFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		trainFeatures.initialize(new NumberedFileInputSplit( trainFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 7351));
+
+		trainLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		trainLabels.initialize(new NumberedFileInputSplit(trainLabelsDir.getAbsolutePath()+"/%d.csv", 0, 7351));
+	}
+
+	public void LoadTestDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+		this.numClassLabels = numClassLabels;
+		this.batchsize = batchsize;
+		String locDelimeter = Character.toString(delimeter);
+
+		File testBaseDir = new File(path);
+		File testFeaturesDir = new File(testBaseDir, "features");
+		File testLabelsDir = new File(testBaseDir, "labels");
+
+		testFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		testFeatures.initialize(new NumberedFileInputSplit( testFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 2946));
+
+		testLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		testLabels.initialize(new NumberedFileInputSplit(testLabelsDir.getAbsolutePath()+"/%d.csv", 0, 2946));
+	}
+
+	public DataSetIterator trainDataSetIteratorCSV() throws Exception {
+		DataSetIterator trainIter = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, batchsize, numClassLabels,
+				false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
+		return trainIter;
+	}
+
+	public DataSetIterator testDataSetIteratorCSV() throws Exception {
+		DataSetIterator testIter = new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, batchsize, numClassLabels,
+				false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
+		return testIter;
 	}
 
 	/**

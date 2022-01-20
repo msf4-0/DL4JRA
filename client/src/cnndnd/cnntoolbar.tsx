@@ -57,33 +57,60 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 {/* SECTION FOR TRAINING DATASET */}
                 <div style={{ margin: 5, padding: 5, }}>   
                     <div className='description'>DATASETS</div>
+                    <div className='description' >Image inputs</div>
                     
                     {/* DATASET AUTO SPLIT STARTNODE  */}
-                    <ToolboxNode nodetype="DatasetAutoSplitStartNode" nodename="DS-AS (S)" />
+                    <ToolboxNode nodetype="DatasetAutoSplitStartNode" nodename="StartNode Auto-Split" />
 
                     {/* TRAINING DATASET STARTNODE  */}
-                    <ToolboxNode nodetype="TrainingDatasetStartNode" nodename="TDS (S)" />
+                    <ToolboxNode nodetype="TrainingDatasetStartNode" nodename="Training StartNode Image" />
 
                     {/* VALIDATION DATASET STARTNODE  */}
-                    <ToolboxNode nodetype="ValidationDatasetStartNode" nodename="VDS (S)" />
+                    <ToolboxNode nodetype="ValidationDatasetStartNode" nodename="Validating StartNode Image" />
 
                     {/* LOAD TRAINING DATASET  */}
                     <ToolboxNode nodetype="LoadDataset" nodename="Load DS" />
 
                     {/* LOAD TRAINING DATASET  */}
-                    <ToolboxNode nodetype="GenerateDatasetIterator" nodename="D.Iterator" />
+                    <ToolboxNode nodetype="GenerateDatasetIterator" nodename="Image Date Iterator" />
+
+                    <div className='description' >CSV inputs</div>
+
+                    {/* TRAINING DATASET STARTNODE  */}
+                    <ToolboxNode nodetype="TrainingDatasetStartNodeCSV" nodename="Training StartNode CSV" />
+
+                    {/* VALIDATION DATASET STARTNODE  */}
+                    <ToolboxNode nodetype="ValidationDatasetStartNodeCSV" nodename="Validating StartNode CSV" />
+
+                    {/* LOAD TRAINING DATASET CSV  */}
+                    <ToolboxNode nodetype="LoadDatasetCSV" nodename="Load DS" />
+
+                    {/* LOAD TRAINING DATASET  */}
+                    <ToolboxNode nodetype="GenerateDatasetIteratorCSV" nodename="CSV Data Iterator" />
                 </div>
 
+                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
+                 <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description'>NN</div>
 
+                    {/* TRAIN CNN */}
+                     <ToolboxNode nodetype='TrainCNN' nodename='Train' />
+
+                    {/* VALIDATE */}
+                    <ToolboxNode nodetype='ValidateCNN' nodename="Validate" />
+
+                    {/* EXPORT */}
+                    <ToolboxNode nodetype="ExportCNN" nodename="Export" />
+
+                </div>
                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
                 <div style={{ margin: 5, padding: 5, }}>
                     <div className='description'>CNN</div>
-
                     {/* CNN START NODE */}
                     <ToolboxNode nodetype="CNNStartNode" nodename="NN (S)" />
 
                     {/* CNN CONFIGURATION */}
-                    <ToolboxNode nodetype="CNNConfiguration" nodename="Configurations" />
+                    <ToolboxNode nodetype="CNNConfiguration" nodename="CNN Configurations" />
 
                     {/* CONVOLUTION LAYER */}
                     <ToolboxNode nodetype="ConvolutionLayer" nodename="Convolutional" />
@@ -105,16 +132,33 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                      <ToolboxNode nodetype="SetInputType" nodename="I.Type" />
 
                     {/* CONSTRUCT CNN NODE */}
-                    <ToolboxNode nodetype="ConstructCNN" nodename="Construct" />
+                    <ToolboxNode nodetype="ConstructCNN" nodename="CNN Construct" />
+                </div>
 
-                     {/* TRAIN CNN */}
-                     <ToolboxNode nodetype='TrainCNN' nodename='Train' />
+                {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
+                <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description'>RNN</div>
+                     {/* RNN STARTNODE */}
+                     <ToolboxNode nodetype="RNNStartNode" nodename=" NN (S)" />
 
-                     {/* VALIDATE */}
-                    <ToolboxNode nodetype='ValidateCNN' nodename="Validate" />
 
-                    {/* EXPORT */}
-                    <ToolboxNode nodetype="ExportCNN" nodename="Export" />
+                    {/* RNN CONFIGURATION */}
+                    <ToolboxNode nodetype="RNNConfiguration" nodename="RNN Configurations" />
+
+                    {/* ADD INPUT */}
+                    <ToolboxNode nodetype="AddInput" nodename="Add Input" />
+
+                    {/* SET OUPUT */}
+                    <ToolboxNode nodetype="SetOutput" nodename="Set Output" />
+
+                    {/* LSTM */}
+                    <ToolboxNode nodetype="LSTM" nodename="LSTM" />
+
+                    {/* RNN OUPUT LAYER */}
+                    <ToolboxNode nodetype="RnnOutputLayer" nodename="Rnn Output Layer" />
+
+                    {/* CONSTRUCT NETWORK RNN */}
+                    <ToolboxNode nodetype="ConstructNetworkRNN" nodename="RNN Construct" />
                 </div>
 
 

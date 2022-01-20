@@ -1,7 +1,8 @@
 import React, {Component, useState} from 'react'
 import { Modal, ModalHeader, ModalBody, ModalFooter, Form, FormGroup, Label, Input, Button } from 'reactstrap'
 import {ActivationFunctionTypes, Dictionary, OptimizationAlgorithmTypes, PoolingType 
-, LossFunctionTypes, Flipmode, ConvolutionModeTypes, WeightInitTypes, GradientNormalizationTypes } from "../globalcomponents/interfaces"
+, LossFunctionTypes, Flipmode, ConvolutionModeTypes, WeightInitTypes, GradientNormalizationTypes,
+    RNNFormatTypes } from "../globalcomponents/interfaces"
 
 /**
  * CNN Configuration Panel props
@@ -20,6 +21,7 @@ interface ConfigurationPanelStates {
     active: boolean;
     data: Dictionary;
     disabled: boolean;
+    equation: string;
 }
 
 
@@ -32,6 +34,7 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
             active: false,
             data: {},
             disabled: true,
+            equation: '5 * 1',
         }
     }
 
@@ -98,7 +101,7 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                             return (
                                                 <FormGroup key={config}>
                                                     <Label for="nIn">nIn</Label>
-                                                    <Input type='number' name='nIn' id='nIn' value={value} disabled={true} onChange={this.handledataOnchange} />
+                                                    <Input type='number' name='nIn' id='nIn' value={value} onChange={this.handledataOnchange} />
                                                 </FormGroup>
                                             )
                                         case "learningrate":
@@ -120,6 +123,16 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         case "angle":
                                         case "nOut":
                                         case "epochs":
+                                        // case "l2":
+                                        //     return(
+                                        //         <div>
+                                        //             <MathJax.Context input='ascii'>
+                                        //                 <div>
+                                        //                     This is an inline formula written in AsciiMath: <MathJax.Node inline>{ '1' }</MathJax.Node>
+                                        //                 </div>
+                                        //             </MathJax.Context>
+                                        //         </div>
+                                        //     )
                                         case "scoreListener":
                                             return (
                                                 <FormGroup key={config}>
@@ -218,6 +231,56 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                                 <option key={mode} value={Flipmode[mode]}>{Flipmode[mode]}</option>)
                                                             }
                                                         )} */}
+                                                    </Input>
+                                                </FormGroup>
+                                            )
+
+                                        // RNN    
+                                        case "numSkipLines":
+                                        case "numClassLabels":
+                                        case "delimeterInString":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config.toUpperCase()}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                                </FormGroup>
+                                            )
+                                        case "inputName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config.toUpperCase()}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                                </FormGroup>
+                                            )
+                                        case "outputName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config.toUpperCase()}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                                </FormGroup>
+                                            )
+                                        case "layerName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config.toUpperCase()}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                                </FormGroup>
+                                            )
+                                        case "layerInput":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config.toUpperCase()}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                                </FormGroup>
+                                            )
+                                        case "RNNFormat":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>RNN FORMAT</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(RNNFormatTypes).map( type => 
+                                                                <option key={type} value={RNNFormatTypes[type]}>{type}</option>
+                                                        )}
                                                     </Input>
                                                 </FormGroup>
                                             )

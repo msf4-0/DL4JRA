@@ -1,4 +1,6 @@
-import {Dictionary, Flipmode, ActivationFunctionTypes, ConvolutionModeTypes, WeightInitTypes, GradientNormalizationTypes, OptimizationAlgorithmTypes, LossFunctionTypes, PoolingType} from "../globalcomponents/interfaces"
+import {Dictionary, Flipmode, ActivationFunctionTypes, ConvolutionModeTypes, WeightInitTypes,
+     GradientNormalizationTypes, OptimizationAlgorithmTypes, LossFunctionTypes, PoolingType, 
+     RNNFormatTypes} from "../globalcomponents/interfaces"
 
 class CNNNodeService {
     /**
@@ -17,15 +19,23 @@ class CNNNodeService {
             case "ResizeImage":
                 return this.prepareResizeImage();
             case "DatasetAutoSplitStartNode":
-                return { name: "(S) D-AS" };
+                return { name: "StartNode Auto-Split" };
             case "TrainingDatasetStartNode":
-                return { name: "(S) TD" };
+                return { name: "Training StartNode Image" };
             case "ValidationDatasetStartNode":
-                return { name: "(S) VD" };
+                return { name: "Validating StartNode Image" };
+            case "TrainingDatasetStartNodeCSV":
+                return { name: "Training StartNode CSV" };
+            case "ValidationDatasetStartNodeCSV":
+                return { name: "Validating StartNode CSV" };
             case "LoadDataset":
                 return this.prepareLoadDataset();
+            case "LoadDatasetCSV":
+                return this.prepareLoadDatasetCSV();
             case "GenerateDatasetIterator":
-                return { name: "Dataset Iterator" };
+                return { name: "Dataset Iterator Image" };
+            case "GenerateDatasetIteratorCSV":
+                return { name: "Dataset Iterator CSV" };
             case "CNNStartNode":
                 return { name: "Startnode" };
             case "CNNConfiguration":
@@ -50,9 +60,66 @@ class CNNNodeService {
                 return { name: "Validate" }
             case "ExportCNN":
                 return this.prepareExportCNN();
+            //================= RNN =================
+            case "RNNStartNode":
+                return { name: "Startnode" };
+            case "RNNConfiguration":
+                return this.prepareRNNConfiguration();
+            case "AddInput":
+                return this.prepareAddInput();
+            case "SetOutput":
+                return this.prepareSetOutput();
+            case "LSTM":
+                return this.prepareLSTM();
+            case "RnnOutputLayer":
+                return this.prepareRnnOutputLayer();
+            case "ConstructNetworkRNN":
+                return { name: "Construct RNN" }
             default:
                 return { name: nodetype };
         }
+    }
+
+    prepareRNNConfiguration = () : Dictionary => {
+        let name ="RNN Configuration";
+        let seed=Math.floor(Math.random() * 1000);
+        let learningrate = 0.001;
+        let optimizationalgorithm = OptimizationAlgorithmTypes.STOCHASTIC_GRADIENT_DESCENT;
+        let weightInit = WeightInitTypes.XAVIER;     
+        return {name, seed, learningrate, optimizationalgorithm, weightInit};
+    }
+
+    prepareAddInput = () : Dictionary => {
+        let name="Add Input";
+        let inputName = "trainFeatures";
+        return {name, inputName};
+    }
+
+    prepareSetOutput = () : Dictionary => {
+        let name="Set Output";
+        let outputName = "predictActivity";
+        return {name, outputName};
+    }
+
+    prepareLSTM = () : Dictionary => {
+        let name="LSTM";
+        let layerName = "layer0";
+        let nOut = 100;
+        let activationfunction = ActivationFunctionTypes.TANH;
+        let layerInput = "trainFeatures"
+        return {name, layerName, nOut, activationfunction, layerInput};
+    }
+
+    prepareRnnOutputLayer = () : Dictionary => {
+        let name="Rnn Output Layer";
+        let layerName = "predictActivity";
+        let RNNFormat = RNNFormatTypes.NCW;
+        let nIn = 100;
+        let nOut = 6;
+        let lossfunction = LossFunctionTypes.MCXENT;
+        let activationfunction = ActivationFunctionTypes.SOFTMAX;
+        let layerInput = "layer0"
+        return {name, layerName, RNNFormat, nIn, nOut, lossfunction, activationfunction, layerInput};
     }
 
     /**
@@ -89,22 +156,27 @@ class CNNNodeService {
 
     /**
      * LoadDataset node data
-     * 1. path - Path to dataset folder (Default = "C://DatasetFolder")
-     * 2. imagewidth - Dataset's image width (Default = 50)
-     * 3. imageheight - Dataset's image height (Default = 50)
-     * 4. channels - Dataset's image color channel (Default = 3)
-     * 5. numLabels - Number of labels/classes (Default = 2)
-     * 6. batchsize - Dataset iterator batchsize (Default = 1)
     */
     prepareLoadDataset = () : Dictionary => {
         let name = "Load dataset";
-        let path = "C://Users//User//.deeplearning4j//data//dog-breed-identification";
+        let path = "C://Users//User//.deeplearning4j//data//humanactivity";
         let imagewidth = 224;
         let imageheight = 224;
         let channels = 3;
         let numLabels = 5;
         let batchsize = 32;
-        return {name, path, imagewidth, imageheight, channels, numLabels, batchsize };
+        return {name, path, imagewidth, imageheight, channels, numLabels, batchsize};
+    }
+
+    prepareLoadDatasetCSV = () : Dictionary => {
+        let name = "Load dataset";
+        let path = "C://Users//User//.deeplearning4j//data//humanactivity";
+        let batchsize = 32;
+        let numSkipLines = 0;
+        let numClassLabels = 6;
+        let delimeterInString = ",";
+        return {name, path, batchsize,
+        numClassLabels, numSkipLines, delimeterInString};
     }
 
     /**
@@ -122,8 +194,9 @@ class CNNNodeService {
         let activationfunction = ActivationFunctionTypes.RELU;
         let weightInit = WeightInitTypes.XAVIER;     
         let gradientNormalization = GradientNormalizationTypes.RenormalizeL2PerLayer
+        let l2 = 0;
         return {name, seed, learningrate, optimizationalgorithm, convolutionMode, activationfunction, weightInit,
-             gradientNormalization};
+             gradientNormalization, l2};
     }
 
     /**

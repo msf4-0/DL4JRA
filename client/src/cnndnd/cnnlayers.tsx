@@ -17,12 +17,14 @@ enum NodeBackgroundColors  {
     SubsamplingLayer = "#4B5191",
     DenseLayer = "#4B5191",
     OutputLayer = "#4B5191",
-    LocalResponseNormalizationLayer = "#4B5191",   // ===============================
+    LocalResponseNormalizationLayer = "#4B5191",   
     SetInputType = "#4B5191",
     ConstructCNN = "#4B5191",
     TrainCNN = "#4B5191",
     ValidateCNN = "#4B5191",
     ExportCNN = "#4B5191",
+    lightBlue = "#4B5191",
+
 }
 
 /**
@@ -48,6 +50,7 @@ enum NodeTextColors {
     TrainCNN = "white",
     ValidateCNN = "white",
     ExportCNN = "white",
+    white = "white",
 }
 
 
@@ -182,8 +185,57 @@ export class ValidationDatasetStartNode extends Component <NodeProps>{
     }
 }
 
+// TrainingDatasetStartNodeCSV node
+export class TrainingDatasetStartNodeCSV extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.TrainingDataset, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.TrainingDataset, 
+            }}>
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// ValidationDatasetStartNodeCSV node
+export class ValidationDatasetStartNodeCSV extends Component <NodeProps>{
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.ValidationDataset, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.ValidationDataset, 
+            }}>
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
 // LoadDataset node
 export class LoadDataset extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.TrainingDataset, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.TrainingDataset, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// LoadDataset node
+export class LoadDatasetCSV extends Component<NodeProps> {
     render = () => {
         return (
             <div 
@@ -210,11 +262,27 @@ export class GenerateDatasetIterator extends Component<NodeProps> {
             }}>
                 <IncomingConnectionHandle />
                 <div>{this.props.data.name}</div>
-                <OutgoingConnectionHandle />
             </div>
         )
     }
 }
+
+// GenerateDatasetIteratorCSV node
+export class GenerateDatasetIteratorCSV extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.TrainingDataset, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.TrainingDataset, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+            </div>
+        )
+    }
+}
+
 
 // CNNStartNode node
 export class CNNStartNode extends Component<NodeProps> {
@@ -317,7 +385,6 @@ export class LocalResponseNormalizationLayer extends Component<NodeProps> {
     }
 }
 
-// =============================================================================================================
 // OutputLayer node
 export class OutputLayer extends Component<NodeProps> {
     render = () => {
@@ -411,6 +478,124 @@ export class ExportCNN extends Component<NodeProps> {
                 className="cnn-node"
                 style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.ExportCNN, 
                 color: this.props.data.error? NodeTextColors.Error : NodeTextColors.ExportCNN, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// =============================================================================================================
+// CNNStartNode node
+export class RNNStartNode extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// RNNConfiguration node
+export class RNNConfiguration extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+// AddInputNode node
+export class AddInput extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// SetOutput node
+export class SetOutput extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// LSTM node
+export class LSTM extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+
+// RnnOutputLayer node
+export class RnnOutputLayer extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+export class ConstructNetworkRNN extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
             }}>
                 <IncomingConnectionHandle />
                 <div>{this.props.data.name}</div>
