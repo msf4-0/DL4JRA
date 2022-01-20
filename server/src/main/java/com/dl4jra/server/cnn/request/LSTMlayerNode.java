@@ -4,6 +4,9 @@ public class LSTMlayerNode extends Nodeclass{
     private int nIn, nOut;
     private String activationfunction, layerName, layerInput;
 
+    public LSTMlayerNode(){
+
+    }
 
     public LSTMlayerNode(String nodeId, int nIn, int nOut, String activationfunction, String layerInput, String layerName) {
         super(nodeId);

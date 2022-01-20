@@ -678,7 +678,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         let cnnsequences : FlowElement[];
         if (cnnstartnodeId !== null) {
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
-            let ordering = 0;
             for (let index = 0; index < cnnsequences.length; index ++) {
                 if (! this.seqcancontinue) return;
                 let element = cnnsequences[index];

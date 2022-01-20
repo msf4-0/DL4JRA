@@ -97,9 +97,6 @@ public class CnnTest {
 			cnn.TrainNetwork(epochs, 1);
 			cnn.ValidateNetwork();
 			cnn.EvaluateModelRNN();
-
-
-
 		} catch (Exception exception) {
 			System.out.println("EXCEPTION : " + exception.getMessage());
 		}

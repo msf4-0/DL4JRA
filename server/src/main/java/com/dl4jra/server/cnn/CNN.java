@@ -284,13 +284,13 @@ public class CNN {
 	}
 
 	public void AppendLSTMLayer (String name, int nOut, Activation activationfunction, String layerInput) throws Exception {
-		int nIn = this.TrainingDatasetIterator.inputColumns();
-		this.cnnconfig.AppendLSTMLayer(name, nIn, nOut, activationfunction, layerInput);
+//		int nIn = this.TrainingDatasetIterator.inputColumns();
+		this.cnnconfig.AppendLSTMLayer(name, 9, nOut, activationfunction, layerInput);
 	}
 
 	public void AppendRnnOutputLayer(String name, RNNFormat rnnFormat, int nIn, int nOut, LossFunction lossFunction,
 									 Activation activationfunction, String layerInput) throws Exception {
-		this.cnnconfig.AppendRnnOutputLayer(name, rnnFormat, nIn, nOut, lossFunction, activationfunction, layerInput);
+		this.cnnconfig.AppendRnnOutputLayer(name, rnnFormat, 100, nOut, lossFunction, activationfunction, layerInput);
 	}
 
 	public void AddInput(String inputName){
@@ -383,7 +383,6 @@ public class CNN {
 					System.out.println("Score in epoch " + counter + " : " + this.computationGraph.score());
 			}
 			this.TrainingDatasetIterator.reset();
-			System.out.println("DONE2");
 		}
 	}
 	
@@ -406,14 +405,27 @@ public class CNN {
 			sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
 			throw new Exception("Neural network is not constructed");
 		}
-		for (int counter = 0; counter < epochs; counter ++) {
-			this.TrainingDatasetIterator.reset();
-			this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
-			message = counter;
-			sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
-			if (counter % scoreListener == 0) {
-				message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
-				sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
+
+		for (int counter = 0; counter < epochs; counter++) {
+			if(this.multiLayerNetwork != null) {
+				this.TrainingDatasetIterator.reset();
+				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
+				message = counter;
+				sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
+				if (counter % scoreListener == 0) {
+					message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
+					sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
+				}
+			}
+			if(this.computationGraph != null){
+				this.TrainingDatasetIterator.reset();
+				this.computationGraph.fit(this.TrainingDatasetIterator);
+				message = counter;
+				sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
+				if (counter % scoreListener == 0) {
+					message = "Score in epoch " + counter + " : " + String.format("%.2f", this.computationGraph.score());
+					sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
+				}
 			}
 		}
 		message = "Network Training completed";
@@ -435,14 +447,43 @@ public class CNN {
 			throw new Exception("Neural network is not constructed");
 		}
 		template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
-		for (int counter = 0; counter < epochs; counter ++) {
-			this.TrainingDatasetIterator.reset();
-			this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
-			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
-			if (counter % scoreListener == 0) {
-				String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
-				template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+		for (int counter = 0; counter < epochs; counter++) {
+			if(this.multiLayerNetwork != null) {
+				this.TrainingDatasetIterator.reset();
+				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
+				template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
+				if (counter % scoreListener == 0) {
+					String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
+					template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+				}
 			}
+
+			if(this.computationGraph != null) {
+				this.TrainingDatasetIterator.reset();
+				this.computationGraph.fit(this.TrainingDatasetIterator);
+				template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
+				if (counter % scoreListener == 0) {
+					String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.computationGraph.score());
+					template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+				}
+			}
+		}
+		if (this.TrainingDatasetIterator == null)
+			throw new Exception("There is no training dataset");
+		if (! this.networkconstructed)
+			throw new Exception("Neural network is not constructed");
+		for (int counter = 0; counter < epochs; counter ++) {
+			if(this.multiLayerNetwork != null) {
+				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
+				if (epochs % scoreListener == 0)
+					System.out.println("Score in epoch " + counter + " : " + this.multiLayerNetwork.score());
+			}
+			if(this.computationGraph != null){
+				this.computationGraph.fit(this.TrainingDatasetIterator);
+				if (epochs % scoreListener == 0)
+					System.out.println("Score in epoch " + counter + " : " + this.computationGraph.score());
+			}
+			this.TrainingDatasetIterator.reset();
 		}
 	}
 	

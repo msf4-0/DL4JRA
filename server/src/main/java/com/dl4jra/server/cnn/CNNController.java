@@ -640,7 +640,6 @@ public class CNNController {
 		}
 	}
 
-//	===============================================================================================================================
 	/**
 	 * Append Local Response Normalization layer
 	 * @param data - Local Response Normalization layer configuration data
@@ -892,8 +891,8 @@ public class CNNController {
 			}
 
 			v = 3;
-//			this.cnn.AppendLSTMLayer(data.getLayerName(), data.getnOut(), activation, data.getLayerInput());
-			cnn.AppendLSTMLayer("layer0", 100, Activation.TANH, "trainFeatures");
+			this.cnn.AppendLSTMLayer(data.getLayerName(), data.getnOut(), activation, data.getLayerInput());
+//			this.cnn.AppendLSTMLayer("layer0", 100, Activation.TANH, "trainFeatures");
 
 			v = 4;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -902,7 +901,8 @@ public class CNNController {
 		}
 		catch (Exception exception)
 		{
-			return new RBProcessCompleted("EXCEPTION : " + exception.getMessage());
+			System.out.println(exception.getMessage());
+			throw new CNNException("Failed to append LSTM", data.getNodeId());
 		}
 
 	}
@@ -923,25 +923,26 @@ public class CNNController {
 			v = 1;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
 			v =2;
-//			Activation activation;
-//			if (data.getActivationfunction().equals("null")){
-//				activation = null;
-//			}
-//			else{
-//				activation = Activation.fromString(data.getActivationfunction());
-//			}
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
 			v=3;
 //			this.cnn.AppendRnnOutputLayer(data.getLayerName(), RNNFormat.valueOf(data.getRnnFormat()), data.getnIn(), data.getnOut(),
-//					LossFunction.valueOf(data.getLossfunction()), Activation.fromString(data.getActivationfunction()), data.getLayerInput());
+//					LossFunction.valueOf(data.getLossfunction()), activation, data.getLayerInput());
 			cnn.AppendRnnOutputLayer("predictActivity", RNNFormat.NCW, 100, 6, LossFunction.MCXENT,
-					Activation.SOFTMAX, "layer0");
+				Activation.SOFTMAX, "layer0");
 			v=4;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("RNN Output layer has been appended to RNN (Layer name: " + data.getLayerName() + ")");
 		}
 		catch (Exception exception)
 		{
-			return new RBProcessCompleted("EXCEPTION : " + exception.getMessage());
+			System.out.println(exception.getMessage());
+			throw new CNNException("Failed to append Rnn Output Layer", data.getNodeId());
 		}
 	}
 

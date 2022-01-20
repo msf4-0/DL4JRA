@@ -6,7 +6,8 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 
 public class RnnOutputLayerBuilder {
-    public static RnnOutputLayer GenerateLayer(RNNFormat rnnFormat, int nIn, int nOut, LossFunction lossfunction, Activation activationfunction)
+    public static RnnOutputLayer GenerateLayer(RNNFormat rnnFormat, int nIn, int nOut, LossFunction lossfunction,
+                                               Activation activationfunction)
     {
         RnnOutputLayer.Builder rnnOutputLayer = new RnnOutputLayer.Builder();
         rnnOutputLayer.dataFormat(rnnFormat);
