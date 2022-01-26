@@ -2,14 +2,14 @@ package com.dl4jra.server.cnn.request;
 
 public class RnnOutputLayerNode extends Nodeclass{
     private int nIn, nOut;
-    private String rnnFormat, lossfunction, activationfunction, layerName, layerInput;
+    private String RNNFormat, lossfunction, activationfunction, layerName, layerInput;
 
-    public RnnOutputLayerNode(String nodeId, String rnnFormat, int nIn, int nOut,
+    public RnnOutputLayerNode(String nodeId, String RNNFormat, int nIn, int nOut,
                               String lossfunction, String activationfunction, String layerName, String layerInput) {
         super(nodeId);
-        this.rnnFormat = rnnFormat;
         this.nIn = nIn;
         this.nOut = nOut;
+        this.RNNFormat = RNNFormat;
         this.lossfunction = lossfunction;
         this.activationfunction = activationfunction;
         this.layerInput = layerInput;
@@ -30,14 +30,6 @@ public class RnnOutputLayerNode extends Nodeclass{
 
     public void setnOut(int nOut) {
         this.nOut = nOut;
-    }
-
-    public String getRnnFormat() {
-        return rnnFormat;
-    }
-
-    public void setRnnFormat(String rnnFormat) {
-        this.rnnFormat = rnnFormat;
     }
 
     public String getLossfunction() {
@@ -70,5 +62,13 @@ public class RnnOutputLayerNode extends Nodeclass{
 
     public void setLayerInput(String layerInput) {
         this.layerInput = layerInput;
+    }
+
+    public String getRNNFormat() {
+        return RNNFormat;
+    }
+
+    public void setRNNFormat(String RNNFormat) {
+        this.RNNFormat = RNNFormat;
     }
 }

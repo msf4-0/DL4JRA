@@ -94,13 +94,13 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <div className='description'>NN</div>
 
                     {/* TRAIN CNN */}
-                     <ToolboxNode nodetype='TrainCNN' nodename='Train' />
+                     <ToolboxNode nodetype='TrainNN' nodename='Train' />
 
                     {/* VALIDATE */}
-                    <ToolboxNode nodetype='ValidateCNN' nodename="Validate" />
+                    <ToolboxNode nodetype='ValidateNN' nodename="Validate" />
 
                     {/* EXPORT */}
-                    <ToolboxNode nodetype="ExportCNN" nodename="Export" />
+                    <ToolboxNode nodetype="ExportNN" nodename="Export" />
 
                 </div>
                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
@@ -141,7 +141,6 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                      {/* RNN STARTNODE */}
                      <ToolboxNode nodetype="RNNStartNode" nodename=" NN (S)" />
 
-
                     {/* RNN CONFIGURATION */}
                     <ToolboxNode nodetype="RNNConfiguration" nodename="RNN Configurations" />
 
@@ -151,6 +150,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     {/* SET OUPUT */}
                     <ToolboxNode nodetype="SetOutput" nodename="Set Output" />
 
+                    {/* CONVOLUTION 1D LAYER */}
+                    <ToolboxNode nodetype="Convolution1DLayer" nodename="Convolutional" />
+
                     {/* LSTM */}
                     <ToolboxNode nodetype="LSTM" nodename="LSTM" />
 
@@ -159,6 +161,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                     {/* CONSTRUCT NETWORK RNN */}
                     <ToolboxNode nodetype="ConstructNetworkRNN" nodename="RNN Construct" />
+                    
+                    {/* EVALUATE MODLE RNN */}
+                    <ToolboxNode nodetype="EvaluateModelRNN" nodename="Evaluate Model RNN" />
                 </div>
 
 

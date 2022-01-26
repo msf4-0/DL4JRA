@@ -236,15 +236,16 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                             )
 
                                         // RNN    
+                                        case "kernalSize":
                                         case "numSkipLines":
                                         case "numClassLabels":
-                                        case "delimeterInString":
-                                            return (
-                                                <FormGroup key={config}>
-                                                    <Label for={config}>{config.toUpperCase()}</Label>
-                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
-                                                </FormGroup>
-                                            )
+                                        // case "delimeterInString":
+                                        //     // return (
+                                        //     //     <FormGroup key={config}>
+                                        //     //         <Label for={config}>{config.toUpperCase()}</Label>
+                                        //     //         <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
+                                        //     //     </FormGroup>
+                                        //     // )
                                         case "inputName":
                                             return (
                                                 <FormGroup key={config}>
@@ -280,6 +281,17 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                     <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
                                                         { Object.keys(RNNFormatTypes).map( type => 
                                                                 <option key={type} value={RNNFormatTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                                </FormGroup>
+                                            )
+                                        case "lossfunction":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>LOSS FUNCTION</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange} >
+                                                        { Object.keys(LossFunctionTypes).map( lossfunction => 
+                                                                <option key={lossfunction} value={LossFunctionTypes[lossfunction]}>{lossfunction}</option>
                                                         )}
                                                     </Input>
                                                 </FormGroup>

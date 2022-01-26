@@ -11,9 +11,9 @@ import ConfigurationPanel from './cnnconfigpanel'
 import {FlipImage, RotateImage, ResizeImage, 
     DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
     CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, 
-    SetInputType, ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer,
+    SetInputType, ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
     LoadDatasetCSV,TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV, RNNStartNode, RNNConfiguration, RnnOutputLayer,
-    AddInput, SetOutput, LSTM, ConstructNetworkRNN} from './cnnlayers'
+    AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN} from './cnnlayers'
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -117,9 +117,9 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
             FlipImage, RotateImage, ResizeImage,
             DatasetAutoSplitStartNode, TrainingDatasetStartNode, ValidationDatasetStartNode, LoadDataset, GenerateDatasetIterator,
             CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, SetInputType, 
-            ConstructCNN, TrainCNN, ValidateCNN, ExportCNN, LocalResponseNormalizationLayer,
+            ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
             LoadDatasetCSV,TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV,
-            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, LSTM, ConstructNetworkRNN
+            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -396,6 +396,7 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
         await this.ConstructTrainingDatasetFlowSequence();
         await this.ConstructValidationDatasetFlowSequence();
         await this.ConstructCNNFlowSequence();
+        await this.ConstructRNNFlowSequence();
         this.setprogressmodalcanclose(true);
         this.setprogresscanabort(false);
     }
@@ -534,13 +535,7 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
         let element = trainingsequences[index];
         if (element.type === "LoadDatasetCSV") {
             await this.processnode("/server/cnn/loadtrainingdataset_csv", element.id, element.data);
-        } else if (element.type === "FlipImage") {
-            await this.processnode("/server/cnn/fliptrainingdataset", element.id, element.data);
-        } else if (element.type === "RotateImage") {
-            await this.processnode("/server/cnn/rotatetrainingdataset", element.id, element.data);
-        } else if (element.type === "ResizeImage") {
-            await this.processnode("/server/cnn/resizetrainingdataset", element.id, element.data);
-        } else if (element.type === "GenerateDatasetIterator") {
+        }else if (element.type === "GenerateDatasetIterator") {
             await this.processnode("/server/cnn/generatetrainingdatasetiterator_csv", element.id, element.data);
         }
     }
@@ -562,13 +557,7 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
             let element = validationsequences[index];
             if (element.type === "LoadDatasetCSV") {
                 await this.processnode("/server/cnn/loadvalidationdataset_csv", element.id, element.data);
-            } else if (element.type === "FlipImage") {
-                await this.processnode("/server/cnn/flipvalidationdataset", element.id, element.data);
-            } else if (element.type === "RotateImage") {
-                await this.processnode("/server/cnn/rotatevalidationdataset", element.id, element.data);
-            } else if (element.type === "ResizeImage") {
-                await this.processnode("/server/cnn/resizevalidationdataset", element.id, element.data);
-            } else if (element.type === "GenerateDatasetIterator") {
+            }else if (element.type === "GenerateDatasetIterator") {
                 await this.processnode("/server/cnn/generatevalidationdatasetiterator_csv", element.id, element.data);
             }
         }
@@ -610,11 +599,11 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
                     await this.processnode("/server/cnn/setinputtype", element.id, element.data);
                 } else if (element.type === "ConstructCNN") {
                     await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
-                } else if (element.type === "TrainCNN") {
+                } else if (element.type === "TrainNN") {
                     await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
-                } else if (element.type === "ValidateCNN") {
+                } else if (element.type === "ValidateNN") {
                     await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
-                } else if (element.type === "ExportCNN") {
+                } else if (element.type === "ExportNN") {
                     await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 }
             }
@@ -634,7 +623,6 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
         let cnnsequences : FlowElement[];
         if (cnnstartnodeId !== null) {
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
-            let ordering = 0;
             for (let index = 0; index < cnnsequences.length; index ++) {
                 if (! this.seqcancontinue) return;
                 let element = cnnsequences[index];
@@ -644,18 +632,22 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
                     await this.processnode("/server/cnn/addinput", element.id, element.data);
                 } else if (element.type === "SetOutput") {
                     await this.processnode("/server/cnn/setoutput", element.id, element.data);
+                } else if (element.type === "Convolution1DLayer") {
+                    await this.processnode("/server/cnn/appendconvolution1dlayer", element.id, element.data);
                 } else if (element.type === "LSTM") {
                     await this.processnode("/server/cnn/appendlstm", element.id, element.data);
                 } else if (element.type === "RnnOutputLayer") {
                     await this.processnode("/server/cnn/appendrnnoutputlayer", element.id, element.data);
                 } else if (element.type === "ConstructNetworkRNN") {
                     await this.processnode("/server/cnn/constructnetwork_rnn", element.id, element.data);
-                }else if (element.type === "TrainCNN") {
+                }else if (element.type === "TrainNN") {
                     await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
-                } else if (element.type === "ValidateCNN") {
+                } else if (element.type === "ValidateNN") {
                     await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
-                } else if (element.type === "ExportCNN") {
+                } else if (element.type === "ExportNN") {
                     await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                }else if (element.type === "EvaluateModelRNN" ){
+                    await this.processnode("/server/cnn/evaluatemodelrnn", element.id, element.data);
                 }
             }
         }

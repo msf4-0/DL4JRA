@@ -4,6 +4,7 @@ import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.RNNFormat;
+import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
@@ -82,21 +83,22 @@ public class CnnTest {
 //			cnn.SaveModal(directorytosave, filename);
 
 //			HUMAN ACTIVITY CLASSIFICATION LSTM
-			cnn.LoadTrainingDatasetCSV(pathTrain, numSkipLines, numClassLabels, batchsize, ',');
+			cnn.LoadTrainingDatasetCSV(pathTrain, numSkipLines, numClassLabels, batchsize);
 			cnn.GenerateTrainingDatasetIteratorCSV();
-			cnn.LoadTestingDatasetCSV(pathTest, numSkipLines, numClassLabels, batchsize, ',');
+			cnn.LoadTestingDatasetCSV(pathTest, numSkipLines, numClassLabels, batchsize);
 			cnn.GenerateValidatingDatasetIteratorCSV();
 			cnn.InitializeConfigurationsGraphBuilder(12345, 0.05, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT,
 					WeightInit.XAVIER);
 			cnn.AddInput("trainFeatures");
 			cnn.SetOutput("predictActivity");
-			cnn.AppendLSTMLayer("layer0", 100, Activation.TANH, "trainFeatures");
+			cnn.AppendConvolutionLayer_CG("CNN", 1, 9, 32, Activation.RELU, "trainFeatures");
+			cnn.AppendLSTMLayer("LSTM", 32,100, Activation.TANH, "CNN");
 			cnn.AppendRnnOutputLayer("predictActivity", RNNFormat.NCW, 100, 6, LossFunction.MCXENT,
-					Activation.SOFTMAX, "layer0");
+					Activation.SOFTMAX, "LSTM");
 			cnn.ConstructNetworkRNN();
 			cnn.TrainNetwork(epochs, 1);
 			cnn.ValidateNetwork();
-			cnn.EvaluateModelRNN();
+			cnn.EvaluateModel_CG();
 		} catch (Exception exception) {
 			System.out.println("EXCEPTION : " + exception.getMessage());
 		}

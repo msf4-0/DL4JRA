@@ -1,6 +1,8 @@
 package com.dl4jra.server.cnn.layerbuilder;
 
 import org.deeplearning4j.nn.conf.ConvolutionMode;
+import org.deeplearning4j.nn.conf.RNNFormat;
+import org.deeplearning4j.nn.conf.layers.Convolution1DLayer;
 import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.nd4j.linalg.activations.Activation;
@@ -64,6 +66,18 @@ public class ConvoLayerBuilder {
 		}
 		if(convolutionMode != null) {
 		convoLayer.convolutionMode(convolutionMode);
+		}
+		return convoLayer.build();
+	}
+
+	public static ConvolutionLayer GenerateLayer_CG(int kernalSize, int nIn, int nOut, Activation activationfunction)
+	{
+		Convolution1DLayer.Builder convoLayer = new Convolution1DLayer.Builder();
+		convoLayer.kernelSize(kernalSize);
+		convoLayer.nIn(nIn);
+		convoLayer.nOut(nOut);
+		if(activationfunction != null) {
+			convoLayer.activation(activationfunction);
 		}
 		return convoLayer.build();
 	}

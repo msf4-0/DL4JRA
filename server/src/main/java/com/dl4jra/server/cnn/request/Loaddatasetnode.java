@@ -102,4 +102,12 @@ public class Loaddatasetnode extends Nodeclass{
 	public void setNumLabels(int numLabels) {
 		this.numLabels = numLabels;
 	}
+
+//	public String getDelimeter() {
+//		return delimeter;
+//	}
+//
+//	public void setDelimeter(String delimeter) {
+//		this.delimeter = delimeter;
+//	}
 }

@@ -20,6 +20,10 @@ public class CNNConfiguration {
 		this.GraphBuilder = null;
 	}
 
+	public ComputationGraphConfiguration.GraphBuilder getGraphBuilder() {
+		return GraphBuilder;
+	}
+
 	/**
 	 * Initialize configuration
 	 * @param seed - Random seed
@@ -55,11 +59,11 @@ public class CNNConfiguration {
 		builder.trainingWorkspaceMode(WorkspaceMode.NONE);
 		builder.inferenceWorkspaceMode(WorkspaceMode.NONE);
 		builder.seed(seed);
-		if(optimizationalgorithm != null) {
-			builder.optimizationAlgo(optimizationalgorithm);
-		}
 		if(weightInit != null) {
 			builder.weightInit(weightInit);
+		}
+		if(optimizationalgorithm != null) {
+			builder.optimizationAlgo(optimizationalgorithm);
 		}
 		builder.updater(new Adam(learningrate));
 		this.GraphBuilder = builder.graphBuilder();
@@ -175,6 +179,14 @@ public class CNNConfiguration {
 
 	public void SetOutput(String outputName){
 		this.GraphBuilder.setOutputs(outputName);
+	}
+
+	public void AppendConvolutionLayer_CG(String name, int kernalSize, int nIn, int nOut, Activation activationfunction, String layerInput) throws Exception {
+		if (!isNetworkConfigured_Graph())
+			throw new Exception("Neural network is not configured yet");
+//		ConvolutionLayer convolutionLayer = ConvoLayerBuilder.GenerateLayer_CG(kernalSize, nIn, nOut, activationfunction);
+		Convolution1DLayer convolution1DLayer = (Convolution1DLayer) ConvoLayerBuilder.GenerateLayer_CG(kernalSize, nIn, nOut, activationfunction);
+		this.GraphBuilder.layer(name, convolution1DLayer, layerInput);
 	}
 
 	

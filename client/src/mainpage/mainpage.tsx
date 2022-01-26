@@ -52,8 +52,8 @@ export default class Mainpage extends Component <MainpageProps, MainpageStates>{
                     </Col>
                     <Col sm={6}>
                         <Card body>
-                            <CardTitle tag="h5">CONVOLUTION NEURAL NETWORK</CardTitle>
-                            <CardText>Train and validate CNN for image classification</CardText>
+                            <CardTitle tag="h5">NEURAL NETWORK</CardTitle>
+                            <CardText>Train and validate CNN or RNN for image classification and CSV input</CardText>
                             <Button color='primary' onClick={this.navigatecnnmultitabpage}>Continue</Button>
                         </Card>
                     </Col>

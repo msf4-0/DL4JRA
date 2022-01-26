@@ -54,12 +54,12 @@ class CNNNodeService {
                 return this.prepareSetInputType();
             case "ConstructCNN":
                 return { name: "Construct" };
-            case "TrainCNN":
-                return this.prepareTrainCNN();
-            case "ValidateCNN":
+            case "TrainNN":
+                return this.prepareTrainNN();
+            case "ValidateNN":
                 return { name: "Validate" }
-            case "ExportCNN":
-                return this.prepareExportCNN();
+            case "ExportNN":
+                return this.prepareExportNN();
             //================= RNN =================
             case "RNNStartNode":
                 return { name: "Startnode" };
@@ -69,12 +69,16 @@ class CNNNodeService {
                 return this.prepareAddInput();
             case "SetOutput":
                 return this.prepareSetOutput();
+            case "Convolution1DLayer":
+                return this.prepareConvolution1DLayer();
             case "LSTM":
                 return this.prepareLSTM();
             case "RnnOutputLayer":
                 return this.prepareRnnOutputLayer();
             case "ConstructNetworkRNN":
                 return { name: "Construct RNN" }
+            case "EvaluateModelRNN":
+                return { name: "Evaluate Model RNN" }
             default:
                 return { name: nodetype };
         }
@@ -82,8 +86,8 @@ class CNNNodeService {
 
     prepareRNNConfiguration = () : Dictionary => {
         let name ="RNN Configuration";
-        let seed=Math.floor(Math.random() * 1000);
-        let learningrate = 0.001;
+        let seed=12345;
+        let learningrate = 0.05;
         let optimizationalgorithm = OptimizationAlgorithmTypes.STOCHASTIC_GRADIENT_DESCENT;
         let weightInit = WeightInitTypes.XAVIER;     
         return {name, seed, learningrate, optimizationalgorithm, weightInit};
@@ -101,13 +105,25 @@ class CNNNodeService {
         return {name, outputName};
     }
 
+    prepareConvolution1DLayer = () : Dictionary => {
+        let name = "1D Convolutional Layer";
+        let layerName = "CNN";
+        let kernalSize = 1;
+        let nIn = 9;
+        let nOut = 32;
+        let activationfunction = ActivationFunctionTypes.RELU;     
+        let layerInput = "trainFeatures"
+        return {name,layerName, kernalSize, nIn, nOut, activationfunction, layerInput };
+    }
+
     prepareLSTM = () : Dictionary => {
         let name="LSTM";
-        let layerName = "layer0";
+        let layerName = "LSTM";
+        let nIn = 32;
         let nOut = 100;
         let activationfunction = ActivationFunctionTypes.TANH;
-        let layerInput = "trainFeatures"
-        return {name, layerName, nOut, activationfunction, layerInput};
+        let layerInput = "CNN"
+        return {name, layerName, nIn, nOut, activationfunction, layerInput};
     }
 
     prepareRnnOutputLayer = () : Dictionary => {
@@ -118,7 +134,7 @@ class CNNNodeService {
         let nOut = 6;
         let lossfunction = LossFunctionTypes.MCXENT;
         let activationfunction = ActivationFunctionTypes.SOFTMAX;
-        let layerInput = "layer0"
+        let layerInput = "LSTM"
         return {name, layerName, RNNFormat, nIn, nOut, lossfunction, activationfunction, layerInput};
     }
 
@@ -171,12 +187,12 @@ class CNNNodeService {
     prepareLoadDatasetCSV = () : Dictionary => {
         let name = "Load dataset";
         let path = "C://Users//User//.deeplearning4j//data//humanactivity";
-        let batchsize = 32;
+        let batchsize = 64;
         let numSkipLines = 0;
         let numClassLabels = 6;
-        let delimeterInString = ",";
+        // let delimeterInString = ",";
         return {name, path, batchsize,
-        numClassLabels, numSkipLines, delimeterInString};
+        numClassLabels, numSkipLines};
     }
 
     /**
@@ -300,8 +316,8 @@ class CNNNodeService {
      * 1. epochs - Number of epochs for training (Default = 200)
      * 2. scorelistener - Interval to calculate/evaluate the score of network (Default = 10)
     */
-    prepareTrainCNN = () : Dictionary => {
-        let name = "Train CNN";
+    prepareTrainNN = () : Dictionary => {
+        let name = "Train NN";
         let epochs = 200;
         let scoreListener = 10;
         return { name, epochs, scoreListener };
@@ -312,8 +328,8 @@ class CNNNodeService {
      * 1. path - Directory to save the model
      * 2. filename - Filename of the model (saved as .zip)
     */
-    prepareExportCNN = () : Dictionary => {
-        let name = "Export CNN";
+    prepareExportNN = () : Dictionary => {
+        let name = "Export NN";
         let path = "";
         let filename = "";
         return { name, path, filename };

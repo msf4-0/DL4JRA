@@ -119,49 +119,76 @@ public class CNNDatasetGenerator {
 //		this.recordReader = new ImageRecordReader(imagewidth, imageheight, channels, labelMaker);
 	}
 
-	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+//	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+//		this.numClassLabels = numClassLabels;
+//		this.batchsize = batchsize;
+//		String locDelimeter = Character.toString(delimeter);
+//
+//		File trainBaseDir = new File(path);
+//		File trainFeaturesDir = new File(trainBaseDir, "features");
+//		File trainLabelsDir = new File(trainBaseDir, "labels");
+//
+//		trainFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+//		trainFeatures.initialize(new NumberedFileInputSplit( trainFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 7351));
+//
+//		trainLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+//		trainLabels.initialize(new NumberedFileInputSplit(trainLabelsDir.getAbsolutePath()+"/%d.csv", 0, 7351));
+//	}
+//
+//	public void LoadTestDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+//		this.numClassLabels = numClassLabels;
+//		this.batchsize = batchsize;
+//		String locDelimeter = Character.toString(delimeter);
+//
+//		File testBaseDir = new File(path);
+//		File testFeaturesDir = new File(testBaseDir, "features");
+//		File testLabelsDir = new File(testBaseDir, "labels");
+//
+//		testFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+//		testFeatures.initialize(new NumberedFileInputSplit( testFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 2946));
+//
+//		testLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+//		testLabels.initialize(new NumberedFileInputSplit(testLabelsDir.getAbsolutePath()+"/%d.csv", 0, 2946));
+//	}
+	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws IOException, InterruptedException {
 		this.numClassLabels = numClassLabels;
 		this.batchsize = batchsize;
-		String locDelimeter = Character.toString(delimeter);
 
 		File trainBaseDir = new File(path);
 		File trainFeaturesDir = new File(trainBaseDir, "features");
 		File trainLabelsDir = new File(trainBaseDir, "labels");
 
-		trainFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		trainFeatures = new CSVSequenceRecordReader(numSkipLines, ",");
 		trainFeatures.initialize(new NumberedFileInputSplit( trainFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 7351));
 
-		trainLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		trainLabels = new CSVSequenceRecordReader(numSkipLines, ",");
 		trainLabels.initialize(new NumberedFileInputSplit(trainLabelsDir.getAbsolutePath()+"/%d.csv", 0, 7351));
 	}
 
-	public void LoadTestDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
+	public void LoadTestDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws IOException, InterruptedException {
 		this.numClassLabels = numClassLabels;
 		this.batchsize = batchsize;
-		String locDelimeter = Character.toString(delimeter);
 
 		File testBaseDir = new File(path);
 		File testFeaturesDir = new File(testBaseDir, "features");
 		File testLabelsDir = new File(testBaseDir, "labels");
 
-		testFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		testFeatures = new CSVSequenceRecordReader(numSkipLines, ",");
 		testFeatures.initialize(new NumberedFileInputSplit( testFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 2946));
 
-		testLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
+		testLabels = new CSVSequenceRecordReader(numSkipLines, ",");
 		testLabels.initialize(new NumberedFileInputSplit(testLabelsDir.getAbsolutePath()+"/%d.csv", 0, 2946));
 	}
 
-	public DataSetIterator trainDataSetIteratorCSV() throws Exception {
-		DataSetIterator trainIter = new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, batchsize, numClassLabels,
+	public DataSetIterator trainDataSetIteratorCSV(){
+		return new SequenceRecordReaderDataSetIterator(trainFeatures, trainLabels, batchsize, numClassLabels,
 				false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
-		return trainIter;
 	}
 
-	public DataSetIterator testDataSetIteratorCSV() throws Exception {
-		DataSetIterator testIter = new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, batchsize, numClassLabels,
+	public DataSetIterator testDataSetIteratorCSV(){
+		return new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, batchsize, numClassLabels,
 				false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
-		return testIter;
-	}
+}
 
 	/**
 	 * Add FlipImageTransform to dataset

@@ -92,29 +92,6 @@ public class CNNController {
 	}
 
 	/**
-	 * [WEBSOCKET] Load training dataset CSV
-	 * @param data - Load training dataset CSV data
-	 * @return ProcessCompleted message
-	 * @throws Exception
-	 */
-	@MessageMapping("/cnn/loadtrainingdataset_csv")
-	@SendTo("/response/cnn/currentprocessdone")
-	public RBProcessCompleted LoadTrainingDatasetCSV(Loaddatasetnode data) throws Exception {
-		try
-		{
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.LoadTrainingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
-					data.getBatchsize(), data.getDelimeter());
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			return new RBProcessCompleted("Training dataset CSV loaded successfully");
-		}
-		catch (Exception exception)
-		{
-			throw new CNNException(exception.getMessage(), data.getNodeId());
-		}
-	}
-
-	/**
 	 * [WEBSOCKET] Load data set then auto split it into training and testing
 	 * @param data - Load dataset data
 	 * @return ProcessCompleted message
@@ -225,27 +202,6 @@ public class CNNController {
 		}
 	}
 
-	/**
-	 * Generate training dataset CSV iterator
-	 * @param data Generate training dataset iterator data
-	 * @return ProcessCompleted message
-	 * @throws Exception
-	 */
-	@MessageMapping("/cnn/generatetrainingdatasetiterator_csv")
-	@SendTo("/response/cnn/currentprocessdone")
-	public RBProcessCompleted GenerateTrainingDatasetIteratorCSV(Nodeclass data) throws Exception {
-		try
-		{
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.GenerateTrainingDatasetIteratorCSV();
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			return new RBProcessCompleted("Training dataset CSV iterator has been generated");
-		}
-		catch (Exception exception)
-		{
-			throw new CNNException("Failed to initialize training dataset CSV iterator", data.getNodeId());
-		}
-	}
 
 	/**
 	 * Generate dataset (auto-split) iterator
@@ -289,29 +245,6 @@ public class CNNController {
 		catch (Exception exception)
 		{
 			throw new CNNException("Failed to load validation dataset", data.getNodeId());
-		}
-	}
-
-	/**
-	 * Load validation dataset CSV
-	 * @param data - Load validation dataset data CSV
-	 * @return ProcessCompleted message
-	 * @throws Exception
-	 */
-	@MessageMapping("/cnn/loadvalidationdataset_csv")
-	@SendTo("/response/cnn/currentprocessdone")
-	public RBProcessCompleted LoadValidationDatasetCSV(Loaddatasetnode data) throws Exception {
-		try
-		{
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.LoadTestingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
-					data.getBatchsize(), data.getDelimeter());
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			return new RBProcessCompleted("Validation dataset CSV loaded successfully");
-		}
-		catch (Exception exception)
-		{
-			throw new CNNException("Failed to load validation dataset CSV", data.getNodeId());
 		}
 	}
 
@@ -400,28 +333,6 @@ public class CNNController {
 		catch (Exception exception) 
 		{
 			throw new CNNException("Failed to initialize validation dataset iterator", data.getNodeId());
-		}
-	}
-
-	/**
-	 * Generate validation dataset CSV iterator
-	 * @param data - Generate validation dataset iterator data
-	 * @return ProcessCompleted message
-	 * @throws Exception
-	 */
-	@MessageMapping("/cnn/generatevalidationdatasetiterator_csv")
-	@SendTo("/response/cnn/currentprocessdone")
-	public RBProcessCompleted GenerateValidationDatasetIteratorCSV(Nodeclass data) throws Exception {
-		try
-		{
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.GenerateValidatingDatasetIteratorCSV();
-			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			return new RBProcessCompleted("Validation dataset CSV iterator has been generated");
-		}
-		catch (Exception exception)
-		{
-			throw new CNNException("Failed to initialize validation dataset CSV iterator", data.getNodeId());
 		}
 	}
 
@@ -782,7 +693,106 @@ public class CNNController {
 	}
 
 
-//	FOR RNN
+//	FOR RNN & CSV inputs
+
+	/**
+	 * [WEBSOCKET] Load training dataset CSV
+	 * @param data - Load training dataset CSV data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loadtrainingdataset_csv")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted LoadTrainingDatasetCSV(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			System.out.println(data.getPath());
+			System.out.println(data.getNumSkipLines());
+			System.out.println(data.getNumClassLabels());
+			System.out.println(data.getBatchsize());
+			System.out.println(data.getDelimeter());
+			this.cnn.LoadTrainingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
+					data.getBatchsize());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Training dataset CSV loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+	/**
+	 * Generate training dataset CSV iterator
+	 * @param data Generate training dataset iterator data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generatetrainingdatasetiterator_csv")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted GenerateTrainingDatasetIteratorCSV(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.GenerateTrainingDatasetIteratorCSV();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Training dataset CSV iterator has been generated");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to initialize training dataset CSV iterator", data.getNodeId());
+		}
+	}
+	/**
+	 * Load validation dataset CSV
+	 * @param data - Load validation dataset data CSV
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loadvalidationdataset_csv")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted LoadValidationDatasetCSV(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			System.out.println(data.getPath());
+			System.out.println(data.getNumSkipLines());
+			System.out.println(data.getNumClassLabels());
+			System.out.println(data.getBatchsize());
+			System.out.println(data.getDelimeter());
+			this.cnn.LoadTestingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
+					data.getBatchsize());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Validation dataset CSV loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to load validation dataset CSV", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Generate validation dataset CSV iterator
+	 * @param data - Generate validation dataset iterator data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generatevalidationdatasetiterator_csv")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted GenerateValidationDatasetIteratorCSV(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.GenerateValidatingDatasetIteratorCSV();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Validation dataset CSV iterator has been generated");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to initialize validation dataset CSV iterator", data.getNodeId());
+		}
+	}
+
 	/**
 	 *  Initialize configuration
 	 * @param data - CNN configuration data
@@ -876,12 +886,9 @@ public class CNNController {
 	@MessageMapping("/cnn/appendlstm")
 	@SendTo("/response/cnn/currentprocessdone")
 	public RBProcessCompleted AppendLSTM(LSTMlayerNode data) throws Exception {
-		int v = 0;
 		try
 		{
-			v = 1;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			v = 2;
 			Activation activation;
 			if (data.getActivationfunction().equals("null")){
 				activation = null;
@@ -889,19 +896,18 @@ public class CNNController {
 			else{
 				activation = Activation.fromString(data.getActivationfunction());
 			}
+			if(data.getnIn() != -1) {
+				this.cnn.AppendLSTMLayer(data.getLayerName(), data.getnIn(), data.getnOut(), activation, data.getLayerInput());
+			}
+			else{
+				this.cnn.AppendLSTMLayer(data.getLayerName(), data.getnOut(), activation, data.getLayerInput());
+			}
 
-			v = 3;
-			this.cnn.AppendLSTMLayer(data.getLayerName(), data.getnOut(), activation, data.getLayerInput());
-//			this.cnn.AppendLSTMLayer("layer0", 100, Activation.TANH, "trainFeatures");
-
-			v = 4;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			v = 5;
 			return new RBProcessCompleted("LSTM has been appended to RNN (Layer name: " + data.getLayerName() + ")");
 		}
 		catch (Exception exception)
 		{
-			System.out.println(exception.getMessage());
 			throw new CNNException("Failed to append LSTM", data.getNodeId());
 		}
 
@@ -917,12 +923,9 @@ public class CNNController {
 	@MessageMapping("/cnn/appendrnnoutputlayer")
 	@SendTo("/response/cnn/currentprocessdone")
 	public RBProcessCompleted AppendRnnOutputLayer(RnnOutputLayerNode data) throws Exception {
-		int v = 0;
 		try
 		{
-			v = 1;
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			v =2;
 			Activation activation;
 			if (data.getActivationfunction().equals("null")){
 				activation = null;
@@ -930,18 +933,13 @@ public class CNNController {
 			else{
 				activation = Activation.fromString(data.getActivationfunction());
 			}
-			v=3;
-//			this.cnn.AppendRnnOutputLayer(data.getLayerName(), RNNFormat.valueOf(data.getRnnFormat()), data.getnIn(), data.getnOut(),
-//					LossFunction.valueOf(data.getLossfunction()), activation, data.getLayerInput());
-			cnn.AppendRnnOutputLayer("predictActivity", RNNFormat.NCW, 100, 6, LossFunction.MCXENT,
-				Activation.SOFTMAX, "layer0");
-			v=4;
+			this.cnn.AppendRnnOutputLayer(data.getLayerName(), RNNFormat.valueOf(data.getRNNFormat()), data.getnIn(), data.getnOut(),
+					LossFunction.valueOf(data.getLossfunction()), activation, data.getLayerInput());
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("RNN Output layer has been appended to RNN (Layer name: " + data.getLayerName() + ")");
 		}
 		catch (Exception exception)
 		{
-			System.out.println(exception.getMessage());
 			throw new CNNException("Failed to append Rnn Output Layer", data.getNodeId());
 		}
 	}
@@ -969,6 +967,59 @@ public class CNNController {
 		}
 	}
 
+	/**
+	 * Evaluate Model RNN
+	 * @param data - Node class data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/evaluatemodelrnn")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted EvaluateModelRNN(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.EvaluateModel_CG();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Evaluation done");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to evaluate model", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Append 1D convolution layer
+	 * @param data - Convolution layer configuration data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/appendconvolution1dlayer")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted AppendConvolution1DLayer(Convolayernode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			this.cnn.AppendConvolutionLayer_CG(data.getLayerName(), data.getKernalSize(), data.getnIn(), data.getnOut(),
+					activation, data.getLayerInput());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("1D Convolution layer has been appended to NN (layer name: " + data.getLayerName() + ")");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to append 1D convolution layer", data.getNodeId());
+		}
+	}
 }
 
 
