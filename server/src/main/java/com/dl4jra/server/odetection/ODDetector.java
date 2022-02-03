@@ -8,10 +8,17 @@ import java.util.Date;
 import java.util.List;
 
 import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.layers.OutputLayer;
 import org.deeplearning4j.nn.layers.objdetect.DetectedObject;
 import org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer;
 import org.deeplearning4j.util.ModelSerializer;
+import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.Darknet19;
+import org.deeplearning4j.zoo.model.ResNet50;
+import org.deeplearning4j.zoo.model.TinyYOLO;
+import org.deeplearning4j.zoo.model.YOLO2;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.opencv.core.Mat;
@@ -28,9 +35,10 @@ public class ODDetector {
 
 	static { LibraryLoader.loadOpencvLibrary(); }
 	private int imagewidth, imageheight, gridwidth, gridheight;
+	private String currentModelName;
 	private ComputationGraph DetectionModel;
 	private NativeImageLoader loader;
-	private ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0, 1);;
+	private ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0, 1);
 	private ArrayList<String> classes;
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
     
@@ -81,6 +89,20 @@ public class ODDetector {
     		throw new Exception("Invalid path (modal not found)");
     	this.DetectionModel = ModelSerializer.restoreComputationGraph(location);
 	}
+
+	public void LoadModelZoo(String modelName) throws Exception {
+		ZooModel zooModel;
+		currentModelName = modelName;
+		if(modelName.equals("yolo2")){
+			zooModel = YOLO2.builder().numClasses(0).build();
+			this.DetectionModel = (ComputationGraph) zooModel.initPretrained();
+		}
+//		else if(modelName.equals("resnet50")){
+//			zooModel = ResNet50.builder().numClasses(0).build();
+//			this.DetectionModel = (ComputationGraph) zooModel.initPretrained();
+//		}
+	}
+
 	
 	/**
 	 * Check if od model is loaded
@@ -166,7 +188,6 @@ public class ODDetector {
 	
 	/**
 	 * Get objects in image
-	 * @param image - Image data for detection
 	 * @param threshold - Detection threshold
 	 * @return DetectedObject in image
 	 * @throws Exception

@@ -73,6 +73,13 @@ public class ODController {
 	@MessageMapping("/objectdetection/modelonchanged")
 	@SendTo("/response/objectdetection/modelchanged")
 	public Modelconfigurationdata modelconfiguration(Pretrainedmodelname data) throws Exception {
+		System.out.println("===================================");
+		System.out.println("===================================");
+		System.out.println("===================================");
+		System.out.println(data.getModelname());
+		System.out.println("===================================");
+		System.out.println("===================================");
+		System.out.println("===================================");
 		this.detector.ResetDetector();
 		ODModelConfigurationData modeldata = PMRepository.GetPretrainedModelData(data.getModelname());
 		int imagewidth = modeldata.getModelinputwidth();
@@ -81,9 +88,18 @@ public class ODController {
 		int gridwidth = modeldata.getGridwidth();
 		int gridheight = modeldata.getGridheight();
 		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
-		this.detector.LoadModel(modeldata.getModelpath());
+
+		// load with zoo model
+		if(modeldata.getModelpath() == null){
+			this.detector.LoadModelZoo(data.getModelname());
+		}
+		// load with path
+		else{
+			this.detector.LoadModel(modeldata.getModelpath());
+		}
 		this.detector.SetPredictionClasses(modeldata.getClasses());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
+		System.out.println(data.getModelname());
 		return new Modelconfigurationdata(data.getModelname(), modeldata.getModelinputwidth());
 	}
 	
@@ -91,9 +107,13 @@ public class ODController {
 	@MessageMapping("/objectdetection/streamingstart")
 	public void startdetection(Loggingdata data) throws Exception {
 		System.out.println("[ODCONTROLLER] START STREAMING");
+		System.out.println(1);
 		this.logging = data.isLogging();
+		System.out.println(2);
 		if (data.isLogging()) {
+			System.out.println(3);
 			System.out.println("[ODCONTROLLER] STARTING FILESTREAM");
+			System.out.println(4);
 			this.fwritter = new FileWriter(loggingdirectory + "/" + formatter.format(new Date()).toString() + ".txt");
 		}
 		
@@ -103,7 +123,9 @@ public class ODController {
 	@MessageMapping("/objectdetection/streamingend")
 	public void enddetection() throws Exception {
 		System.out.println("[ODCONTROLLER] STOP STREAMING");
+		System.out.println(5);
 		if (this.fwritter != null) {
+			System.out.println(6);
 			System.out.println("[ODCONTROLLER] CLOSING FILESTREAM");
 			this.fwritter.close();
 			this.fwritter = null;

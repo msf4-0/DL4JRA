@@ -551,8 +551,12 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
                                 <Input type='select' name='modelname' id='modelname' onChange={this.handlemodelOnchange} disabled={this.state.streaming || ! this.state.websocketconnected}>
                                     <option value="">Select</option>
                                     <option value="tinyyolo">TinyYolo</option>
+                                    <option value="yolo2">Yolo2</option>
+                                    {/* <option value="resnet50">Res-Net 50</option> */}
                                 </Input>
+                                
                             </FormGroup>
+                            
                         </div>
 
                         {/* STREAMING PAIR  */}

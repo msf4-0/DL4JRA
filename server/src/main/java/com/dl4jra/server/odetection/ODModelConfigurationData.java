@@ -24,7 +24,7 @@ public class ODModelConfigurationData {
 	 * @param modelpath - path to pretrained model
 	 */
 	public ODModelConfigurationData(ArrayList<String> classes, int modelinputwidth, int modelinputheight,
-			int modelinputchannel, int gridwidth, int gridheight, String modelpath) {
+										 int modelinputchannel, int gridwidth, int gridheight, String modelpath) {
 		this.classes = classes;
 		this.modelinputwidth = modelinputwidth;
 		this.modelinputheight = modelinputheight;
@@ -32,6 +32,26 @@ public class ODModelConfigurationData {
 		this.gridwidth = gridwidth;
 		this.gridheight = gridheight;
 		this.modelpath = modelpath;
+	}
+
+	/**
+	 * Constructor
+	 * @param classes - model's labels
+	 * @param modelinputwidth
+	 * @param modelinputheight
+	 * @param modelinputchannel
+	 * @param gridwidth
+	 * @param gridheight
+	 */
+	public ODModelConfigurationData(ArrayList<String> classes, int modelinputwidth, int modelinputheight,
+									int modelinputchannel, int gridwidth, int gridheight) {
+		this.classes = classes;
+		this.modelinputwidth = modelinputwidth;
+		this.modelinputheight = modelinputheight;
+		this.modelinputchannel = modelinputchannel;
+		this.gridwidth = gridwidth;
+		this.gridheight = gridheight;
+		this.modelpath = null;
 	}
 
 	/* classes getter function */
