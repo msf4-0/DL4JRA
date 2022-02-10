@@ -14,6 +14,11 @@ public class Trainnetworknode extends Nodeclass {
 		this.epochs = epochs;
 		this.scoreListener = scoreListener;
 	}
+
+	public Trainnetworknode(String nodeId, int epochs) {
+		super(nodeId);
+		this.epochs = epochs;
+	}
 	
 	public int getEpochs() {
 		return epochs;

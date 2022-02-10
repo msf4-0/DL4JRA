@@ -1,29 +1,44 @@
 package com.dl4jra.server.cnn;
 
 import java.io.File;
+import java.io.IOException;
 
+import com.dl4jra.server.cnn.utilities.Visualization;
+import org.datavec.image.transform.ImageTransform;
+import org.deeplearning4j.core.storage.StatsStorage;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.RNNFormat;
+import org.deeplearning4j.nn.conf.WorkspaceMode;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
+import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
 import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.zoo.PretrainedType;
+import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.UNet;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
+import org.nd4j.linalg.schedule.ScheduleType;
+import org.nd4j.linalg.schedule.StepSchedule;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.dl4jra.server.cnn.response.UpdateResponse;
 import com.dl4jra.server.globalresponse.Messageresponse;
+
+import javax.swing.*;
 
 public class CNN {
 	// Neural network properties
@@ -40,6 +55,8 @@ public class CNN {
 	private CNNDatasetGenerator ValidationDatasetGenerator;
 	private DataSetIterator ValidationDatasetIterator;
 
+	private RecordReaderDataSetIterator trainGenerator;
+	private RecordReaderDataSetIterator validationGenerator;
 
 	// Constructor
 	public CNN() {
@@ -596,5 +613,62 @@ public class CNN {
 		this.multiLayerNetwork = MultiLayerNetwork.load(location, true);
 		this.networkconstructed = true;
 	}
-	
+
+	// SEGMENTATION
+
+	ZooModel zooModel;
+	ComputationGraph unet, constructedModel;
+
+	public void importPretrainedModel() throws IOException {
+		zooModel = UNet.builder().build();
+
+		unet = (ComputationGraph) zooModel.initPretrained(PretrainedType.SEGMENT);
+		System.out.println(unet.summary());
+	}
+
+	public void configureFineTune(int seed){
+		this.cnnconfig.configureFineTune(seed);
+	}
+
+	public void configureTranferLearning( String featurizeExtractionLayer, String vertexName,
+										  String nInName, int nIn, WeightInit nInWeightInit,
+										  String nOutName, int nOut, WeightInit nOutWeightInit){
+		this.cnnconfig.configureTransferLearning(unet, featurizeExtractionLayer, vertexName, nInName, nIn, nInWeightInit,
+				nOutName, nOut, nOutWeightInit);
+	}
+
+	public void addCnnLossLayer(String layerName, LossFunction lossFunction, Activation activation, String layerInput ){
+		this.cnnconfig.addCnnLossLayer(layerName, lossFunction, activation, layerInput);
+	}
+
+	public void setOutput(String outputName){
+		this.cnnconfig.setOutput(outputName);
+	}
+
+	public void build_TransferLearning(){
+		constructedModel = this.cnnconfig.build_TransferLearning();
+	}
+
+	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
+										 int channels, String maskFileName){
+		this.TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, imageheight, imagewidth, channels,
+				maskFileName);
+	}
+
+	public void generateIterator() throws Exception{
+		this.trainGenerator = this.TrainingDatasetGenerator.trainIterator_segmentation();
+		this.validationGenerator = this.TrainingDatasetGenerator.testIterator_segmentation();
+	}
+
+	public void train_segmentation(int epoch) throws Exception {
+		this.TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
+	}
+
+	public void validation_segmentation() throws IOException {
+		this.TrainingDatasetGenerator.validation_segmentation(validationGenerator, constructedModel);
+	}
+
+	public void  exportImage(){
+
+	}
 }

@@ -79,11 +79,86 @@ class CNNNodeService {
                 return { name: "Construct RNN" }
             case "EvaluateModelRNN":
                 return { name: "Evaluate Model RNN" }
+            //================= SEGMENTATION =================
+            case "segmentationStartnode":
+                return { name: "Startnode" };
+            case "importPretrainedModel":
+                return { name: "Import Pretained Model (UNET)" };
+            case "configureFineTune":
+                return this.prepareConfigureFineTune();
+            case "configureTranferLearning":
+                return this.prepareConfigureTranferLearning();
+            case "addCnnLossLayer":
+                return this.prepareAddCnnLossLayer();
+            case "setOutput_segmentation":
+                return this.prepareSetOutput();
+            case "build_TransferLearning":
+                return { name: "Build network" };
+            case "segmentationDataStartNode":
+                return { name: "Data StartNode" }
+            case "setIterator_segmentation":
+                return this.prepareSetIterator();
+            case "generateIterator":
+                return { name: "Generate Iterator" };
+            case "train_segmentation":
+                return this.prepareTrain();
+            case "validation_segmentation":
+                return { name: "Validate Segmentation" };
             default:
                 return { name: nodetype };
         }
     }
 
+    // SEGMENTATION
+    prepareConfigureFineTune = () : Dictionary => {
+        let name ="Configure FineTune";
+        let seed=12345; 
+        return {name, seed};
+    }
+
+    prepareConfigureTranferLearning = () : Dictionary => {
+        let name ="Configure Tranfer Learning";
+        let featurizeExtractionLayer = "conv2d_4";
+        let vertexName = "activation_23";
+        let nInName = "conv2d_1";
+        let nIn = 1;
+        let nInWeightInit = WeightInitTypes.XAVIER;
+        let nOutName = "conv2d_23";
+        let nOut = 1;
+        let nOutWeightInit = WeightInitTypes.XAVIER;
+        return {name, featurizeExtractionLayer, vertexName, 
+            nInName, nIn, nInWeightInit,
+            nOutName, nOut, nOutWeightInit };
+    }
+
+    prepareAddCnnLossLayer = () : Dictionary => {
+        let name ="Add CnnLossLayer";
+        let layerName = "output";
+        let lossfunction = LossFunctionTypes.XENT;
+        let activationfunction = ActivationFunctionTypes.SIGMOID;     
+        let layerInput = "conv2d_23"
+        return {name, layerName, lossfunction, activationfunction, layerInput };
+    }
+
+    prepareSetIterator = () : Dictionary => {
+        let name = "Setup Iterator";
+        let path = "C:\\Users\\User\\.deeplearning4j\\data\\data-science-bowl-2018\\data-science-bowl-2018\\data-science-bowl-2018-2\\train\\inputs";
+        let batchsize = 2;
+        let trainPerc = 0.1;
+        let imagewidth = 224;
+        let imageheight = 224;
+        let channels = 1;
+        let maskFolderName = "masks"
+        return {name, path, batchsize, trainPerc, imagewidth, imageheight, channels, maskFolderName};
+    }
+
+    prepareTrain = () : Dictionary => {
+        let name ="Train Segmentation";
+        let epochs = 1; 
+        return {name, epochs};
+    }
+
+    // RNN
     prepareRNNConfiguration = () : Dictionary => {
         let name ="RNN Configuration";
         let seed=12345;

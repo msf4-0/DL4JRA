@@ -103,7 +103,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="ExportNN" nodename="Export" />
 
                 </div>
-                {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
+                {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK (Multilayer configuration) */}
                 <div style={{ margin: 5, padding: 5, }}>
                     <div className='description'>CNN</div>
                     {/* CNN START NODE */}
@@ -135,11 +135,11 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="ConstructCNN" nodename="CNN Construct" />
                 </div>
 
-                {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
+                {/* SECTION FOR NEURAL NETWORK (Computation graph configuration)  */}
                 <div style={{ margin: 5, padding: 5, }}>
                     <div className='description'>RNN</div>
-                     {/* RNN STARTNODE */}
-                     <ToolboxNode nodetype="RNNStartNode" nodename=" NN (S)" />
+                    {/* RNN STARTNODE */}
+                    <ToolboxNode nodetype="RNNStartNode" nodename=" NN (S)" />
 
                     {/* RNN CONFIGURATION */}
                     <ToolboxNode nodetype="RNNConfiguration" nodename="RNN Configurations" />
@@ -164,6 +164,48 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     
                     {/* EVALUATE MODLE RNN */}
                     <ToolboxNode nodetype="EvaluateModelRNN" nodename="Evaluate Model RNN" />
+                </div>
+
+                    {/* SECTION FOR SEGMENTATION */}
+                    <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description'>SEGMENTATION</div>
+                    {/* segmentationStartnode */}
+                    <ToolboxNode nodetype="segmentationStartnode" nodename=" Segmentation Start (S)" />
+
+                    {/* importPretrainedModel */}
+                    <ToolboxNode nodetype="importPretrainedModel" nodename="Pretrained Model" />
+
+                    {/* configureFineTune */}
+                    <ToolboxNode nodetype="configureFineTune" nodename="Configure FineTune" />
+
+                    {/* configureTranferLearning */}
+                    <ToolboxNode nodetype="configureTranferLearning" nodename="Configure Tranfer Learning" />
+
+                    {/* addCnnLossLayer */}
+                    <ToolboxNode nodetype="addCnnLossLayer" nodename="Add CnnLoss Layer" />
+
+                    {/* setOutput */}
+                    <ToolboxNode nodetype="setOutput_segmentation" nodename="Set Output" />
+
+                    {/* build_TransferLearning */}
+                    <ToolboxNode nodetype="build_TransferLearning" nodename="Build Transfer Learning" />
+
+                    <div className='description'>SEGMENTATION LOAD </div>
+                    <div className='description'>DATA n EVALUATION </div>
+                    {/* segmentationDataStartNode */}
+                    <ToolboxNode nodetype="segmentationDataStartNode" nodename=" Data Start Node" />
+
+                    {/* setIterator_segmentation */}
+                    <ToolboxNode nodetype="setIterator_segmentation" nodename="Setup Iterator" />
+
+                    {/* generateIterator */}
+                    <ToolboxNode nodetype="generateIterator" nodename=" Generate Iterator " />
+                    
+                    {/* train_segmentation */}
+                    <ToolboxNode nodetype="train_segmentation" nodename=" Train " />
+
+                    {/* validation_segmentation */}
+                    <ToolboxNode nodetype="validation_segmentation" nodename="Validate" />
                 </div>
 
 

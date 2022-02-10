@@ -14,7 +14,10 @@ import {FlipImage, RotateImage, ResizeImage,
     CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, 
     SetInputType, ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
     LoadDatasetCSV, TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV ,RNNStartNode, RNNConfiguration, RnnOutputLayer,
-    AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN} from './cnnlayers' 
+    AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN,
+    segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
+    addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
+    generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation} from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -130,7 +133,10 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, SetInputType, 
             ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
             LoadDatasetCSV,TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV,
-            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN
+            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN,
+            segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
+            addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
+            generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -437,6 +443,9 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         await this.ConstructValidationDatasetFlowSequence_CSV();
         await this.ConstructCNNFlowSequence();
         await this.ConstructRNNFlowSequence();
+        //Segmentation
+        await this.ConstructSegmentationFlowSequence();
+        await this.ConstructDatasetnEvaluationSegmentationFlowSequence();
         this.setprogressmodalcanclose(true);
         this.setprogresscanabort(false);
     }
@@ -695,6 +704,54 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             }
         }
     }
+
+    ConstructSegmentationFlowSequence = async () : Promise<any> => {
+        let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("segmentationStartnode");
+        let cnnsequences : FlowElement[];
+        if (cnnstartnodeId !== null) {
+            cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
+            for (let index = 0; index < cnnsequences.length; index ++) {
+                if (! this.seqcancontinue) return;
+                let element = cnnsequences[index];
+                if (element.type === "importPretrainedModel") {
+                    await this.processnode("/server/cnn/importpretrainedmodel", element.id, element.data);
+                } else if (element.type === "configureFineTune") {
+                    await this.processnode("/server/cnn/configurefinetune", element.id, element.data);
+                } else if (element.type === "configureTranferLearning") {
+                    await this.processnode("/server/cnn/configuretransferlearning", element.id, element.data);
+                } else if (element.type === "addCnnLossLayer") {
+                    await this.processnode("/server/cnn/appendcnnlosslayer", element.id, element.data);
+                } else if (element.type === "setOutput_segmentation") {
+                    await this.processnode("/server/cnn/setoutput_segmentation", element.id, element.data);
+                } else if (element.type === "build_TransferLearning") {
+                    await this.processnode("/server/cnn/buildtransferlearning", element.id, element.data);
+                }
+            }
+        }
+    }
+
+    /**
+     * After importing and construting pretrained model, load the dataset and run.
+    */
+         ConstructDatasetnEvaluationSegmentationFlowSequence = async () : Promise<void> => {
+            let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("segmentationDataStartNode");
+            if (startnodeId === null) return;
+            let sequence : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
+            for(let index = 0; index < sequence.length; index++) {
+                if (! this.seqcancontinue) return;
+                let element = sequence[index];
+                if (element.type === "setIterator_segmentation") {
+                    await this.processnode("/server/cnn/setupiterator", element.id, element.data);
+                } else if (element.type === "generateIterator") {
+                    await this.processnode("/server/cnn/generateiteratorsegmentation", element.id, element.data);
+                } else if (element.type === "train_segmentation") {
+                    await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
+                } else if (element.type === "validation_segmentation") {
+                    await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
+                } 
+            }
+        }
+
     /**
      * Test functionality of flow (without constructing node)
      * 1. Start new sequence

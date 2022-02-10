@@ -102,6 +102,7 @@ export enum LossFunctionTypes {
     NEGATIVELOGLIKELIHOOD = "NEGATIVELOGLIKELIHOOD",
     POISSON = "POISSON",
     MCXENT = "MCXENT",
+    XENT = "XENT",
 
 }
 

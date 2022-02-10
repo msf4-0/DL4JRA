@@ -239,13 +239,6 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         case "kernalSize":
                                         case "numSkipLines":
                                         case "numClassLabels":
-                                        // case "delimeterInString":
-                                        //     // return (
-                                        //     //     <FormGroup key={config}>
-                                        //     //         <Label for={config}>{config.toUpperCase()}</Label>
-                                        //     //         <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange}/>
-                                        //     //     </FormGroup>
-                                        //     // )
                                         case "inputName":
                                             return (
                                                 <FormGroup key={config}>
@@ -294,6 +287,73 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                                 <option key={lossfunction} value={LossFunctionTypes[lossfunction]}>{lossfunction}</option>
                                                         )}
                                                     </Input>
+                                                </FormGroup>
+                                            )
+
+                                        // Segmentation
+                                        case "featurizeExtractionLayer":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        case "vertexName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        case "nInName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        case "nInWeightInit":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>WEIGHT INIT</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(WeightInitTypes).map( type => 
+                                                                <option key={type} value={WeightInitTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                            </FormGroup>
+                                            )
+                                        case "nOutName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        case "nOutWeightInit":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>WEIGHT INIT</Label>
+                                                    <Input type='select' name={config} id={config} value={value} onChange={this.handledataOnchange}>
+                                                        { Object.keys(WeightInitTypes).map( type => 
+                                                                <option key={type} value={WeightInitTypes[type]}>{type}</option>
+                                                        )}
+                                                    </Input>
+                                            </FormGroup>
+                                            )
+                                        case "maskFolderName":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        
+                                        case "trainPerc":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='number' name={config} id={config} value={value} onChange={this.handledataOnchange} />
                                                 </FormGroup>
                                             )
                                         default:

@@ -1020,6 +1020,300 @@ public class CNNController {
 			throw new CNNException("Failed to append 1D convolution layer", data.getNodeId());
 		}
 	}
+
+	// SEGMENTATION
+	/**
+	 * [WEBSOCKET] Setup Iterator
+	 * @param data - Setup Iterator data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/setupiterator")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted SetupIterator (SetupIteratorNode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.setIterator_segmentation(data.getPath(),data.getBatchsize(), data.getTrainPerc(), data.getImagewidth(),
+					data.getImageheight(), data.getChannels(), data.getMaskFolderName());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Dataset for segmentation loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Generate dataset iterator for segmentation
+	 * @param data Generate dataset iterator for segmentation data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generateiteratorsegmentation")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted GenerateIteratorSegmentation(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.generateIterator();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Dataset iterator has been generated");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to initialize dataset iterator", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Train Segmentation
+	 * @param data - Network training data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/trainsegmentation")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted TrainSegmentation(Trainnetworknode data) throws Exception {
+		try
+		{
+//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+//			this.cnn.train_segmentation(data.getEpochs());
+//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			System.out.println(new RBProcessCompleted("START TRAINING"));
+			System.out.println(new RBProcessCompleted("Details on command prompt"));
+			this.cnn.train_segmentation(data.getEpochs());
+			return new RBProcessCompleted("Network training completed");
+		}
+		catch (Exception exception)
+		{
+			System.out.println(exception.getMessage());
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+//	/**
+//	 * Train network
+//	 * @param data - Network training data
+//	 * @return ProcessCompleted message
+//	 * @throws Exception
+//	 */
+//	@MessageMapping("/cnn/trainnetwork")
+//	@SendTo("/response/cnn/currentprocessdone")
+//	public RBProcessCompleted TrainNetwork(Trainnetworknode data) throws Exception {
+//		try
+//		{
+//			System.out.println(new RBProcessCompleted("START TRAINING"));
+//			this.cnn.TrainNetwork(data.getEpochs(), data.getScoreListener(), template);
+//			return new RBProcessCompleted("Network training completed");
+//		}
+//		catch (Exception exception)
+//		{
+//			throw new CNNException(exception.getMessage(), data.getNodeId());
+//		}
+//	}
+//
+//	/**
+//	 * Validate network
+//	 * @param data - Validate network node data
+//	 * @return ProcessCompleted message
+//	 * @throws Exception
+//	 */
+//	@MessageMapping("/cnn/validatenetwork")
+//	@SendTo("/response/cnn/currentprocessdone")
+//	public RBProcessCompleted ValidateNetwork(Nodeclass data) throws Exception {
+//		try
+//		{
+//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+//			this.cnn.ValidateNetwork(this.template);
+//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+//			return new RBProcessCompleted("Network validation completed");
+//		}
+//		catch (Exception exception)
+//		{
+//			throw new CNNException(exception.getMessage(), data.getNodeId());
+//		}
+//	}
+	/**
+	 * Validate segmentation
+	 * @param data - Validate network node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/validatesegmentation")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted ValidateSegmentation(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.validation_segmentation();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Network validation completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Import Pretrained Model (UNET)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importpretrainedmodel")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importPretrainedModel(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importPretrainedModel();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (UNET) completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * configure FineTune
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configurefinetune")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted configureFineTune(ConfigureFineTuneNode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configureFineTune(data.getSeed());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("FineTune Configuration done!");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 *  Configure Transfer Learning
+	 * @param data - ConfigureTransferLearningNode data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configuretransferlearning")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted configureTransferLearning(ConfigureTransferLearningNode data) throws Exception {
+		try
+		{
+
+			WeightInit nInWeightInit, nOutWeightInit;
+			if (data.getnInWeightInit().equals("null")){
+				nInWeightInit = null;
+			}
+			else{
+				nInWeightInit = WeightInit.valueOf(data.getnInWeightInit());
+			}
+
+			if (data.getnOutWeightInit().equals("null")){
+				nOutWeightInit = null;
+			}
+			else{
+				nOutWeightInit = WeightInit.valueOf(data.getnOutWeightInit());
+			}
+
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configureTranferLearning(data.getFeaturizeExtractionLayer(), data.getVertexName(), data.getnInName(),
+					data.getnIn(), nInWeightInit, data.getnOutName(), data.getnOut(), nOutWeightInit);
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration Transfer Learning Done!");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to initialize transfer learning configurations", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Append Cnn Loss layer
+	 * @param data - Cnn Loss layer data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/appendcnnlosslayer")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted AppendCnnLossLayer(CnnLossLayerNode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			Activation activation;
+			if (data.getActivationfunction().equals("null")){
+				activation = null;
+			}
+			else{
+				activation = Activation.fromString(data.getActivationfunction());
+			}
+
+			this.cnn.addCnnLossLayer(data.getLayerName(), LossFunction.valueOf(data.getLossfunction()), activation, data.getLayerInput());
+
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("CnnLossLayer has been appended to transfer learning network (Layer name: " + data.getLayerName() + ")");
+		}
+		catch (Exception exception)
+		{
+			System.out.println(exception.getMessage());
+			throw new CNNException("Failed to append CnnLossLayer", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Set output
+	 * @param data - SetOutputNode node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/setoutput_segmentation")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted SetOutput_Segmentation(SetOutputNode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.setOutput(data.getOutputName());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Set output name: " + data.getOutputName());
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Build Transfer Learning
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/buildtransferlearning")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted buildTransferLearning(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.build_TransferLearning();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Transfer Learning model build successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
 }
 
 

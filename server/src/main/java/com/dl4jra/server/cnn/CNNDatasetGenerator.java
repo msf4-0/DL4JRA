@@ -2,9 +2,14 @@ package com.dl4jra.server.cnn;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 
+import com.dl4jra.server.cnn.response.UpdateResponse;
+import com.dl4jra.server.cnn.utilities.Visualization;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.records.reader.SequenceRecordReader;
@@ -15,17 +20,23 @@ import org.datavec.api.split.NumberedFileInputSplit;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
-import org.datavec.image.transform.FlipImageTransform;
-import org.datavec.image.transform.ImageTransform;
-import org.datavec.image.transform.PipelineImageTransform;
-import org.datavec.image.transform.ResizeImageTransform;
-import org.datavec.image.transform.RotateImageTransform;
+import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
+import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.nd4j.common.primitives.Pair;
+import org.nd4j.evaluation.classification.Evaluation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.slf4j.Logger;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+
+import javax.swing.*;
+
+import static org.bytedeco.opencv.global.opencv_imgproc.CV_RGB2GRAY;
 
 public class CNNDatasetGenerator {
 	private ArrayList<Pair<ImageTransform, Double>> transforms = new ArrayList<Pair<ImageTransform, Double>>();
@@ -45,6 +56,11 @@ public class CNNDatasetGenerator {
 	private int height, width, channels;
 	// For CSV loading
 	private SequenceRecordReader trainFeatures, trainLabels, testFeatures, testLabels;
+	// Segmentation
+	private static CustomLabelGenerator labelMaker;
+	private static final Logger log = org.slf4j.LoggerFactory.getLogger(
+			CNNDatasetGenerator.class);
+
 
 	public CNNDatasetGenerator() {
 	}
@@ -112,44 +128,41 @@ public class CNNDatasetGenerator {
 
 		//Split the image files into train and test
 		InputSplit[] filesInDirSplit = this.filesplit.sample(pathFilter, trainPerc, 100-trainPerc);
-//        this.trainData = filesInDirSplit[0];
-//        this.testData = filesInDirSplit[1];
 		trainData = filesInDirSplit[0];
         testData = filesInDirSplit[1];
-//		this.recordReader = new ImageRecordReader(imagewidth, imageheight, channels, labelMaker);
 	}
 
-//	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
-//		this.numClassLabels = numClassLabels;
-//		this.batchsize = batchsize;
-//		String locDelimeter = Character.toString(delimeter);
-//
-//		File trainBaseDir = new File(path);
-//		File trainFeaturesDir = new File(trainBaseDir, "features");
-//		File trainLabelsDir = new File(trainBaseDir, "labels");
-//
-//		trainFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
-//		trainFeatures.initialize(new NumberedFileInputSplit( trainFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 7351));
-//
-//		trainLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
-//		trainLabels.initialize(new NumberedFileInputSplit(trainLabelsDir.getAbsolutePath()+"/%d.csv", 0, 7351));
-//	}
-//
-//	public void LoadTestDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws IOException, InterruptedException {
-//		this.numClassLabels = numClassLabels;
-//		this.batchsize = batchsize;
-//		String locDelimeter = Character.toString(delimeter);
-//
-//		File testBaseDir = new File(path);
-//		File testFeaturesDir = new File(testBaseDir, "features");
-//		File testLabelsDir = new File(testBaseDir, "labels");
-//
-//		testFeatures = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
-//		testFeatures.initialize(new NumberedFileInputSplit( testFeaturesDir.getAbsolutePath()+ "/%d.csv", 0, 2946));
-//
-//		testLabels = new CSVSequenceRecordReader(numSkipLines, locDelimeter);
-//		testLabels.initialize(new NumberedFileInputSplit(testLabelsDir.getAbsolutePath()+"/%d.csv", 0, 2946));
-//	}
+	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
+										 int channels, String maskFileName){
+		// set transform
+		ImageTransform rgb2gray = new ColorConversionTransform(CV_RGB2GRAY);
+
+		List<Pair<ImageTransform, Double>> pipeline = Arrays.asList(
+				new Pair<>(rgb2gray, 1.0)
+		);
+		transform =  new PipelineImageTransform(pipeline, false);
+
+		batchsize = batchSize;
+		height = imageheight;
+		width = imagewidth;
+		this.channels = channels;
+
+		File imagesPath = new File(path);
+		FileSplit imageFileSplit = new FileSplit(imagesPath, NativeImageLoader.ALLOWED_FORMATS, new Random(12345));
+
+		List<Pair<String, String>> replacement = Arrays.asList(
+				new Pair<>("inputs", maskFileName),
+				new Pair<>(".jpg", "_mask.png")
+		);
+
+		labelMaker = new CustomLabelGenerator(imageheight, imagewidth, channels, replacement);
+		BalancedPathFilter imageSplitPathFilter = new BalancedPathFilter(new Random(12345), NativeImageLoader.ALLOWED_FORMATS, labelMaker);
+		InputSplit[] imagesSplits = imageFileSplit.sample(imageSplitPathFilter, trainPerc, 1 - trainPerc);
+
+		trainData = imagesSplits[0];
+		testData = imagesSplits[1];
+	}
+
 	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws IOException, InterruptedException {
 		this.numClassLabels = numClassLabels;
 		this.batchsize = batchsize;
@@ -243,6 +256,14 @@ public class CNNDatasetGenerator {
 		return makeIterator(testData, false);
 	}
 
+	public RecordReaderDataSetIterator trainIterator_segmentation() throws Exception {
+		return makeIterator_segmentation(trainData);
+	}
+
+	public RecordReaderDataSetIterator testIterator_segmentation() throws Exception {
+		return makeIterator_segmentation(testData);
+	}
+
 
 	private DataSetIterator makeIterator(InputSplit split, boolean training) throws Exception {
 		ParentPathLabelGenerator labelMaker = new ParentPathLabelGenerator();
@@ -258,4 +279,89 @@ public class CNNDatasetGenerator {
 		dataIter.setPreProcessor(scaler);
 		return dataIter;
 	}
+
+	private RecordReaderDataSetIterator makeIterator_segmentation(InputSplit split) throws Exception {
+		recordReader = new ImageRecordReader(height, width, channels, labelMaker);
+
+		recordReader.initialize(split, transform);
+		RecordReaderDataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchsize, 1, 1, true);
+		dataIter.setPreProcessor(scaler);
+
+		return dataIter;
+	}
+
+
+	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model){
+		//visualize
+//		JFrame frame = Visualization.initFrame("Viz");
+//		System.out.println(10);
+//		JPanel panel = Visualization.initPanel(
+//				frame,
+//				batchsize,
+//				height,
+//				width,
+//				1
+//		);
+
+		System.out.println(2);
+		System.out.println(epoch);
+
+		for (int i = 0; i < epoch; i++) {
+
+			log.info("Epoch: " + i);
+
+			while (trainGenerator.hasNext()) {
+				DataSet imageSet = trainGenerator.next();
+
+				model.fit(imageSet);
+
+//				INDArray predict = model.output(imageSet.getFeatures())[0];
+
+//				Visualization.visualize(
+//						imageSet.getFeatures(),
+//						imageSet.getLabels(),
+//						predict,
+//						frame,
+//						panel,
+//						batchsize,
+//						224,
+//						224
+//				);
+			}
+
+			trainGenerator.reset();
+		}
+	}
+
+
+	public void validation_segmentation(RecordReaderDataSetIterator validationGenerator, ComputationGraph model) throws IOException {
+		Evaluation eval = new Evaluation(2);
+
+		float IOUTotal = 0;
+		int count = 0;
+		while (validationGenerator.hasNext()) {
+			DataSet imageSetVal = validationGenerator.next();
+
+			INDArray predictVal = model.output(imageSetVal.getFeatures())[0];
+			INDArray labels = imageSetVal.getLabels();
+
+			count++;
+
+			eval.eval(labels, predictVal);
+			log.info(eval.stats());
+
+			//Intersection over Union:  TP / (TP + FN + FP)
+			float IOU = (float) eval.truePositives().get(1) / ((float) eval.truePositives().get(1) + (float) eval.falsePositives().get(1) + (float) eval.falseNegatives().get(1));
+			IOUTotal = IOUTotal + IOU;
+
+			System.out.println("IOU Cell " + String.format("%.3f", IOU));
+
+			eval.reset();
+
+
+		}
+
+		System.out.println("Mean IOU: " + IOUTotal / count);
+	}
+
 }
