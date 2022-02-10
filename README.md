@@ -6,7 +6,7 @@ The purpose of developing DL4JRA is to allow everyone, including those who have 
 ## **Preparation**
 - [x] Download and install [IntelliJ](https://www.jetbrains.com/idea/download/#section=windows).
 - [x] Clone the repository from github inside IntelliJ (open from VSC).
-- [x] Go to [Oracle Java Archive]((https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html)) and install Java SE 8 (Used as project SDK).
+- [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK).
 - [x] Download [OpenCV 4.5.3](https://opencv.org/opencv-4-5-3/). Install [OpenCV in IntelliJ](https://medium.com/@aadimator/how-to-set-up-opencv-in-intellij-idea-6eb103c1d45c)
 - [x] Download and install [Node.js](https://nodejs.org/en/download/)
 - [x] Download [Apache Maven](https://maven.apache.org/download.cgi). Installation steps for window [here](https://docs.wso2.com/display/IS323/Installing+Apache+Maven+on+Windows).
