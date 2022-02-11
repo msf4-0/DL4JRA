@@ -239,11 +239,10 @@ public class CNN {
 	public void AppendConvolutionLayer(int ordering, int nIn, int nOut, int kernalx, int kernaly, int stridex, int stridey,
 									   int paddingx, int paddingy, Activation activationfunction, double dropOut, double biasInit,
 									   ConvolutionMode convolutionMode) throws Exception{
-		int numChannel = 3;
 		int firstLayer = 0;
-		boolean boo = (nIn == numChannel && ordering != firstLayer);
+		boolean boo = (ordering != firstLayer);
 		if(boo){
-			AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
+			this.cnnconfig.AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
 					activationfunction, dropOut, biasInit, convolutionMode);
 		}
 		else {
@@ -251,15 +250,6 @@ public class CNN {
 					activationfunction, dropOut, biasInit, convolutionMode);
 		}
 	}
-
-
-	public void AppendConvolutionLayer(int ordering, int nOut, int kernalx, int kernaly, int stridex, int stridey,
-									   int paddingx, int paddingy, Activation activationfunction, double dropOut, double biasInit,
-									   ConvolutionMode convolutionMode) throws Exception{
-		this.cnnconfig.AppendConvolutionLayer(ordering, nOut, kernalx, kernaly, stridex, stridey, paddingx, paddingy,
-				activationfunction, dropOut, biasInit, convolutionMode);
-	}
-
 	
 	/**
 	 * Append subsampling layer
