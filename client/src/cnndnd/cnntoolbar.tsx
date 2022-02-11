@@ -1,3 +1,5 @@
+import { AlignHorizontalCenter } from '@mui/icons-material';
+import { textAlign } from '@mui/system';
 import {Component, DragEvent} from 'react'
 import {Button} from 'reactstrap'
 import DL4JBackend from "../globalcomponents/glbbackend"
@@ -28,7 +30,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
         return (
             <aside className='cnn-toolbar'>
                 <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>DL4J BACKEND</div>
+                    <div className='description'style={{ fontSize:20, }}>DL4J BACKEND</div>
                     <DL4JBackend 
                         websocketconnected={this.props.websocketconnected}
                         backendiscpu={this.props.backendiscpu}
@@ -37,26 +39,16 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 </div>
 
                 <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>ACTION</div>
-                    <Button className='toolbar-element' block onClick={this.props.hardcodedcnntesting} disabled={! this.props.websocketconnected}>CNN(TEST)</Button>
+                    <div className='description'style={{ fontSize:20, }}>ACTION</div>
+                    {/* <Button className='toolbar-element' block onClick={this.props.hardcodedcnntesting} disabled={! this.props.websocketconnected}>CNN(TEST)</Button> */}
                     <Button className='toolbar-element' block onClick={this.props.constructsequence} disabled={! this.props.websocketconnected}>CONSTRUCT</Button>
                 </div>
 
-                <div style={{ margin: 5, padding: 5, }}>   
-                    <div className='description'>IMAGE PRE-PROCESS</div>
-                    {/* FLIP IMAGE */}
-                    <ToolboxNode nodetype="FlipImage" nodename="Flip" />
-                    
-                    {/* ROTATE IMAGE */}
-                    <ToolboxNode nodetype="RotateImage" nodename="Rotate" />
-
-                    {/* RESIZE IMAGE */}
-                    <ToolboxNode nodetype="ResizeImage" nodename="Resize" />
-                </div>
 
                 {/* SECTION FOR TRAINING DATASET */}
                 <div style={{ margin: 5, padding: 5, }}>   
-                    <div className='description'>DATASETS</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description'style={{ fontSize:20, }}>DATASETS</div>
                     <div className='description' >Image inputs</div>
                     
                     {/* DATASET AUTO SPLIT STARTNODE  */}
@@ -73,6 +65,19 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                     {/* LOAD TRAINING DATASET  */}
                     <ToolboxNode nodetype="GenerateDatasetIterator" nodename="Image Date Iterator" />
+
+                    
+                    <div style={{ margin: 5, padding: 5, }}>   
+                        <div className='description'>Image preprocess</div>
+                        {/* FLIP IMAGE */}
+                        <ToolboxNode nodetype="FlipImage" nodename="Flip" />
+                        
+                        {/* ROTATE IMAGE */}
+                        <ToolboxNode nodetype="RotateImage" nodename="Rotate" />
+
+                        {/* RESIZE IMAGE */}
+                        <ToolboxNode nodetype="ResizeImage" nodename="Resize" />
+                    </div>
 
                     <div className='description' >CSV inputs</div>
 
@@ -91,7 +96,8 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                  {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
                  <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>NN</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description' style={{ fontSize:20, }}>NN</div>
 
                     {/* TRAIN CNN */}
                      <ToolboxNode nodetype='TrainNN' nodename='Train' />
@@ -105,12 +111,14 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 </div>
                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK (Multilayer configuration) */}
                 <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>CNN</div>
+                    <div className='description'>MultiLayer</div>
+                    <div className='description'>Configuration Network</div>
+                    
                     {/* CNN START NODE */}
-                    <ToolboxNode nodetype="CNNStartNode" nodename="NN (S)" />
+                    <ToolboxNode nodetype="CNNStartNode" nodename="MulitiLayer (S)" />
 
                     {/* CNN CONFIGURATION */}
-                    <ToolboxNode nodetype="CNNConfiguration" nodename="CNN Configurations" />
+                    <ToolboxNode nodetype="CNNConfiguration" nodename="MultiLayer Config" />
 
                     {/* CONVOLUTION LAYER */}
                     <ToolboxNode nodetype="ConvolutionLayer" nodename="Convolutional" />
@@ -132,17 +140,18 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                      <ToolboxNode nodetype="SetInputType" nodename="I.Type" />
 
                     {/* CONSTRUCT CNN NODE */}
-                    <ToolboxNode nodetype="ConstructCNN" nodename="CNN Construct" />
+                    <ToolboxNode nodetype="ConstructCNN" nodename="MultiLayer Construct" />
                 </div>
 
                 {/* SECTION FOR NEURAL NETWORK (Computation graph configuration)  */}
                 <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>RNN</div>
+                    <div className='description'>Computation Graph</div>
+                    <div className='description'>Configuration Network</div>
                     {/* RNN STARTNODE */}
-                    <ToolboxNode nodetype="RNNStartNode" nodename=" NN (S)" />
+                    <ToolboxNode nodetype="RNNStartNode" nodename=" ComputatinGraph (S)" />
 
                     {/* RNN CONFIGURATION */}
-                    <ToolboxNode nodetype="RNNConfiguration" nodename="RNN Configurations" />
+                    <ToolboxNode nodetype="RNNConfiguration" nodename="ComputationGraph Config" />
 
                     {/* ADD INPUT */}
                     <ToolboxNode nodetype="AddInput" nodename="Add Input" />
@@ -160,17 +169,18 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="RnnOutputLayer" nodename="Rnn Output Layer" />
 
                     {/* CONSTRUCT NETWORK RNN */}
-                    <ToolboxNode nodetype="ConstructNetworkRNN" nodename="RNN Construct" />
+                    <ToolboxNode nodetype="ConstructNetworkRNN" nodename="ComputationGraph Construct" />
                     
                     {/* EVALUATE MODLE RNN */}
-                    <ToolboxNode nodetype="EvaluateModelRNN" nodename="Evaluate Model RNN" />
+                    <ToolboxNode nodetype="EvaluateModelRNN" nodename="Evaluate Model" />
                 </div>
 
                     {/* SECTION FOR SEGMENTATION */}
                     <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description'>SEGMENTATION</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description' style={{ fontSize:20, }}>SEGMENTATION</div>
                     {/* segmentationStartnode */}
-                    <ToolboxNode nodetype="segmentationStartnode" nodename=" Segmentation Start (S)" />
+                    <ToolboxNode nodetype="segmentationStartnode" nodename=" Segmentation (S)" />
 
                     {/* importPretrainedModel */}
                     <ToolboxNode nodetype="importPretrainedModel" nodename="Pretrained Model" />

@@ -60,7 +60,7 @@ class CNNNodeService {
                 return { name: "Validate" }
             case "ExportNN":
                 return this.prepareExportNN();
-            //================= RNN =================
+            //================= Computation Graph Configuration =================
             case "RNNStartNode":
                 return { name: "Startnode" };
             case "RNNConfiguration":
@@ -76,9 +76,9 @@ class CNNNodeService {
             case "RnnOutputLayer":
                 return this.prepareRnnOutputLayer();
             case "ConstructNetworkRNN":
-                return { name: "Construct RNN" }
+                return { name: "ComputationGraph Construct" }
             case "EvaluateModelRNN":
-                return { name: "Evaluate Model RNN" }
+                return { name: "Evaluate Model" }
             //================= SEGMENTATION =================
             case "segmentationStartnode":
                 return { name: "Startnode" };
