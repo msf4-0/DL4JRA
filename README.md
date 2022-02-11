@@ -4,8 +4,9 @@ The purpose of developing DL4JRA is to allow everyone, including those who have 
 
 <!-- omit in toc -->
 ## **Preparation**
-- [x] Download and install [IntelliJ](https://www.jetbrains.com/idea/download/#section=windows).
+- [x] Download and install [IntelliJ](https://www.jetbrains.com/idea/download/#section=windows) IDE for server.
 - [x] Clone the repository from github inside IntelliJ (open from VSC).
+- [x] Download and install [Visual Code Studio](https://code.visualstudio.com/) IDE for ReactJS code. 
 - [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK).
 - [x] Download [OpenCV 4.5.3](https://opencv.org/opencv-4-5-3/). Install [OpenCV in IntelliJ](https://medium.com/@aadimator/how-to-set-up-opencv-in-intellij-idea-6eb103c1d45c)
 - [x] Download and install [Node.js](https://nodejs.org/en/download/)
@@ -36,7 +37,7 @@ The purpose of developing DL4JRA is to allow everyone, including those who have 
 ## **DL4JRA Features**
 - [**CPU/GPU Backend Switching**](#cpugpu-backend-switching)
 - [**Dataset Generation Through Webcam**](#dataset-generation-through-webcam)
-- [**Convolution Neural Network**](#convolution-neural-network)
+- [**Neural Network**](#neural-network)
 - [**Object Detection using Pretrained Model**](#object-detection-using-pretrained-model)
 - [**Object Classification Deployment**](#object-classification-deployment)
 - [**MQTT Signalling and Output**](#mqtt-signalling-and-output)
@@ -67,9 +68,9 @@ Watch a [DEMO](https://drive.google.com/file/d/1wDlsO9H4agwKgXQEYtUcKj568qrJj8q6
 4. Click on Screenshot button.
 <br><br>
 
-## **Convolution Neural Network**
+## **Neural Network**
 Watch a [DEMO](https://drive.google.com/file/d/1ry6vZewW2sjsE2jFZlEQir1QS5roK-L9/view?usp=sharing) about construct, train and validate convolution neural network using DL4JRA.
-1. Navigate to "CONVOLUTION NEURAL NETWORK" section from the main page.
+1. Navigate to "NEURAL NETWORK" section from the main page.
 <!-- omit in toc -->
 ### **Load Training Dataset**
 1. Start a sequence with a <b>TD(S)</b> node.
