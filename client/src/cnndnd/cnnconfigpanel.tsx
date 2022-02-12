@@ -104,6 +104,13 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                     <Input type='number' name='nIn' id='nIn' value={value} onChange={this.handledataOnchange} />
                                                 </FormGroup>
                                             )
+                                        case "nInMultiLayer":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for="nIn">nIn</Label>
+                                                    <Input type='text' name='nIn' id='nIn' value={value} onChange={this.handledataOnchange} readOnly/>
+                                                </FormGroup>
+                                            )
                                         case "learningrate":
                                         case "imagewidth":
                                         case "imageheight":
@@ -113,7 +120,6 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         case "seed":
                                         case "kernalx":
                                         case "kernaly":
-                                        //===============================================================
                                         case "stridex":
                                         case "stridey":
                                         case "paddingx":
@@ -123,16 +129,6 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         case "angle":
                                         case "nOut":
                                         case "epochs":
-                                        // case "l2":
-                                        //     return(
-                                        //         <div>
-                                        //             <MathJax.Context input='ascii'>
-                                        //                 <div>
-                                        //                     This is an inline formula written in AsciiMath: <MathJax.Node inline>{ '1' }</MathJax.Node>
-                                        //                 </div>
-                                        //             </MathJax.Context>
-                                        //         </div>
-                                        //     )
                                         case "scoreListener":
                                             return (
                                                 <FormGroup key={config}>

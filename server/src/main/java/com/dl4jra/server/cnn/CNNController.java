@@ -1078,9 +1078,6 @@ public class CNNController {
 	public RBProcessCompleted TrainSegmentation(Trainnetworknode data) throws Exception {
 		try
 		{
-//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.train_segmentation(data.getEpochs());
-//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			System.out.println(new RBProcessCompleted("START TRAINING"));
 			System.out.println(new RBProcessCompleted("Details on command prompt"));
 			this.cnn.train_segmentation(data.getEpochs());
@@ -1092,48 +1089,7 @@ public class CNNController {
 			throw new CNNException(exception.getMessage(), data.getNodeId());
 		}
 	}
-//	/**
-//	 * Train network
-//	 * @param data - Network training data
-//	 * @return ProcessCompleted message
-//	 * @throws Exception
-//	 */
-//	@MessageMapping("/cnn/trainnetwork")
-//	@SendTo("/response/cnn/currentprocessdone")
-//	public RBProcessCompleted TrainNetwork(Trainnetworknode data) throws Exception {
-//		try
-//		{
-//			System.out.println(new RBProcessCompleted("START TRAINING"));
-//			this.cnn.TrainNetwork(data.getEpochs(), data.getScoreListener(), template);
-//			return new RBProcessCompleted("Network training completed");
-//		}
-//		catch (Exception exception)
-//		{
-//			throw new CNNException(exception.getMessage(), data.getNodeId());
-//		}
-//	}
-//
-//	/**
-//	 * Validate network
-//	 * @param data - Validate network node data
-//	 * @return ProcessCompleted message
-//	 * @throws Exception
-//	 */
-//	@MessageMapping("/cnn/validatenetwork")
-//	@SendTo("/response/cnn/currentprocessdone")
-//	public RBProcessCompleted ValidateNetwork(Nodeclass data) throws Exception {
-//		try
-//		{
-//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.ValidateNetwork(this.template);
-//			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-//			return new RBProcessCompleted("Network validation completed");
-//		}
-//		catch (Exception exception)
-//		{
-//			throw new CNNException(exception.getMessage(), data.getNodeId());
-//		}
-//	}
+
 	/**
 	 * Validate segmentation
 	 * @param data - Validate network node data

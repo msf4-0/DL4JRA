@@ -60,7 +60,7 @@ class CNNNodeService {
                 return { name: "Validate" }
             case "ExportNN":
                 return this.prepareExportNN();
-            //================= RNN =================
+            //================= Computation Graph Configuration =================
             case "RNNStartNode":
                 return { name: "Startnode" };
             case "RNNConfiguration":
@@ -76,9 +76,9 @@ class CNNNodeService {
             case "RnnOutputLayer":
                 return this.prepareRnnOutputLayer();
             case "ConstructNetworkRNN":
-                return { name: "Construct RNN" }
+                return { name: "ComputationGraph Construct" }
             case "EvaluateModelRNN":
-                return { name: "Evaluate Model RNN" }
+                return { name: "Evaluate Model" }
             //================= SEGMENTATION =================
             case "segmentationStartnode":
                 return { name: "Startnode" };
@@ -303,14 +303,13 @@ class CNNNodeService {
         // let ifEdit = true;
         let kernalx = 2, kernaly = 2;
         let stridex = 1, stridey = 1;
-        // ===========================================================================
         let paddingx = 0, paddingy = 0;
-        let nIn = 3;
+        let nInMultiLayer = "Auto-filled";
         let nOut = 10;
         let activationfunction = ActivationFunctionTypes.RELU;        
         let dropOut = 0, biasInit = 0;
         let convolutionMode = ConvolutionModeTypes.Truncate;
-        return {name, kernalx, kernaly, stridex, stridey, paddingx, paddingy, nIn, nOut, activationfunction,
+        return {name, kernalx, kernaly, stridex, stridey, paddingx, paddingy, nInMultiLayer, nOut, activationfunction,
              dropOut, biasInit, convolutionMode};
     }
 
@@ -324,7 +323,6 @@ class CNNNodeService {
         let name = "Subsampling Layer";
         let kernalx = 2, kernaly = 2;
         let stridex = 1, stridey = 1;
-        // ===========================================================================
         let paddingx = 0, paddingy = 0;
         let poolingtype = PoolingType.MAX;
         let convolutionMode = ConvolutionModeTypes.Truncate;
@@ -340,12 +338,11 @@ class CNNNodeService {
     */
     prepareDenseLayer = () : Dictionary => {
         let name = "Dense Layer";
-        let nIn = 0;
         let nOut = 5;
         let activationfunction = ActivationFunctionTypes.RELU;        
         let dropOut = 0, biasInit = 0;
         let weightInit = WeightInitTypes.XAVIER
-        return {name, nIn, nOut, activationfunction, dropOut, biasInit, weightInit};
+        return {name, nOut, activationfunction, dropOut, biasInit, weightInit};
     }
 
     /**
@@ -357,12 +354,11 @@ class CNNNodeService {
     */
     prepareOutputLayer = () : Dictionary => {
         let name = "Output Layer";
-        let nIn = 3;
         let nOut = 2;
         let activationfunction = ActivationFunctionTypes.RELU;
         let lossfunction = LossFunctionTypes.NEGATIVELOGLIKELIHOOD;
         let weightInit = WeightInitTypes.XAVIER
-        return { name, nIn, nOut, activationfunction, lossfunction, weightInit };
+        return { name, nOut, activationfunction, lossfunction, weightInit };
     }
 
     //========================================================================================
