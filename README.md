@@ -2,15 +2,25 @@
 
 <!-- omit in toc -->
 # **DL4JRA**
-[![GitHub license](https://badgen.net/github/license/msf4-0/DL4JRA)](https://github.com/msf4-0/DL4JRA/blob/master/LICENSE)
-[![Github all releases](https://img.shields.io/github/downloads/msf4-0/DL4JRA/total.svg)](https://GitHub.com/msf4-0/DL4JRA/releases/)
-[![GitHub release](https://img.shields.io/github/release/msf4-0/DL4JRA.svg)](https://GitHub.com/msf4-0/DL4JRA/releases/)
-[![made-with-javascript](https://img.shields.io/badge/Made%20with-JavaScript-1f425f.svg)](https://www.javascript.com)
-[![GitHub issues](https://img.shields.io/github/issues/msf4-0/DL4JRA.svg)](https://GitHub.com/Naereen/StrapDown.js/issues/)
-[![GitHub contributors](https://img.shields.io/github/contributors/msf4-0/badges.svg)](https://GitHub.com/msf4-0/badges/graphs/contributors/)
-[![HitCount](http://hits.dwyl.com/lixian18180/msf4-0/DL4JRA.svg)](http://hits.dwyl.com/lixian18180/msf4-0/DL4JRA)
+<a href="https://github.com/msf4-0/DL4JRA/blob/master/LICENSE">
+    <img alt="GitHub" src="https://img.shields.io/github/license/msf4-0/DL4JRA.svg?color=blue">
+</a>
+<a href="https://github.com/msf4-0/DL4JRA/releases">
+    <img alt="Releases" src="https://img.shields.io/github/release/msf4-0/DL4JRA?color=success" />
+</a>
+<a href="https://github.com/msf4-0/DL4JRA/releases">
+    <img alt="Downloads" src="https://img.shields.io/github/downloads/msf4-0/DL4JRA/total.svg?color=success" />
+</a>
+<a href="https://github.com/msf4-0/DL4JRA/issues">
+      <img alt="Issues" src="https://img.shields.io/github/issues/msf4-0/DL4JRA?color=blue" />
+</a>
+<a href="https://github.com/msf4-0/DL4JRA/pulls">
+    <img alt="GitHub pull requests" src="https://img.shields.io/github/issues-pr/msf4-0/DL4JRA?color=blue" />
+</a>
 
 The purpose of developing DL4JRA is to allow everyone, including those who have no programming skill, to have a chance to try on Deep Learning.
+
+This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved.
 
 <!-- omit in toc -->
 ## **Preparation**
