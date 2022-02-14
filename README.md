@@ -1,5 +1,15 @@
+
+
 <!-- omit in toc -->
 # **DL4JRA**
+[![GitHub license](https://badgen.net/github/license/msf4-0/DL4JRA)](https://github.com/msf4-0/DL4JRA/blob/master/LICENSE)
+[![Github all releases](https://img.shields.io/github/downloads/msf4-0/DL4JRA/total.svg)](https://GitHub.com/msf4-0/DL4JRA/releases/)
+[![GitHub release](https://img.shields.io/github/release/msf4-0/DL4JRA.svg)](https://GitHub.com/msf4-0/DL4JRA/releases/)
+[![made-with-javascript](https://img.shields.io/badge/Made%20with-JavaScript-1f425f.svg)](https://www.javascript.com)
+[![GitHub issues](https://img.shields.io/github/issues/msf4-0/DL4JRA.svg)](https://GitHub.com/Naereen/StrapDown.js/issues/)
+[![GitHub contributors](https://img.shields.io/github/contributors/msf4-0/badges.svg)](https://GitHub.com/msf4-0/badges/graphs/contributors/)
+[![HitCount](http://hits.dwyl.com/lixian18180/msf4-0/DL4JRA.svg)](http://hits.dwyl.com/lixian18180/msf4-0/DL4JRA)
+
 The purpose of developing DL4JRA is to allow everyone, including those who have no programming skill, to have a chance to try on Deep Learning.
 
 <!-- omit in toc -->
