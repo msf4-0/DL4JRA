@@ -52,7 +52,7 @@ export default class Mainpage extends Component <MainpageProps, MainpageStates>{
                     </Col>
                     <Col sm={6}>
                         <Card body>
-                            <CardTitle tag="h5">NEURAL NETWORK</CardTitle>
+                            <CardTitle tag="h5">NEURAL NETWORK & SEGMENTATION</CardTitle>
                             <CardText>-Train and validate NN for image and CSV input classification; Currently supporting CNN using Multilayer Config Network and RNN using ComputationGraph Config network</CardText>
                             <CardText>-Image Segmentation with importing pretrained model UNET from Zoo</CardText>
                             <Button color='primary' onClick={this.navigatecnnmultitabpage}>Continue</Button>

@@ -64,7 +64,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="LoadDataset" nodename="Load DS" />
 
                     {/* LOAD TRAINING DATASET  */}
-                    <ToolboxNode nodetype="GenerateDatasetIterator" nodename="Image Date Iterator" />
+                    <ToolboxNode nodetype="GenerateDatasetIterator" nodename="Image Data Iterator" />
 
                     
                     <div style={{ margin: 5, padding: 5, }}>   
@@ -189,7 +189,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="configureFineTune" nodename="Configure FineTune" />
 
                     {/* configureTranferLearning */}
-                    <ToolboxNode nodetype="configureTranferLearning" nodename="Configure Tranfer Learning" />
+                    <ToolboxNode nodetype="configureTranferLearning" nodename="Configure Transfer Learning" />
 
                     {/* addCnnLossLayer */}
                     <ToolboxNode nodetype="addCnnLossLayer" nodename="Add CnnLoss Layer" />
