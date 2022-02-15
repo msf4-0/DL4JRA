@@ -3,10 +3,13 @@ package com.dl4jra.server.classification;
 import java.io.File;
 
 import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.common.base.Preconditions;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.exception.ND4JArraySizeException;
 import org.opencv.core.Mat;
 
 import com.dl4jra.server.LibraryLoader;
@@ -14,7 +17,6 @@ import com.dl4jra.server.LibraryLoader;
 public class Classifier {
 	static { LibraryLoader.loadOpencvLibrary(); } 
 	private MultiLayerNetwork multiLayerNetwork;
-	private ComputationGraph computationGraph;
 	private static NativeImageLoader loader = new NativeImageLoader();
 
 	/**
@@ -29,7 +31,6 @@ public class Classifier {
 	 */
 	public void resetclassifier() {
 		this.multiLayerNetwork = null;
-		this.computationGraph = null;
 	}
 
 	/**
@@ -40,6 +41,7 @@ public class Classifier {
 	 */
 	public int LoadClassifier(String path) throws Exception {
 		File location = new File(path);
+
 		boolean modelexists = location.exists() && !location.isDirectory();
 		if (!modelexists)
 			throw new Exception("CLASSIFIER (MODEL) NOT FOUND");
@@ -48,6 +50,7 @@ public class Classifier {
 		System.out.println("Network has output size of " + this.multiLayerNetwork.layerSize(this.multiLayerNetwork.getnLayers() - 1));
 		return this.multiLayerNetwork.layerSize(this.multiLayerNetwork.getnLayers() - 1);
 	}
+
 	
 	/**
 	 * Classify image/ predict result
@@ -60,6 +63,7 @@ public class Classifier {
 			throw new Exception("CLASSIFIER (MODEL) NOT FOUND");
 		INDArray ds = loader.asMatrix(image);
 		return this.multiLayerNetwork.predict(ds)[0];
+
 	}
 	
 	/**
