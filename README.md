@@ -2,7 +2,7 @@
 
 <!-- omit in toc -->
 # **DL4JRA**
-<a href="https://github.com/msf4-0/DL4JRA/blob/master/LICENSE">
+<a href="https://github.com/msf4-0/DL4JRA/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/msf4-0/DL4JRA.svg?color=blue">
 </a>
 <a href="https://github.com/msf4-0/DL4JRA/releases">
