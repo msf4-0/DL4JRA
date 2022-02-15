@@ -14,7 +14,7 @@ import {FlipImage, RotateImage, ResizeImage,
     CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, 
     SetInputType, ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
     LoadDatasetCSV, TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV ,RNNStartNode, RNNConfiguration, RnnOutputLayer,
-    AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN,
+    AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, 
     segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
     generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation} from './cnnlayers' 
@@ -133,7 +133,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             CNNStartNode, CNNConfiguration, ConvolutionLayer, SubsamplingLayer, DenseLayer, OutputLayer, SetInputType, 
             ConstructCNN, TrainNN, ValidateNN, ExportNN, LocalResponseNormalizationLayer,
             LoadDatasetCSV,TrainingDatasetStartNodeCSV, ValidationDatasetStartNodeCSV, GenerateDatasetIteratorCSV,
-            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, EvaluateModelRNN,
+            RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN,
             segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
             addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
             generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation

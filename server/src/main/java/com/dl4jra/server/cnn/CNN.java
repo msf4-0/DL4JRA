@@ -347,9 +347,7 @@ public class CNN {
 		this.multiLayerNetwork.init();
 		this.networkconstructed = true;
 		this.multiLayerNetwork.setListeners(
-				new ScoreIterationListener(5),
-				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
-				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+				new ScoreIterationListener(5)
 		);
 	}
 
@@ -358,9 +356,7 @@ public class CNN {
 		this.computationGraph.init();
 		this.networkconstructed = true;
 		this.computationGraph.setListeners(
-				new ScoreIterationListener(5),
-				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
-				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+				new ScoreIterationListener(5)
 		);
 	}
 
@@ -381,7 +377,7 @@ public class CNN {
 
 			eval.evalTimeSeries(labels, predicted[0], testDataSet.getLabelsMaskArray());
 		}
-		System.out.println(eval.stats());
+//		System.out.println(eval.stats());
 	}
 
 

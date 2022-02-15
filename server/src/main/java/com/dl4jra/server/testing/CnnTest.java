@@ -44,7 +44,7 @@ public class CnnTest {
 		String pathTest = "C:\\Users\\User\\.deeplearning4j\\data\\humanactivity\\test";
 		int numClassLabels = 6;
 		int batchsize = 64;
-		int epochs = 15;
+		int epochs = 1;
 		int numSkipLines = 0;
 		int scorelistener = 1;
 		String directorytosave = "D://AppGeneratedDataset";
@@ -110,7 +110,6 @@ public class CnnTest {
 			cnn.ConstructNetworkRNN();
 			cnn.TrainNetwork(epochs, 1);
 			cnn.ValidateNetwork();
-			cnn.EvaluateModel_CG();
 
 			// SEGMENTATION CARS/CELL
 //			cnn.importPretrainedModel();

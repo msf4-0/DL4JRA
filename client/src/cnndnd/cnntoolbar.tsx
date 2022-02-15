@@ -171,8 +171,6 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     {/* CONSTRUCT NETWORK RNN */}
                     <ToolboxNode nodetype="ConstructNetworkRNN" nodename="ComputationGraph Construct" />
                     
-                    {/* EVALUATE MODLE RNN */}
-                    <ToolboxNode nodetype="EvaluateModelRNN" nodename="Evaluate Model" />
                 </div>
 
                     {/* SECTION FOR SEGMENTATION */}

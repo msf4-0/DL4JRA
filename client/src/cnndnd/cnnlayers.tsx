@@ -623,21 +623,6 @@ export class ConstructNetworkRNN extends Component<NodeProps> {
     }
 }
 
-export class EvaluateModelRNN extends Component<NodeProps> {
-    render = () => {
-        return (
-            <div 
-                className="cnn-node"
-                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightBlue, 
-                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
-            }}>
-                <IncomingConnectionHandle />
-                <div>{this.props.data.name}</div>
-                <OutgoingConnectionHandle />
-            </div>
-        )
-    }
-}
 
 // =============================================================================================================
 // SEGMENTATION
