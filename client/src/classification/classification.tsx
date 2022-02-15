@@ -336,6 +336,11 @@ export default class Classification extends Component <ClassificationProps, Clas
         this.stompwebsocket.sendmessage("/server/classification/modelchanged", JSON.stringify({ path: this.state.classifierpath }));
     }
 
+    updated_computationGraph = () : void => {
+        this.setlsoverlayactive(true);
+        this.stompwebsocket.sendmessage("/server/classification/modelchanged_CG", JSON.stringify({ path: this.state.classifierpath }));
+    }
+
     /**
      * Callback function for webcam streaming
      * Send webcam data (image/frame in base64 encoded string) to server for classification
@@ -445,7 +450,8 @@ export default class Classification extends Component <ClassificationProps, Clas
                             </FormGroup>
                             <Container>
                                 <Row>
-                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected} onClick={this.updateclassifier}>UPDATE</Button></Col>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected} onClick={this.updateclassifier}>MULTILAYER NETWORK</Button></Col>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected} onClick={this.updated_computationGraph}>COMPUTATIONGRAPH CONFIG</Button></Col>
                                     <Col><Button block color='info' disabled={! this.state.classifierloaded} onClick={this.configureOnclick}>CONFIGURE</Button></Col>
                                 </Row>
                             </Container>

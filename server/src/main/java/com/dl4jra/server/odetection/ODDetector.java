@@ -97,10 +97,6 @@ public class ODDetector {
 			zooModel = YOLO2.builder().numClasses(0).build();
 			this.DetectionModel = (ComputationGraph) zooModel.initPretrained();
 		}
-//		else if(modelName.equals("resnet50")){
-//			zooModel = ResNet50.builder().numClasses(0).build();
-//			this.DetectionModel = (ComputationGraph) zooModel.initPretrained();
-//		}
 	}
 
 	

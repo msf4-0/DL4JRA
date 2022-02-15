@@ -117,7 +117,7 @@ class CNNNodeService {
     }
 
     prepareConfigureTranferLearning = () : Dictionary => {
-        let name ="Configure Tranfer Learning";
+        let name ="Configure Transfer Learning";
         let featurizeExtractionLayer = "conv2d_4";
         let vertexName = "activation_23";
         let nInName = "conv2d_1";

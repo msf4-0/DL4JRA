@@ -3,16 +3,20 @@ package com.dl4jra.server.classification;
 import java.io.File;
 
 import org.datavec.image.loader.NativeImageLoader;
+import org.deeplearning4j.nn.api.Layer;
+import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.util.ModelSerializer;
+import org.nd4j.common.base.Preconditions;
 import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.exception.ND4JArraySizeException;
 import org.opencv.core.Mat;
 
 import com.dl4jra.server.LibraryLoader;
 
 public class Classifier {
 	static { LibraryLoader.loadOpencvLibrary(); } 
-	private MultiLayerNetwork network;
+	private MultiLayerNetwork multiLayerNetwork;
 	private static NativeImageLoader loader = new NativeImageLoader();
 
 	/**
@@ -26,7 +30,7 @@ public class Classifier {
 	 * Reset classifier
 	 */
 	public void resetclassifier() {
-		this.network = null;
+		this.multiLayerNetwork = null;
 	}
 
 	/**
@@ -37,14 +41,16 @@ public class Classifier {
 	 */
 	public int LoadClassifier(String path) throws Exception {
 		File location = new File(path);
+
 		boolean modelexists = location.exists() && !location.isDirectory();
 		if (!modelexists)
 			throw new Exception("CLASSIFIER (MODEL) NOT FOUND");
-		this.network = ModelSerializer.restoreMultiLayerNetwork(path, true);
-		System.out.println("Network has input size of " + this.network.layerInputSize(0));
-		System.out.println("Network has output size of " + this.network.layerSize(this.network.getnLayers() - 1));
-		return this.network.layerSize(this.network.getnLayers() - 1);
+		this.multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork(path, true);
+		System.out.println("Network has input size of " + this.multiLayerNetwork.layerInputSize(0));
+		System.out.println("Network has output size of " + this.multiLayerNetwork.layerSize(this.multiLayerNetwork.getnLayers() - 1));
+		return this.multiLayerNetwork.layerSize(this.multiLayerNetwork.getnLayers() - 1);
 	}
+
 	
 	/**
 	 * Classify image/ predict result
@@ -53,10 +59,11 @@ public class Classifier {
 	 * @throws Exception
 	 */
 	public int Classify(Mat image) throws Exception {
-		if (this.network == null)
+		if (this.multiLayerNetwork == null)
 			throw new Exception("CLASSIFIER (MODEL) NOT FOUND");
 		INDArray ds = loader.asMatrix(image);
-		return this.network.predict(ds)[0];
+		return this.multiLayerNetwork.predict(ds)[0];
+
 	}
 	
 	/**
@@ -66,9 +73,9 @@ public class Classifier {
 	 * @throws Exception
 	 */
 	public int Classify(INDArray ds) throws Exception {
-		if (this.network == null)
+		if (this.multiLayerNetwork == null)
 			throw new Exception("CLASSIFIER (MODEL) IS NOT LOADED");
-		return this.network.predict(ds)[0];
+		return this.multiLayerNetwork.predict(ds)[0];
 	}
 	
 }

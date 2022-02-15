@@ -588,9 +588,10 @@ public class CNN {
 		File directory = new File(path);
 		if (!directory.exists() || ! directory.isDirectory())
 			throw new Exception("Invalid path or not a directory");
-		if (! this.networkconstructed )
-			throw new Exception("Neural network is not constructed");
-		this.multiLayerNetwork.save(new File(path + "/" + name + ".zip"), true);
+		if (multiLayerNetwork != null)
+			this.multiLayerNetwork.save(new File(path + "/" + name + ".zip"), true);
+		else  if(computationGraph != null)
+			this.computationGraph.save(new File(path + "/" + name + ".zip"), true);
 	}
 	
 	/**
