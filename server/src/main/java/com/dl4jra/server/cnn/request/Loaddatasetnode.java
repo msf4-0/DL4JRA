@@ -3,7 +3,7 @@ package com.dl4jra.server.cnn.request;
 public class Loaddatasetnode extends Nodeclass{
 	/* Load dataset node data */
 	
-	private String path;
+	private String path, trainPath, testPath;
 	private char delimeter;
 	private int imagewidth, imageheight, channels, batchsize, numLabels, numSkipLines, numClassLabels;
 	
@@ -11,10 +11,12 @@ public class Loaddatasetnode extends Nodeclass{
 		
 	}
 	
-	public Loaddatasetnode(String nodeId, String path, int imagewidth, int imageheight, int channels, int batchsize, int numLabels,
+	public Loaddatasetnode(String nodeId, String path, String trainPath, String testPath, int imagewidth, int imageheight, int channels, int batchsize, int numLabels,
 						   int numSkipLines, int numClassLabels, char delimeter) {
 		super(nodeId);
 		this.path = path;
+		this.trainPath = trainPath;
+		this.testPath = testPath;
 		this.imagewidth = imagewidth;
 		this.imageheight = imageheight;
 		this.channels = channels;
@@ -29,6 +31,22 @@ public class Loaddatasetnode extends Nodeclass{
 	public String toString() {
 		return String.format("Loading dataset from : %s\nDimension: %d x %d x %d\nBatchsize: %d\nLabels: %d", 
 				this.path, this.imagewidth, this.imageheight, this.channels, this.batchsize, this.numLabels);
+	}
+
+	public String getTrainPath() {
+		return trainPath;
+	}
+
+	public void setTrainPath(String trainPath) {
+		this.trainPath = trainPath;
+	}
+
+	public String getTestPath() {
+		return testPath;
+	}
+
+	public void setTestPath(String testPath) {
+		this.testPath = testPath;
 	}
 
 	public String getPath() {

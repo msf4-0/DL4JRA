@@ -2,6 +2,7 @@ package com.dl4jra.server.odetection;
 
 import java.io.File;
 import java.io.FileWriter;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -19,6 +20,7 @@ import org.deeplearning4j.zoo.model.Darknet19;
 import org.deeplearning4j.zoo.model.ResNet50;
 import org.deeplearning4j.zoo.model.TinyYOLO;
 import org.deeplearning4j.zoo.model.YOLO2;
+import org.deeplearning4j.zoo.util.darknet.VOCLabels;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.opencv.core.Mat;
@@ -29,6 +31,9 @@ import org.opencv.imgcodecs.Imgcodecs;
 import org.opencv.imgproc.Imgproc;
 
 import com.dl4jra.server.LibraryLoader;
+
+import static org.bytedeco.opencv.global.opencv_imgproc.FONT_HERSHEY_DUPLEX;
+import static org.bytedeco.opencv.global.opencv_imgproc.putText;
 
 public class ODDetector {
 	/* Detector class */
@@ -41,7 +46,11 @@ public class ODDetector {
 	private ImagePreProcessingScaler scaler = new ImagePreProcessingScaler(0, 1);
 	private ArrayList<String> classes;
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
-    
+	private VOCLabels labels = new VOCLabels();
+
+	public ODDetector() throws IOException {
+	}
+
 	/* Reset detector */
 	public void ResetDetector() {
 		this.imagewidth = 0;
@@ -210,17 +219,14 @@ public class ODDetector {
 		for (DetectedObject obj : objects) {
             double[] xy1 = obj.getTopLeftXY();
             double[] xy2 = obj.getBottomRightXY();
+			String label = labels.getLabel(obj.getPredictedClass());
             int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
             int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
             int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
             int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
             int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
             Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
-            if (this.classes != null) {
-            	if (predictedclass < this.classes.size()) {
-            		Imgproc.putText(image, this.classes.get(predictedclass), new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
-            	}
-            }
+			Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
     	}
 		return image;
 	}
@@ -238,18 +244,15 @@ public class ODDetector {
 		for (DetectedObject obj : objects) {
             double[] xy1 = obj.getTopLeftXY();
             double[] xy2 = obj.getBottomRightXY();
+			String label = labels.getLabel(obj.getPredictedClass());
             int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
             int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
             int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
             int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
             int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
             Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
-            if (this.classes != null) {
-            	if (predictedclass < this.classes.size()) {
-            		Imgproc.putText(image, this.classes.get(predictedclass), new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
-            		outputstring += String.format("%s DETECTED (%.3f)\n", this.classes.get(predictedclass), obj.getClassPredictions().getFloat(predictedclass));
-            	}
-            }
+			Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
+			outputstring += String.format("%s DETECTED (%.3f)\n", label, obj.getClassPredictions().getFloat(predictedclass));
     	}
 		outputstring += "------------------------------------------------\n\n";
 		fwritter.write(outputstring);

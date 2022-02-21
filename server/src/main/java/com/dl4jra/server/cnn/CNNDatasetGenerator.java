@@ -2,6 +2,7 @@ package com.dl4jra.server.cnn;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,6 +11,7 @@ import java.util.Random;
 
 import com.dl4jra.server.cnn.response.UpdateResponse;
 import com.dl4jra.server.cnn.utilities.Visualization;
+import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
 import org.datavec.api.records.reader.SequenceRecordReader;
@@ -20,10 +22,15 @@ import org.datavec.api.split.NumberedFileInputSplit;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.image.recordreader.objdetect.ObjectDetectionRecordReader;
+//import org.datavec.image.recordreader.objdetect.impl.VocLabelProvider;
 import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.optimize.api.InvocationType;
+import org.deeplearning4j.optimize.listeners.EvaluativeListener;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -43,7 +50,7 @@ public class CNNDatasetGenerator {
 
 	private int numLabels, batchsize, numClassLabels;
 	private int trainPerc = 80;
-	private FileSplit filesplit;
+	private FileSplit filesplit, fileSplit_train, fileSplit_test;
 	private InputSplit trainData,testData;
 	private ImageRecordReader recordReader;
 	//Images are of format given by allowedExtension
@@ -60,6 +67,9 @@ public class CNNDatasetGenerator {
 	private static CustomLabelGenerator labelMaker;
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(
 			CNNDatasetGenerator.class);
+
+	RecordReaderDataSetIterator trainIter, testIter;
+	private Path trainDirAddress, testDirAddress;
 
 
 	public CNNDatasetGenerator() {
@@ -292,20 +302,6 @@ public class CNNDatasetGenerator {
 
 
 	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model){
-		//visualize
-//		JFrame frame = Visualization.initFrame("Viz");
-//		System.out.println(10);
-//		JPanel panel = Visualization.initPanel(
-//				frame,
-//				batchsize,
-//				height,
-//				width,
-//				1
-//		);
-
-		System.out.println(2);
-		System.out.println(epoch);
-
 		for (int i = 0; i < epoch; i++) {
 
 			log.info("Epoch: " + i);
@@ -314,19 +310,6 @@ public class CNNDatasetGenerator {
 				DataSet imageSet = trainGenerator.next();
 
 				model.fit(imageSet);
-
-//				INDArray predict = model.output(imageSet.getFeatures())[0];
-
-//				Visualization.visualize(
-//						imageSet.getFeatures(),
-//						imageSet.getLabels(),
-//						predict,
-//						frame,
-//						panel,
-//						batchsize,
-//						224,
-//						224
-//				);
 			}
 
 			trainGenerator.reset();
@@ -364,4 +347,34 @@ public class CNNDatasetGenerator {
 		System.out.println("Mean IOU: " + IOUTotal / count);
 	}
 
+
+	public void loadDatasetObjectDetection(String trainDirAddress, String testDirAddress){
+		System.out.println("Load data...");
+		this.trainDirAddress = Paths.get(trainDirAddress);
+		this.testDirAddress = Paths.get(testDirAddress);
+		fileSplit_train = new FileSplit(new File(this.trainDirAddress.toString()), NativeImageLoader.ALLOWED_FORMATS, rng);
+		fileSplit_test = new FileSplit(new File(this.testDirAddress.toString()), NativeImageLoader.ALLOWED_FORMATS, rng);
+	}
+
+	public RecordReaderDataSetIterator trainIterator_ObjectDetection( int batchSize) throws Exception {
+		return makeIterator_ObjectDetection(fileSplit_train, trainDirAddress, batchSize);
+	}
+
+	public RecordReaderDataSetIterator testIterator_ObjectDetection(int batchSize) throws Exception {
+		return makeIterator_ObjectDetection(fileSplit_test, testDirAddress, batchSize);
+	}
+
+	private RecordReaderDataSetIterator makeIterator_ObjectDetection(InputSplit split, Path dir, int batchSize) throws IOException {
+		int nChannels = 3;
+		int gridWidth = 13;
+		int gridHeight = 13;
+		int yolowidth = 416;
+		int yoloheight = 416;
+		ObjectDetectionRecordReader recordReader = new ObjectDetectionRecordReader(yoloheight, yolowidth, nChannels,
+				gridHeight, gridWidth, new VocLabelProvider(dir.toString()));
+		recordReader.initialize(split);
+		RecordReaderDataSetIterator iter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, 1, true);
+		iter.setPreProcessor(new ImagePreProcessingScaler(0, 1));
+		return iter;
+	}
 }

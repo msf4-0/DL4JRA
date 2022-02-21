@@ -352,6 +352,22 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                                     <Input type='number' name={config} id={config} value={value} onChange={this.handledataOnchange} />
                                                 </FormGroup>
                                             )
+
+                                        // RETRAIN PRETRAINED MODEL FOR ODETECTION
+                                        case "trainPath":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
+                                        case "testPath":
+                                            return (
+                                                <FormGroup key={config}>
+                                                    <Label for={config}>{config}</Label>
+                                                    <Input type='text' name={config} id={config} value={value} onChange={this.handledataOnchange} />
+                                                </FormGroup>
+                                            )
                                         default:
                                             return <></>
                                     }

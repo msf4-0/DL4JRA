@@ -104,11 +104,60 @@ class CNNNodeService {
                 return this.prepareTrain();
             case "validation_segmentation":
                 return { name: "Validate Segmentation" };
+            //================= RETRAIN PRETRAINED MODEL FOR ODETECTION=================
+            case "ODetectionStartNode":
+                return { name: "Dataset ODetection (S) " };
+            case "LoadDatasetODetection":
+                return this.prepareLoadDatasetODetection();
+            case "GenerateDatasetIteratorODetection":
+                return this.prepareGenerateDatasetIteratorODetection();
+            case "EditPretrainedStartNode":
+                return { name: "ReTrainning StartNode (S) " };
+            case "ImportTinyYolo":
+                return { name: "Import TinyYolo " };
+            case "LoadPretrainedModel":
+                return this.prepareLoadPretrainedModel();
+            case "ConfigTransferLearningNetwork_ODetection":
+                return this.prepareConfigTransferLearningNetwork_ODetection();
+            case "Train_Test_PretrainedModel":
+                return this.prepareTrain_Test_PretrainedModel();
             default:
                 return { name: nodetype };
         }
     }
 
+    //RETRAIN PRETRAINED MODEL FOR ODETECTION
+    prepareLoadDatasetODetection = () : Dictionary => {
+        let name ="Load Dataset ODetection";
+        let trainPath = "C:\\Users\\User\\.deeplearning4j\\data\\fruits\\train"; 
+        let testPath = "C:\\Users\\User\\.deeplearning4j\\data\\fruits\\test";
+        return {name, trainPath, testPath};
+    }
+    
+    prepareGenerateDatasetIteratorODetection = () : Dictionary => {
+        let name ="Generate Dataset Iterator ODetection";
+        let batchsize = 8; 
+        return {name, batchsize};
+    }
+
+    prepareLoadPretrainedModel = () : Dictionary => {
+        let name ="Load Pretrained Model";
+        let path = "C:\\Users\\User\\.deeplearning4j\\data\\fruits\\train"; 
+        return {name, path};
+    }
+
+    prepareConfigTransferLearningNetwork_ODetection = () : Dictionary => {
+        let name ="Config Transfer Learning ODetection";
+        let learningrate = 0.0001; 
+        return {name, learningrate};
+    }
+
+    prepareTrain_Test_PretrainedModel = () : Dictionary => {
+        let name ="Train_Test_PretrainedModel";
+        let epochs = 40; 
+        return {name, epochs};
+    }
+    
     // SEGMENTATION
     prepareConfigureFineTune = () : Dictionary => {
         let name ="Configure FineTune";

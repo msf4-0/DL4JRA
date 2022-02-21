@@ -2,8 +2,19 @@ package com.dl4jra.server.cnn;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
 
 import com.dl4jra.server.cnn.utilities.Visualization;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.opencv_core.Mat;
+import org.bytedeco.opencv.opencv_core.Point;
+import org.bytedeco.opencv.opencv_core.Scalar;
+import org.bytedeco.opencv.opencv_core.Size;
+import org.datavec.api.split.FileSplit;
+import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.transform.ImageTransform;
 import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
@@ -12,22 +23,30 @@ import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.RNNFormat;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
+import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
+import org.deeplearning4j.nn.conf.layers.objdetect.Yolo2OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.nn.layers.objdetect.DetectedObject;
+import org.deeplearning4j.nn.layers.objdetect.YoloUtils;
 import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.transferlearning.FineTuneConfiguration;
+import org.deeplearning4j.nn.transferlearning.TransferLearning;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
 import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
+import org.deeplearning4j.zoo.model.TinyYOLO;
 import org.deeplearning4j.zoo.model.UNet;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.nd4j.linalg.schedule.ScheduleType;
@@ -39,6 +58,11 @@ import com.dl4jra.server.cnn.response.UpdateResponse;
 import com.dl4jra.server.globalresponse.Messageresponse;
 
 import javax.swing.*;
+
+import static org.bytedeco.opencv.global.opencv_core.CV_8U;
+import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import static org.bytedeco.opencv.global.opencv_imgproc.FONT_HERSHEY_DUPLEX;
+import static org.bytedeco.opencv.helper.opencv_core.RGB;
 
 public class CNN {
 	// Neural network properties
@@ -347,9 +371,7 @@ public class CNN {
 		this.multiLayerNetwork.init();
 		this.networkconstructed = true;
 		this.multiLayerNetwork.setListeners(
-				new ScoreIterationListener(5),
-				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
-				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+				new ScoreIterationListener(5)
 		);
 	}
 
@@ -358,9 +380,7 @@ public class CNN {
 		this.computationGraph.init();
 		this.networkconstructed = true;
 		this.computationGraph.setListeners(
-				new ScoreIterationListener(5),
-				new EvaluativeListener(TrainingDatasetIterator, 1, InvocationType.EPOCH_END),
-				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+				new ScoreIterationListener(5)
 		);
 	}
 
@@ -381,7 +401,7 @@ public class CNN {
 
 			eval.evalTimeSeries(labels, predicted[0], testDataSet.getLabelsMaskArray());
 		}
-		System.out.println(eval.stats());
+//		System.out.println(eval.stats());
 	}
 
 
@@ -577,33 +597,6 @@ public class CNN {
 			template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 		}
 	}
-	
-	/**
-	 * Save CNN model
-	 * @param path - Directory to save model
-	 * @param name - Filename of model 
-	 * @throws Exception
-	 */
-	public void SaveModal(String path, String name) throws Exception {
-		File directory = new File(path);
-		if (!directory.exists() || ! directory.isDirectory())
-			throw new Exception("Invalid path or not a directory");
-		if (multiLayerNetwork != null)
-			this.multiLayerNetwork.save(new File(path + "/" + name + ".zip"), true);
-		else  if(computationGraph != null)
-			this.computationGraph.save(new File(path + "/" + name + ".zip"), true);
-	}
-	
-	/**
-	 * Load CNN model
-	 * @param path - Path to classifier 
-	 * @throws Exception
-	 */
-	public void LoadModal(String path) throws Exception {
-		File location = new File(path);
-		this.multiLayerNetwork = MultiLayerNetwork.load(location, true);
-		this.networkconstructed = true;
-	}
 
 	// SEGMENTATION
 
@@ -659,7 +652,155 @@ public class CNN {
 		this.TrainingDatasetGenerator.validation_segmentation(validationGenerator, constructedModel);
 	}
 
-	public void  exportImage(){
 
+
+	// Object detection with pre trained model
+	private int seed;
+	private double[][] priorBoxes = {{1, 3}, {2.5, 6}, {3, 4}, {3.5, 8}, {4, 9}};
+	private INDArray priors;
+	public void importTinyYolo() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
+
+		this.computationGraph = (ComputationGraph) TinyYOLO.builder().build().initPretrained();;
+	}
+
+	/**
+	 * Save CNN model
+	 * @param path - Directory to save model
+	 * @param name - Filename of model
+	 * @throws Exception
+	 */
+	public void SaveModal(String path, String name) throws Exception {
+		File directory = new File(path);
+		if (!directory.exists() || ! directory.isDirectory())
+			throw new Exception("Invalid path or not a directory");
+		if (multiLayerNetwork != null)
+			this.multiLayerNetwork.save(new File(path + "/" + name + ".zip"), true);
+		else  if(computationGraph != null)
+			this.computationGraph.save(new File(path + "/" + name + ".zip"), true);
+	}
+
+	/**
+	 * Load CNN model
+	 * @param path - Path to classifier
+	 * @throws Exception
+	 */
+	public void LoadModal(String path) throws Exception {
+		File file = new File(path);
+//		this.multiLayerNetwork = MultiLayerNetwork.load(location, true);
+		this.computationGraph = ComputationGraph.load(file, true);
+		System.out.println(computationGraph);
+	}
+
+	public void configTransferLearningNetwork_ODetection(double learningRate){
+		FineTuneConfiguration fineTuneConfiguration = new FineTuneConfiguration.Builder()
+				.seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
+				.gradientNormalizationThreshold(1.0)
+				.updater(new Adam.Builder().learningRate(learningRate).build())
+				.l2(0.00001)
+				.activation(Activation.IDENTITY)
+				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
+				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
+				.build();
+
+		computationGraph = new TransferLearning.GraphBuilder(computationGraph)
+				.fineTuneConfiguration(fineTuneConfiguration)
+				.removeVertexKeepConnections("conv2d_9")
+				.removeVertexKeepConnections("outputs")
+				.addLayer("conv2d_9",
+						new ConvolutionLayer.Builder(1,1 )
+								.nIn(1024)
+								.nOut(5 * (5 + trainGenerator.getLabels().size()))
+								.stride(1, 1)
+								.convolutionMode(ConvolutionMode.Same)
+								.weightInit(WeightInit.XAVIER)
+								.activation(Activation.IDENTITY)
+								.build(),
+						"leaky_re_lu_8")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder()
+								.lambdaNoObj(0.5)
+								.lambdaCoord(5.0)
+								.boundingBoxPriors(priors.castTo(DataType.FLOAT))
+								.build(),
+						"conv2d_9")
+				.setOutputs("outputs")
+				.build();
+
+	}
+
+	public void evaluate_TINYYOLO(int epochs) throws Exception {
+		computationGraph.setListeners(new ScoreIterationListener(1));
+
+		for (int i = 1; i < epochs + 1; i++) {
+			trainGenerator.reset();
+			while (trainGenerator.hasNext()) {
+				computationGraph.fit(trainGenerator.next());
+			}
+			System.out.println("*** Completed epoch {" + i+ " } ***");
+		}
+
+		NativeImageLoader imageLoader = new NativeImageLoader();
+		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
+		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
+		Mat convertedMat = new Mat();
+		Mat convertedMat_big = new Mat();
+
+		while (validationGenerator.hasNext() && canvas.isVisible()) {
+			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
+			INDArray features = ds.getFeatures();
+			INDArray results = computationGraph.outputSingle(features);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
+			YoloUtils.nms(objs, 0.4);
+			Mat mat = imageLoader.asMat(features);
+			mat.convertTo(convertedMat, CV_8U, 255, 0);
+			int w = mat.cols() * 2;
+			int h = mat.rows() * 2;
+			resize(convertedMat, convertedMat_big, new Size(w, h));
+			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
+			canvas.showImage(converter.convert(convertedMat_big));
+			canvas.waitKey();
+		}
+		canvas.dispose();
+	}
+
+	public void loadDatasetObjectDetection(String trainDirAddress, String testDirAddress){
+		this.TrainingDatasetGenerator.loadDatasetObjectDetection(trainDirAddress, testDirAddress);
+	}
+
+	public void generateDataIteratorObjectDetection(int batchSize) throws Exception {
+		trainGenerator = TrainingDatasetGenerator.trainIterator_ObjectDetection( batchSize);
+		validationGenerator = TrainingDatasetGenerator.testIterator_ObjectDetection(1);
+		System.out.println(trainGenerator.getLabels().size());
+	}
+
+	private Mat drawResults(List<DetectedObject> objects, Mat mat, int w, int h) {
+		for (DetectedObject obj : objects) {
+			double[] xy1 = obj.getTopLeftXY();
+			double[] xy2 = obj.getBottomRightXY();
+			List<String> labels = trainGenerator.getLabels();
+			String label = labels.get(obj.getPredictedClass());
+			int x1 = (int) Math.round(w * xy1[0] / 13);
+			int y1 = (int) Math.round(h * xy1[1] / 13);
+			int x2 = (int) Math.round(w * xy2[0] /416);
+			int y2 = (int) Math.round(h * xy2[1] / 416);
+			//Draw bounding box
+			Scalar GREEN = RGB(0, 255.0, 0);
+			Scalar YELLOW = RGB(255, 255, 0);
+			Scalar[] colormap = {GREEN, YELLOW};
+			rectangle(mat, new Point(x1, y1), new Point(x2, y2), colormap[obj.getPredictedClass()], 2, 0, 0);
+			//Display label text
+			String labeltext = label + " " + String.format("%.2f", obj.getConfidence() * 100) + "%";
+			int[] baseline = {0};
+			Size textSize = getTextSize(labeltext, FONT_HERSHEY_DUPLEX, 1, 1, baseline);
+			rectangle(mat, new Point(x1 + 2, y2 - 2), new Point(x1 + 2 + textSize.get(0), y2 - 2 - textSize.get(1)), colormap[obj.getPredictedClass()], FILLED, 0, 0);
+			putText(mat, labeltext, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, RGB(0, 0, 0));
+		}
+		return mat;
 	}
 }
