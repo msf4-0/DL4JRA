@@ -1,15 +1,5 @@
 package com.dl4jra.server.testing;
 
-import org.deeplearning4j.nn.api.OptimizationAlgorithm;
-import org.deeplearning4j.nn.conf.ConvolutionMode;
-import org.deeplearning4j.nn.conf.GradientNormalization;
-import org.deeplearning4j.nn.conf.RNNFormat;
-import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
-import org.deeplearning4j.nn.weights.WeightInit;
-import org.deeplearning4j.zoo.model.UNet;
-import org.nd4j.linalg.activations.Activation;
-import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
-
 import com.dl4jra.server.cnn.CNN;
 
 public class CnnTest {
@@ -40,15 +30,15 @@ public class CnnTest {
 //		String filename = "testmodel"; // Without .zip extension
 
 //		HUMAN ACTIVITY CLASSIFICATION LSTM
-		String pathTrain = "C:\\Users\\User\\.deeplearning4j\\data\\humanactivity\\train";
-		String pathTest = "C:\\Users\\User\\.deeplearning4j\\data\\humanactivity\\test";
-		int numClassLabels = 6;
-		int batchsize = 64;
-		int epochs = 1;
-		int numSkipLines = 0;
-		int scorelistener = 1;
-		String directorytosave = "D://AppGeneratedDataset";
-		String filename = "testmodel"; // Without .zip extension
+//		String pathTrain = "C:\\Users\\User\\.deeplearning4j\\data\\humanactivity\\train";
+//		String pathTest = "C:\\Users\\User\\.deeplearning4j\\data\\humanactivity\\test";
+//		int numClassLabels = 6;
+//		int batchsize = 64;
+//		int epochs = 1;
+//		int numSkipLines = 0;
+//		int scorelistener = 1;
+//		String directorytosave = "D://AppGeneratedDataset";
+//		String filename = "testmodel"; // Without .zip extension
 
 //		String path = "C:\\Users\\User\\.deeplearning4j\\data\\carvana-masking-challenge\\carvana-masking-challenge\\train\\inputs";
 //		String path = "C:\\Users\\User\\.deeplearning4j\\data\\data-science-bowl-2018\\data-science-bowl-2018\\data-science-bowl-2018-2\\train\\inputs";
@@ -61,6 +51,21 @@ public class CnnTest {
 
 		try {
 			CNN cnn = new CNN();
+			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
+
+//
+			cnn.loadDatasetObjectDetection("C:\\Users\\User\\.deeplearning4j\\data\\fruits\\train",
+					"C:\\Users\\User\\.deeplearning4j\\data\\fruits\\test");
+			cnn.generateDataIteratorObjectDetection(8);
+			cnn.importTinyYolo();
+//			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
+			cnn.configTransferLearningNetwork_ODetection(1e-4);
+			cnn.evaluate_TINYYOLO(10);
+
+			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO");
+//			cnn.TrainNetwork(epochs, scorelistener);
+//			cnn.ValidateNetwork();
+
 
 //			DOG BREED CNN
 //			cnn.LoadDatasetAutoSplit(datasetpath, inputwidth, inputheight, inputchannel, numberlabels, batchsize);
@@ -95,21 +100,21 @@ public class CnnTest {
 //			cnn.SaveModal(directorytosave, filename);
 
 //			HUMAN ACTIVITY CLASSIFICATION LSTM
-			cnn.LoadTrainingDatasetCSV(pathTrain, numSkipLines, numClassLabels, batchsize);
-			cnn.GenerateTrainingDatasetIteratorCSV();
-			cnn.LoadTestingDatasetCSV(pathTest, numSkipLines, numClassLabels, batchsize);
-			cnn.GenerateValidatingDatasetIteratorCSV();
-			cnn.InitializeConfigurationsGraphBuilder(12345, 0.05, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT,
-					WeightInit.XAVIER);
-			cnn.AddInput("trainFeatures");
-			cnn.SetOutput("predictActivity");
-			cnn.AppendConvolutionLayer_CG("CNN", 1, 9, 32, Activation.RELU, "trainFeatures");
-			cnn.AppendLSTMLayer("LSTM", 32,100, Activation.TANH, "CNN");
-			cnn.AppendRnnOutputLayer("predictActivity", RNNFormat.NCW, 100, 6, LossFunction.MCXENT,
-					Activation.SOFTMAX, "LSTM");
-			cnn.ConstructNetworkRNN();
-			cnn.TrainNetwork(epochs, 1);
-			cnn.ValidateNetwork();
+//			cnn.LoadTrainingDatasetCSV(pathTrain, numSkipLines, numClassLabels, batchsize);
+//			cnn.GenerateTrainingDatasetIteratorCSV();
+//			cnn.LoadTestingDatasetCSV(pathTest, numSkipLines, numClassLabels, batchsize);
+//			cnn.GenerateValidatingDatasetIteratorCSV();
+//			cnn.InitializeConfigurationsGraphBuilder(12345, 0.05, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT,
+//					WeightInit.XAVIER);
+//			cnn.AddInput("trainFeatures");
+//			cnn.SetOutput("predictActivity");
+//			cnn.AppendConvolutionLayer_CG("CNN", 1, 9, 32, Activation.RELU, "trainFeatures");
+//			cnn.AppendLSTMLayer("LSTM", 32,100, Activation.TANH, "CNN");
+//			cnn.AppendRnnOutputLayer("predictActivity", RNNFormat.NCW, 100, 6, LossFunction.MCXENT,
+//					Activation.SOFTMAX, "LSTM");
+//			cnn.ConstructNetworkRNN();
+//			cnn.TrainNetwork(epochs, 1);
+//			cnn.ValidateNetwork();
 
 			// SEGMENTATION CARS/CELL
 //			cnn.importPretrainedModel();

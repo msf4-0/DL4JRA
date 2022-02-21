@@ -48,7 +48,8 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 {/* SECTION FOR TRAINING DATASET */}
                 <div style={{ margin: 5, padding: 5, }}>   
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
-                    <div className='description'style={{ fontSize:20, }}>DATASETS</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description'style={{ fontSize:20, }}>DATASETS for NN</div>
                     <div className='description' >Image inputs</div>
                     
                     {/* DATASET AUTO SPLIT STARTNODE  */}
@@ -94,23 +95,10 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="GenerateDatasetIteratorCSV" nodename="CSV Data Iterator" />
                 </div>
 
-                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
-                 <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description' style={{ fontSize:20, }}>------------------</div>
-                    <div className='description' style={{ fontSize:20, }}>NN</div>
 
-                    {/* TRAIN CNN */}
-                     <ToolboxNode nodetype='TrainNN' nodename='Train' />
-
-                    {/* VALIDATE */}
-                    <ToolboxNode nodetype='ValidateNN' nodename="Validate" />
-
-                    {/* EXPORT */}
-                    <ToolboxNode nodetype="ExportNN" nodename="Export" />
-
-                </div>
                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK (Multilayer configuration) */}
                 <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
                     <div className='description'>MultiLayer</div>
                     <div className='description'>Configuration Network</div>
                     
@@ -172,11 +160,26 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="ConstructNetworkRNN" nodename="ComputationGraph Construct" />
                     
                 </div>
+                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
+                 <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description' > Train & Test & Export</div>
+
+                    {/* TRAIN CNN */}
+                     <ToolboxNode nodetype='TrainNN' nodename='Train' />
+
+                    {/* VALIDATE */}
+                    <ToolboxNode nodetype='ValidateNN' nodename="Validate" />
+
+                    {/* EXPORT */}
+                    <ToolboxNode nodetype="ExportNN" nodename="Export" />
+
+                </div>
 
                     {/* SECTION FOR SEGMENTATION */}
                     <div style={{ margin: 5, padding: 5, }}>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
-                    <div className='description' style={{ fontSize:20, }}>SEGMENTATION</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description' >SEGMENTATION</div>
                     {/* segmentationStartnode */}
                     <ToolboxNode nodetype="segmentationStartnode" nodename=" Segmentation (S)" />
 
@@ -199,7 +202,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="build_TransferLearning" nodename="Build Transfer Learning" />
 
                     <div className='description'>SEGMENTATION LOAD </div>
-                    <div className='description'>DATA n EVALUATION </div>
+                    <div className='description'>DATA & EVALUATION </div>
                     {/* segmentationDataStartNode */}
                     <ToolboxNode nodetype="segmentationDataStartNode" nodename=" Data Start Node" />
 
@@ -216,7 +219,40 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <ToolboxNode nodetype="validation_segmentation" nodename="Validate" />
                 </div>
 
+                
+                {/* SECTION FOR Editing pre trained model for object detection */}
+                    <div style={{ margin: 5, padding: 5, }}>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description' style={{ fontSize:20, }}>------------------</div>
+                    <div className='description'>OBJECT DETECTION</div>
+                    <div className='description'>DATASET</div>
+                    {/* ODetectionStartNode */}
+                    <ToolboxNode nodetype="ODetectionStartNode" nodename=" Dataset ODetection (S)" />
 
+                    {/* LoadDatasetODetection */}
+                    <ToolboxNode nodetype="LoadDatasetODetection" nodename="Load Dataset ODetection" />
+
+                    {/* GenerateDatasetIteratorODetection */}
+                    <ToolboxNode nodetype="GenerateDatasetIteratorODetection" nodename="Dataset Iterator ODetection" />
+
+                    <div className='description' >TRAIN</div>
+                    <div className='description' >PRETRAINED MODEL</div>
+                    {/* EditPretrainedStartNode */}
+                    <ToolboxNode nodetype="EditPretrainedStartNode" nodename=" StartNode (S) " />
+
+                    {/* ImportTinyYolo */}
+                    <ToolboxNode nodetype="ImportTinyYolo" nodename="Import New TinyYolo" />
+
+                    {/* LoadPretrainedModel */}
+                    <ToolboxNode nodetype="LoadPretrainedModel" nodename=" Load Existing TinyYolo" />
+                     
+                     {/* ConfigTransferLearningNetwork_ODetection */}
+                     <ToolboxNode nodetype="ConfigTransferLearningNetwork_ODetection" nodename=" Configure Transfer Learning" />
+                    
+                     {/* Train_Test_PretrainedModel */}
+                     <ToolboxNode nodetype="Train_Test_PretrainedModel" nodename=" Train & Test" />
+                    
+                    </div>
             </aside>
         )
     }

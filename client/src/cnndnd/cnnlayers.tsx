@@ -825,3 +825,133 @@ export class segmentationDataStartNode extends Component<NodeProps> {
 }
 
 
+// Edit pre train model for object detection
+
+//ODetectionStartNode node
+export class ODetectionStartNode extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+//LoadDatasetODetection node
+export class LoadDatasetODetection extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+//GenerateDatasetIteratorODetection node
+export class GenerateDatasetIteratorODetection extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+            </div>
+        )
+    }
+}
+//EditPretrainedStartNode node
+export class EditPretrainedStartNode extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+//ImportTinyYolo node
+export class ImportTinyYolo extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+//LoadPretrainedModel node
+export class LoadPretrainedModel extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+//ConfigTransferLearningNetwork_ODetection node
+export class ConfigTransferLearningNetwork_ODetection extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+//Train_Test_PretrainedModel node
+export class Train_Test_PretrainedModel extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+            </div>
+        )
+    }
+}
+
+

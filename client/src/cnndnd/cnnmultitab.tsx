@@ -17,7 +17,9 @@ import {FlipImage, RotateImage, ResizeImage,
     AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, 
     segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-    generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation} from './cnnlayers' 
+    generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+    ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
+    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel} from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -136,7 +138,9 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN,
             segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
             addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-            generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation
+            generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+            ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
+            ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -436,6 +440,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.setprogressmodalactive(true);
         this.setprogressmodalheader("RUNNING CNN SEQUENCE");
         await this.sendmessage("/server/cnn/startnewsequence", "");
+        //NN
         await this.ConstructDatasetAutoSplitFlowSequence();
         await this.ConstructTrainingDatasetFlowSequence();
         await this.ConstructValidationDatasetFlowSequence();
@@ -446,6 +451,9 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         //Segmentation
         await this.ConstructSegmentationFlowSequence();
         await this.ConstructDatasetnEvaluationSegmentationFlowSequence();
+        //ReTrain pretrained model for ODetection
+        await this.ConstructDatasetForObjectDetectionFlowSequence();
+        await this.ConstructReTrainPretrainedModelFlowSequence();
         this.setprogressmodalcanclose(true);
         this.setprogresscanabort(false);
     }
@@ -751,6 +759,46 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 } 
             }
         }
+
+    /**
+     * Load dataset and generate dataset iterator for retraining the pretrianed model which is used for obejct detection.
+    */
+     ConstructDatasetForObjectDetectionFlowSequence = async () : Promise<void> => {
+        let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ODetectionStartNode");
+        if (startnodeId === null) return;
+        let sequence : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
+        for(let index = 0; index < sequence.length; index++) {
+            if (! this.seqcancontinue) return;
+            let element = sequence[index];
+            if (element.type === "LoadDatasetODetection") {
+                await this.processnode("/server/cnn/loaddatasetforodetection", element.id, element.data);
+            } else if (element.type === "GenerateDatasetIteratorODetection") {
+                await this.processnode("/server/cnn/generatedatasetiteratorodetection", element.id, element.data);
+            }
+        }
+    }
+
+    ConstructReTrainPretrainedModelFlowSequence = async () : Promise<any> => {
+        let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("EditPretrainedStartNode");
+        let cnnsequences : FlowElement[];
+        if (cnnstartnodeId !== null) {
+            cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
+            for (let index = 0; index < cnnsequences.length; index ++) {
+                if (! this.seqcancontinue) return;
+                let element = cnnsequences[index];
+                if (element.type === "ImportTinyYolo") {
+                    await this.processnode("/server/cnn/importtinyyolo", element.id, element.data);
+                } else if (element.type === "LoadPretrainedModel") {
+                    await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
+                } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
+                    await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
+                } else if (element.type === "Train_Test_PretrainedModel") {
+                    await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                }
+            }
+        }
+    }
+    
 
     /**
      * Test functionality of flow (without constructing node)

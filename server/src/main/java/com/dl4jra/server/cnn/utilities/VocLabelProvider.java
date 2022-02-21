@@ -14,19 +14,19 @@
  * SPDX-License-Identifier: Apache-2.0
  *
  */
-package ai.certifai.utilities;
-
-import java.io.File;
-import java.io.IOException;
-import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
+package com.dl4jra.server.cnn.utilities;
 
 import lombok.NonNull;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.datavec.image.recordreader.objdetect.ImageObject;
 import org.datavec.image.recordreader.objdetect.ImageObjectLabelProvider;
+
+import java.io.File;
+import java.io.IOException;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
 
 public class VocLabelProvider implements ImageObjectLabelProvider {
 

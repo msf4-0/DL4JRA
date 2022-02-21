@@ -1270,6 +1270,141 @@ public class CNNController {
 			throw new CNNException(exception.getMessage(), data.getNodeId());
 		}
 	}
+
+
+	// Re-training pre-trained model for object detection
+
+	/**
+	 * [WEBSOCKET] Load dataset for Odetection
+	 * @param data - Load training and testing dataset \ data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loaddatasetforodetection")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted LoadDatasetOdetection(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.loadDatasetObjectDetection(data.getTrainPath(), data.getTestPath());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Training and testing data set loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * [WEBSOCKET] Generate data set iterator for object detection
+	 * @param data - uses load date set node since it has batch size parameter.
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generatedatasetiteratorodetection")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted GenerateDatasetIteratorOdetection(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.generateDataIteratorObjectDetection(data.getBatchsize());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Data set iterator generated successfully!");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Import Pretrained Model (TINY YOLO)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importtinyyolo")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importTinyYolo(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importTinyYolo();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (TINY YOLO) completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * [WEBSOCKET] Load pre trained model for Odetection
+	 * @param data - Load dataset node
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loadpretrainedmodel")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted LoadPretrainedModel(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.LoadModal(data.getPath());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Pre trained modle loaded successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 *  Configure Transfer Learning ODetection
+	 * @param data - CNN configuration data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configtransferlearningodetection")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted ConfigTransferLearningODetection(Mlconfigurationnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configTransferLearningNetwork_ODetection(data.getLearningrate());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for object detection done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to configure transfer learning for object detection!", data.getNodeId());
+		}
+	}
+
+	/**
+	 * Train_Test_PretrainedModel
+	 * @param data - Trainnetworknode data since it has epoch attribute
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/traintestpretrainedmodel")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted Train_Test_PretrainedModel(Trainnetworknode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.evaluate_TINYYOLO(data.getEpochs());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Evaluation step done successfully");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
 }
 
 
