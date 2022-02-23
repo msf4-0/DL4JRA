@@ -142,7 +142,7 @@ class CNNNodeService {
 
     prepareLoadPretrainedModel = () : Dictionary => {
         let name ="Load Pretrained Model";
-        let path = "C:\\Users\\User\\.deeplearning4j\\data\\fruits\\train"; 
+        let path = "E:\\SHRDC\\models\\TINYYOLO.zip"; 
         return {name, path};
     }
 
