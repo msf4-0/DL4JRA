@@ -44,6 +44,7 @@ interface ODStates {
     screenshotdimension: number;
     recordedchunks: Blob[];
     lsoverlayactive: boolean;
+    classifierpath: string;
 }
 
 export default class ObjectDetection extends Component <ODProps, ODStates> {
@@ -80,6 +81,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
             recordedchunks: [],
             screenshotdimension: 416,
             lsoverlayactive: false,
+            classifierpath: "E:\\SHRDC\\models\\TINYYOLO.zip",
         }
         this.webcamref = React.createRef();
         this.successmodalref = React.createRef();
@@ -158,6 +160,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
         this.setwebsocketconnected(true);
         this.stompwebsocket.subscribe("/response/backend", this.getbackendCallback);
         this.stompwebsocket.subscribe("/response/objectdetection/modelchanged", this.modelchangedcallback);
+        this.stompwebsocket.subscribe("/response/objectdetection/loadmodel", this.modelchangedcallback);
         this.stompwebsocket.subscribe("/response/objectdetection/processedimage", this.processedimagecallback);
         this.stompwebsocket.subscribe("/response/objectdetection/error", this.servererrorcallback);
         this.stompwebsocket.sendmessage("/server/getbackend", "");
@@ -262,6 +265,23 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
         this.setState({ modelname, screenshotdimension });
     }
 
+        /**
+     * [WEBSOCKET SUBSCRIPTION CALLBACK]
+     * Called when server successfully updates the object detection model
+     * 1. Get model data (name & input dimension) from server's response
+     * 2. Open success modal
+     * 3. Update modelname (state) and screenshotdimension (state)
+     * @param response 
+    */
+         loadmodelcallback = (response: IMessage) : void => {
+            this.setlsoverlayactive(false);
+            let data = JSON.parse(response.body);
+            let modelname = "tinyyolo";
+            let screenshotdimension = Number(data.screenshotdimension);
+            this.successmodalref.current.openmodal("Detection modal has been updated successfully. Name: " + modelname + ", screenshot dimension: " + screenshotdimension);
+            this.setState({ modelname, screenshotdimension });
+        }
+
 
     /**
      * [UPDATE COMPONENT'S STATE] - websocketconnected
@@ -337,6 +357,26 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
             this.stompwebsocket.sendmessage("/server/objectdetection/modelonchanged", JSON.stringify({ modelname: event.target.value }));
         }
     }
+    
+        /**
+     * Called when UPDATE button is clicked
+     * Function: Load new classifier from server's side
+     * 1. Open (show) loading screen overlay
+     * 2. Send classifier data (path of file) to server
+    */
+         loadMod = () : void => {
+            this.setlsoverlayactive(true);
+            this.stompwebsocket.sendmessage("/server/objectdetection/loadmodel", JSON.stringify({ path: this.state.classifierpath }));
+        }
+            
+        /**
+         * Called when classifier path value on change
+         * @param event 
+        */
+         handleclassifierpathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
+            this.setlsoverlayactive(true);
+            this.setState({ classifierpath: event.target.value });
+        }
 
     /**
      * Callback fucntion for webcam streaming
@@ -551,11 +591,19 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
                                 <Input type='select' name='modelname' id='modelname' onChange={this.handlemodelOnchange} disabled={this.state.streaming || ! this.state.websocketconnected}>
                                     <option value="">Select</option>
                                     <option value="tinyyolo">TinyYolo</option>
-                                    <option value="yolo2">Yolo2</option>
-                                    {/* <option value="resnet50">Res-Net 50</option> */}
                                 </Input>
                                 
                             </FormGroup>
+
+                            <div className='description'> LOAD MODEL </div>
+                            <FormGroup>
+                                <Input type='text' name='classifierpath'  value={this.state.classifierpath} onChange={this.handleclassifierpathOnchange}></Input>
+                            </FormGroup>
+                            <Container>
+                                <Row>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected} onClick={this.loadMod}>LOAD MODEL</Button></Col>
+                                </Row>
+                            </Container>
                             
                         </div>
 

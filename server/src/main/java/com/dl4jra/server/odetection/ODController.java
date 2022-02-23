@@ -11,6 +11,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
+
+import com.dl4jra.server.classification.request.Modelpath;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
@@ -43,6 +45,7 @@ public class ODController {
 	private ODDetector detector = new ODDetector();
 	private FileWriter fwritter;
 	private boolean logging = false;
+	private int count = 0;
 
 	public ODController() throws IOException {
 	}
@@ -72,7 +75,31 @@ public class ODController {
 		System.out.println("[ODCONTROLLER] MODEL RESET");
 		this.detector.ResetDetector();
 	}
-	
+
+
+	/**
+	 *  [WEBSOCKET] Load modal from path
+	 * @param data - Path to model
+	 */
+	@MessageMapping("/objectdetection/loadmodel")
+	@SendTo("/response/objectdetection/loadmodel")
+	public Modelconfigurationdata loadmodel(Modelpath data) throws Exception {
+		this.detector.ResetDetector();
+		String modelname = "tinyyolo";
+		ODModelConfigurationData modeldata = PMRepository.GetPretrainedModelData(modelname);
+		int imagewidth = modeldata.getModelinputwidth();
+		int imageheight = modeldata.getModelinputheight();
+		int channels = modeldata.getModelinputchannel();
+		int gridwidth = modeldata.getGridwidth();
+		int gridheight = modeldata.getGridheight();
+		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
+		this.detector.LoadModel(data.getPath());
+		this.detector.SetPredictionClasses(modeldata.getClasses());
+		System.out.println("[ODCONTROLLER] MODEL CHANGED");
+		return new Modelconfigurationdata(modelname, imagewidth);
+	}
+
+
 	/* [WEBSOCKET] Set detector (model) to pretrained model */
 	@MessageMapping("/objectdetection/modelonchanged")
 	@SendTo("/response/objectdetection/modelchanged")
@@ -85,18 +112,9 @@ public class ODController {
 		int gridwidth = modeldata.getGridwidth();
 		int gridheight = modeldata.getGridheight();
 		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
-
-		// load with zoo model
-		if(modeldata.getModelpath() == null){
-			this.detector.LoadModelZoo(data.getModelname());
-		}
-		// load with path
-		else{
-			this.detector.LoadModel(modeldata.getModelpath());
-		}
+		this.detector.LoadModel(modeldata.getModelpath());
 		this.detector.SetPredictionClasses(modeldata.getClasses());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
-		System.out.println(data.getModelname());
 		return new Modelconfigurationdata(data.getModelname(), modeldata.getModelinputwidth());
 	}
 	
@@ -106,8 +124,8 @@ public class ODController {
 		System.out.println("[ODCONTROLLER] START STREAMING");
 		this.logging = data.isLogging();
 		if (data.isLogging()) {
-			System.out.println("[ODCONTROLLER] STARTING FILESTREAM");
-			this.fwritter = new FileWriter(loggingdirectory + "/" + formatter.format(new Date()).toString() + ".txt");
+			this.fwritter = new FileWriter(loggingdirectory + "_" + count + ".txt");
+			count++;
 		}
 		
 	}
