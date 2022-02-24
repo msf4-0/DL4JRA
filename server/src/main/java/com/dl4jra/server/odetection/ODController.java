@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
 import java.util.concurrent.Callable;
@@ -154,6 +155,7 @@ public class ODController {
 	@SendTo("/response/objectdetection/error")
 	public Messageresponse handleException(Exception exception) {
 		System.out.println("[ODCONTROLLER] EXCEPTION CAUGHT: " + exception.getMessage().toUpperCase());
+		System.out.println(Arrays.toString(exception.getStackTrace()));
 		return new Messageresponse(exception.getMessage());
 	}
 	
@@ -162,7 +164,7 @@ public class ODController {
 		
 		private Preprocessedimage image;
 		private ODDetector detector;
-		private boolean logging = false;
+		private boolean logging;
 		private FileWriter fwritter;
 		
 		public detectandreturn(Preprocessedimage image, ODDetector detector, boolean logging, FileWriter fwritter) {

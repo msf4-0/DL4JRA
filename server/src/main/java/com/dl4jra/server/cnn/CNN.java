@@ -752,47 +752,28 @@ public class CNN {
 			System.out.println("*** Completed epoch {" + i+ " } ***");
 		}
 
-		System.out.println(1);
-		NativeImageLoader imageLoader = new NativeImageLoader();
-		System.out.println(2);
-		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
-//		System.out.println(3);
+//		NativeImageLoader imageLoader = new NativeImageLoader();
+//		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
 //		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-//		System.out.println(4);
-//		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
-//		System.out.println(5);
+		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
 //		Mat convertedMat = new Mat();
-//		System.out.println(6);
 //		Mat convertedMat_big = new Mat();
-//		System.out.println(7);
-//
-//		while (validationGenerator.hasNext() && canvas.isVisible()) {
-//			System.out.println(8);
-//			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
-//			System.out.println(9);
-//			INDArray features = ds.getFeatures();
-//			System.out.println(10);
-//			INDArray results = computationGraph.outputSingle(features);
-//			System.out.println(11);
-//			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
-//			System.out.println(12);
-//			YoloUtils.nms(objs, 0.4);
-//			System.out.println(13);
+
+		while (validationGenerator.hasNext()) {
+			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
+			INDArray features = ds.getFeatures();
+			INDArray results = computationGraph.outputSingle(features);
+			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
+			YoloUtils.nms(objs, 0.4);
 //			Mat mat = imageLoader.asMat(features);
-//			System.out.println(14);
 //			mat.convertTo(convertedMat, CV_8U, 255, 0);
-//			System.out.println(15);
 //			int w = mat.cols() * 2;
 //			int h = mat.rows() * 2;
-//			System.out.println(16);
 //			resize(convertedMat, convertedMat_big, new Size(w, h));
-//			System.out.println(17);
 //			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
-//			System.out.println(18);
 //			canvas.showImage(converter.convert(convertedMat_big));
-//			System.out.println(19);
 //			canvas.waitKey();
-//		}
+		}
 //		canvas.dispose();
 	}
 
