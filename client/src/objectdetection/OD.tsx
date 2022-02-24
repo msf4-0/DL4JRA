@@ -45,6 +45,8 @@ interface ODStates {
     recordedchunks: Blob[];
     lsoverlayactive: boolean;
     classifierpath: string;
+    load: boolean;
+    import: boolean;
 }
 
 export default class ObjectDetection extends Component <ODProps, ODStates> {
@@ -82,6 +84,8 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
             screenshotdimension: 416,
             lsoverlayactive: false,
             classifierpath: "E:\\SHRDC\\models\\TINYYOLO.zip",
+            load: false,
+            import: false,
         }
         this.webcamref = React.createRef();
         this.successmodalref = React.createRef();
@@ -351,9 +355,10 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
         this.setlsoverlayactive(true);
         if (event.target.value === "") {
             this.stompwebsocket.sendmessage("/server/objectdetection/modelreset", "");
-            this.setState({ modelname: "", screenshotdimension: 0 });
+            this.setState({ modelname: "", screenshotdimension: 0 , import: false});
             this.setlsoverlayactive(false);
         } else {
+            this.setState({import: true})
             this.stompwebsocket.sendmessage("/server/objectdetection/modelonchanged", JSON.stringify({ modelname: event.target.value }));
         }
     }
@@ -366,6 +371,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
     */
          loadMod = () : void => {
             this.setlsoverlayactive(true);
+            this.setState({load: true})
             this.stompwebsocket.sendmessage("/server/objectdetection/loadmodel", JSON.stringify({ path: this.state.classifierpath }));
         }
             
@@ -374,7 +380,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
          * @param event 
         */
          handleclassifierpathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
-            this.setlsoverlayactive(true);
+            // this.setlsoverlayactive(true);
             this.setState({ classifierpath: event.target.value });
         }
 
@@ -588,7 +594,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
                         <div className='pair'>
                             <div className='description'>OBJECT DETECTION MODEL</div>
                             <FormGroup>
-                                <Input type='select' name='modelname' id='modelname' onChange={this.handlemodelOnchange} disabled={this.state.streaming || ! this.state.websocketconnected}>
+                                <Input type='select' name='modelname' id='modelname' onChange={this.handlemodelOnchange} disabled={this.state.streaming || ! this.state.websocketconnected || this.state.load}>
                                     <option value="">Select</option>
                                     <option value="tinyyolo">TinyYolo</option>
                                 </Input>
@@ -601,7 +607,7 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
                             </FormGroup>
                             <Container>
                                 <Row>
-                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected} onClick={this.loadMod}>LOAD MODEL</Button></Col>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected || this.state.import} onClick={this.loadMod} >LOAD MODEL</Button></Col>
                                 </Row>
                             </Container>
                             

@@ -482,7 +482,6 @@ export class ExportNN extends Component<NodeProps> {
             }}>
                 <IncomingConnectionHandle />
                 <div>{this.props.data.name}</div>
-                <OutgoingConnectionHandle />
             </div>
         )
     }
@@ -804,6 +803,7 @@ export class validation_segmentation extends Component<NodeProps> {
             }}>
                 <IncomingConnectionHandle />
                 <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
             </div>
         )
     }

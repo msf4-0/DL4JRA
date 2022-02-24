@@ -42,6 +42,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <div className='description'style={{ fontSize:20, }}>ACTION</div>
                     {/* <Button className='toolbar-element' block onClick={this.props.hardcodedcnntesting} disabled={! this.props.websocketconnected}>CNN(TEST)</Button> */}
                     <Button className='toolbar-element' block onClick={this.props.constructsequence} disabled={! this.props.websocketconnected}>CONSTRUCT</Button>
+                    
+                    {/* EXPORT */}
+                    <ToolboxNode nodetype="ExportNN" nodename="Export" />
                 </div>
 
 
@@ -162,16 +165,13 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 </div>
                  {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK  */}
                  <div style={{ margin: 5, padding: 5, }}>
-                    <div className='description' > Train & Test & Export</div>
+                    <div className='description' > Train & Test </div>
 
                     {/* TRAIN CNN */}
                      <ToolboxNode nodetype='TrainNN' nodename='Train' />
 
                     {/* VALIDATE */}
                     <ToolboxNode nodetype='ValidateNN' nodename="Validate" />
-
-                    {/* EXPORT */}
-                    <ToolboxNode nodetype="ExportNN" nodename="Export" />
 
                 </div>
 

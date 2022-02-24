@@ -54,15 +54,14 @@ public class CnnTest {
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
 //
-			cnn.loadDatasetObjectDetection("C:\\Users\\User\\.deeplearning4j\\data\\fruits\\train",
-					"C:\\Users\\User\\.deeplearning4j\\data\\fruits\\test");
-			cnn.generateDataIteratorObjectDetection(8);
-			cnn.importTinyYolo();
-//			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
+			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\Testing_dataset\\train",
+					"E:\\SHRDC\\my_datasets\\Testing_dataset\\test");
+			cnn.generateDataIteratorObjectDetection(32);
+//			cnn.importTinyYolo();
+			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
 			cnn.configTransferLearningNetwork_ODetection(1e-4);
-			cnn.evaluate_TINYYOLO(1);
-
-//			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO");
+			cnn.evaluate_TINYYOLO(100);
+			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2");
 //			cnn.TrainNetwork(epochs, scorelistener);
 //			cnn.ValidateNetwork();
 
