@@ -949,6 +949,7 @@ export class Train_Test_PretrainedModel extends Component<NodeProps> {
             }}>
                 <IncomingConnectionHandle />
                 <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
             </div>
         )
     }

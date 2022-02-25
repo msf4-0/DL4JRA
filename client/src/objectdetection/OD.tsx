@@ -45,6 +45,8 @@ interface ODStates {
     recordedchunks: Blob[];
     lsoverlayactive: boolean;
     classifierpath: string;
+    traindatasetpath: string;
+    testdatasetpath: string;
     load: boolean;
     import: boolean;
 }
@@ -84,6 +86,8 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
             screenshotdimension: 416,
             lsoverlayactive: false,
             classifierpath: "E:\\SHRDC\\models\\TINYYOLO.zip",
+            traindatasetpath: "",
+            testdatasetpath: "",
             load: false,
             import: false,
         }
@@ -364,24 +368,48 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
     }
     
         /**
-     * Called when UPDATE button is clicked
-     * Function: Load new classifier from server's side
-     * 1. Open (show) loading screen overlay
-     * 2. Send classifier data (path of file) to server
+     * Called when LOAD MODEL button is clicked
+     * Function: load the exsited model in your computer
     */
-         loadMod = () : void => {
+         loadModel = () : void => {
             this.setlsoverlayactive(true);
             this.setState({load: true})
-            this.stompwebsocket.sendmessage("/server/objectdetection/loadmodel", JSON.stringify({ path: this.state.classifierpath }));
+            this.stompwebsocket.sendmessage("/server/objectdetection/loadmodel", JSON.stringify({ path: this.state.classifierpath,
+                 trainPath: this.state.traindatasetpath, testPath: this.state.testdatasetpath  }));
+        }
+
+    /**
+     * Called when UNLOAD MODEL button is clicked
+     * Function: Unload the model
+    */
+        unloadModel = () : void => {
+            this.setState({load: false})
+            this.stompwebsocket.sendmessage("/server/objectdetection/modelreset", "");
         }
             
         /**
          * Called when classifier path value on change
          * @param event 
         */
-         handleclassifierpathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
-            // this.setlsoverlayactive(true);
+         handleClassifierPathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
             this.setState({ classifierpath: event.target.value });
+
+        }
+                    
+        /**
+         * Called when classifier path value on change
+         * @param event 
+        */
+         handleTrainPathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
+            this.setState({ traindatasetpath: event.target.value });
+        }
+                    
+        /**
+         * Called when classifier path value on change
+         * @param event 
+        */
+         handleTestPathOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
+            this.setState({ testdatasetpath: event.target.value });
         }
 
     /**
@@ -603,11 +631,17 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
 
                             <div className='description'> LOAD MODEL </div>
                             <FormGroup>
-                                <Input type='text' name='classifierpath'  value={this.state.classifierpath} onChange={this.handleclassifierpathOnchange}></Input>
+                            <   div className='description'> MODEL PATH </div>
+                                <Input type='text' name='classifierpath'  value={this.state.classifierpath} onChange={this.handleClassifierPathOnchange}></Input>
+                            <   div className='description'> TRAIN DATASET PATH </div>
+                                <Input type='text' name='TrainDatasetPath'  value={this.state.traindatasetpath} onChange={this.handleTrainPathOnchange}></Input>
+                            <   div className='description'> TEST DATASET PATH </div>
+                                <Input type='text' name='TestDatasetPath'  value={this.state.testdatasetpath} onChange={this.handleTestPathOnchange}></Input>
                             </FormGroup>
                             <Container>
                                 <Row>
-                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected || this.state.import} onClick={this.loadMod} >LOAD MODEL</Button></Col>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected || this.state.import} onClick={this.loadModel} >LOAD MODEL</Button></Col>
+                                    <Col><Button block color='primary' disabled={! this.state.websocketconnected || this.state.import} onClick={this.unloadModel} >UNLOAD MODEL</Button></Col>
                                 </Row>
                             </Container>
                             
