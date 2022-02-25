@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
 
 import com.dl4jra.server.cnn.utilities.Visualization;
@@ -36,6 +37,7 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
 import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.util.ModelSerializer;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.TinyYOLO;
@@ -95,7 +97,11 @@ public class CNN {
 		this.ValidationDatasetGenerator = new CNNDatasetGenerator();
 		this.ValidationDatasetIterator = null;
 	}
-	
+
+	public RecordReaderDataSetIterator getTrainGenerator() {
+		return trainGenerator;
+	}
+
 	/**
 	 * Load training dataset
 	 * @param path - Path to training dataset
@@ -710,12 +716,7 @@ public class CNN {
 				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
 				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
 				.build();
-		System.out.println("==================================================");
-		System.out.println("==================================================");
-		System.out.println(trainGenerator.getLabels().size());
-		System.out.println(priors.castTo(DataType.FLOAT));
-		System.out.println("==================================================");
-		System.out.println("==================================================");
+
 		computationGraph = new TransferLearning.GraphBuilder(computationGraph)
 				.fineTuneConfiguration(fineTuneConfiguration)
 				.removeVertexKeepConnections("conv2d_9")
@@ -745,12 +746,15 @@ public class CNN {
 	public void evaluate_TINYYOLO(int epochs) throws Exception {
 		computationGraph.setListeners(new ScoreIterationListener(1));
 		for (int i = 1; i < epochs + 1; i++) {
-			trainGenerator.reset();
-			while (trainGenerator.hasNext()) {
-				computationGraph.fit(trainGenerator.next());
-			}
+//			trainGenerator.reset();
+//			while (trainGenerator.hasNext()) {
+//				computationGraph.fit(trainGenerator.next());
+//			}
+			computationGraph.fit(trainGenerator);
 			System.out.println("*** Completed epoch {" + i+ " } ***");
 		}
+
+
 
 //		NativeImageLoader imageLoader = new NativeImageLoader();
 //		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
@@ -784,7 +788,6 @@ public class CNN {
 	public void generateDataIteratorObjectDetection(int batchSize) throws Exception {
 		trainGenerator = TrainingDatasetGenerator.trainIterator_ObjectDetection( batchSize);
 		validationGenerator = TrainingDatasetGenerator.testIterator_ObjectDetection(1);
-		System.out.println(trainGenerator.getLabels().size());
 	}
 
 	private Mat drawResults(List<DetectedObject> objects, Mat mat, int w, int h) {
