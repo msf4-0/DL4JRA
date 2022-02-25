@@ -3,6 +3,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Date;
@@ -14,6 +15,8 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 
 import com.dl4jra.server.classification.request.Modelpath;
+import com.dl4jra.server.cnn.CNN;
+import com.dl4jra.server.cnn.request.Loaddatasetnode;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
@@ -47,6 +50,7 @@ public class ODController {
 	private FileWriter fwritter;
 	private boolean logging = false;
 	private int count = 0;
+	private CNN cnn;
 
 	public ODController() throws IOException {
 	}
@@ -84,7 +88,8 @@ public class ODController {
 	 */
 	@MessageMapping("/objectdetection/loadmodel")
 	@SendTo("/response/objectdetection/loadmodel")
-	public Modelconfigurationdata loadmodel(Modelpath data) throws Exception {
+	public Modelconfigurationdata loadmodel(Loaddatasetnode data) throws Exception {
+		cnn = new CNN();
 		this.detector.ResetDetector();
 		String modelname = "tinyyolo";
 		ODModelConfigurationData modeldata = PMRepository.GetPretrainedModelData(modelname);
@@ -94,9 +99,12 @@ public class ODController {
 		int gridwidth = modeldata.getGridwidth();
 		int gridheight = modeldata.getGridheight();
 		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
-		this.detector.LoadModel(data.getPath());
-		this.detector.SetPredictionClasses(modeldata.getClasses());
+		this.detector.LoadModel(data.getPath(), 1);
+		this.cnn.loadDatasetObjectDetection(data.getTrainPath(), data.getTestPath());
+		this.cnn.generateDataIteratorObjectDetection(8);
+		this.detector.SetPredictionClasses((ArrayList<String>) cnn.getTrainGenerator().getLabels());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
+		System.out.println(this.detector.getClasses());
 		return new Modelconfigurationdata(modelname, imagewidth);
 	}
 
@@ -113,7 +121,7 @@ public class ODController {
 		int gridwidth = modeldata.getGridwidth();
 		int gridheight = modeldata.getGridheight();
 		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
-		this.detector.LoadModel(modeldata.getModelpath());
+		this.detector.LoadModel(modeldata.getModelpath(), 0);
 		this.detector.SetPredictionClasses(modeldata.getClasses());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
 		return new Modelconfigurationdata(data.getModelname(), modeldata.getModelinputwidth());

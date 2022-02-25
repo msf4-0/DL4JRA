@@ -5,15 +5,18 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
+import com.dl4jra.server.cnn.CNN;
 import org.datavec.image.loader.NativeImageLoader;
 import org.deeplearning4j.nn.api.Layer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.nn.layers.OutputLayer;
 import org.deeplearning4j.nn.layers.objdetect.DetectedObject;
 import org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer;
+import org.deeplearning4j.nn.layers.objdetect.YoloUtils;
 import org.deeplearning4j.util.ModelSerializer;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.Darknet19;
@@ -47,8 +50,13 @@ public class ODDetector {
 	private ArrayList<String> classes;
 	private static SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss:SSS");
 	private VOCLabels labels = new VOCLabels();
+	private int type;
 
 	public ODDetector() throws IOException {
+	}
+
+	public ArrayList<String> getClasses() {
+		return classes;
 	}
 
 	/* Reset detector */
@@ -91,7 +99,8 @@ public class ODDetector {
 	 * @param path - Path to model
 	 * @throws Exception
 	 */
-	public void LoadModel(String path) throws Exception {
+	public void LoadModel(String path, int type) throws Exception {
+		this.type = type;
 		File location = new File(path);
     	boolean modalexists = location.exists() && ! location.isDirectory();
     	if (! modalexists)
@@ -148,7 +157,7 @@ public class ODDetector {
 		Imgproc.resize(image, image, new Size(imagewidth, imageheight));
 		List<DetectedObject> objects = GetObjects(image, threshold);
 		if (objects.size() > 0) {
-			image = DrawBoxes(image, objects);
+			image = DrawBoxes(image, objects, type);
 			SaveImage(image, directory, filename);
 		}
 	}
@@ -167,7 +176,7 @@ public class ODDetector {
 		Imgproc.resize(image, image, new Size(imagewidth, imageheight));
 		List<DetectedObject> objects = GetObjects(image, threshold);
 		if (objects.size() > 0)
-			image = DrawBoxes(image, objects);
+			image = DrawBoxes(image, objects, type);
 		return image;
 	}
 	
@@ -186,7 +195,7 @@ public class ODDetector {
 		Imgproc.resize(image, image, new Size(imagewidth, imageheight));
 		List<DetectedObject> objects = GetObjects(image, threshold);
 		if (objects.size() > 0) {
-			image = DrawBoxes(image, objects, fwritter);
+			image = DrawBoxes(image, objects, fwritter, type);
 		}
 		return image;
 	}
@@ -205,6 +214,7 @@ public class ODDetector {
 		this.scaler.transform(ds);
 		INDArray results = this.DetectionModel.outputSingle(ds);
 		List<DetectedObject> objects = NonMaxSuppression.getObjects(yout.getPredictedObjects(results, threshold));
+//		List<DetectedObject> objects = yout.getPredictedObjects(ds, threshold);
 		return objects;
 	}
 	
@@ -215,18 +225,32 @@ public class ODDetector {
 	 * @return Processed image
 	 * @throws Exception
 	 */
-	public Mat DrawBoxes(Mat image, List<DetectedObject> objects) throws Exception{
+	public Mat DrawBoxes(Mat image, List<DetectedObject> objects, int type) throws Exception{
 		for (DetectedObject obj : objects) {
             double[] xy1 = obj.getTopLeftXY();
             double[] xy2 = obj.getBottomRightXY();
-			String label = labels.getLabel(obj.getPredictedClass());
-            int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
-            int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
-            int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
-            int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
-            int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
-            Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
-			Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
+
+			if(type == 0) {
+				String label = labels.getLabel(obj.getPredictedClass());
+				int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
+				int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
+				int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
+				int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
+				int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
+				Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
+				Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
+			}
+			else if (type == 1) {
+				String label = classes.get(obj.getPredictedClass());
+				int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
+				int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
+				int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
+				int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
+				int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
+				Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
+				Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
+			}
+
     	}
 		return image;
 	}
@@ -239,20 +263,30 @@ public class ODDetector {
 	 * @return Processed image
 	 * @throws Exception
 	 */
-	public Mat DrawBoxes(Mat image, List<DetectedObject> objects, FileWriter fwritter) throws Exception{
+	public Mat DrawBoxes(Mat image, List<DetectedObject> objects, FileWriter fwritter, int type) throws Exception{
 		String outputstring = formatter.format(new Date()).toString() + "\n";
 		for (DetectedObject obj : objects) {
-            double[] xy1 = obj.getTopLeftXY();
-            double[] xy2 = obj.getBottomRightXY();
-			String label = labels.getLabel(obj.getPredictedClass());
-            int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
-            int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
-            int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
-            int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
-            int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
-            Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
-			Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
-			outputstring += String.format("%s DETECTED (%.3f)\n", label, obj.getClassPredictions().getFloat(predictedclass));
+			double[] xy1 = obj.getTopLeftXY();
+			double[] xy2 = obj.getBottomRightXY();
+			String label = null;
+			if (type == 0) {
+				label = labels.getLabel(obj.getPredictedClass());
+			} else if (type == 1) {
+				label = classes.get(obj.getPredictedClass());
+			}
+			int predictedclass = GetLargestProbabilityIndex(obj.getClassPredictions());
+			int x1 = (int) Math.max(0, Math.round(imagewidth * xy1[0] / gridwidth));
+			int y1 = (int) Math.max(0, Math.round(imageheight * xy1[1] / gridheight));
+			int x2 = (int) Math.min(imagewidth, Math.round(imagewidth * xy2[0] / gridwidth));
+			int y2 = (int) Math.min(imageheight, Math.round(imageheight * xy2[1] / gridheight));
+			Imgproc.rectangle(image, new Point(x1, y1), new Point(x2, y2), new Scalar(0, 0, 255), 2);
+			if (label != null) {
+				Imgproc.putText(image, label, new Point(x1 + 2, y2 - 2), 1, .8, new Scalar(0, 0, 255));
+				outputstring += String.format("%s DETECTED (%.3f)\n", label, obj.getClassPredictions().getFloat(predictedclass));
+			}
+			else{
+				throw new Exception("Label is not initialised");
+			}
     	}
 		outputstring += "------------------------------------------------\n\n";
 		fwritter.write(outputstring);

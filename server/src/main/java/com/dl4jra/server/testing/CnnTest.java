@@ -2,6 +2,8 @@ package com.dl4jra.server.testing;
 
 import com.dl4jra.server.cnn.CNN;
 
+import java.util.Arrays;
+
 public class CnnTest {
 
 	/**
@@ -54,14 +56,14 @@ public class CnnTest {
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
 //
-			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\Testing_dataset\\train",
-					"E:\\SHRDC\\my_datasets\\Testing_dataset\\test");
+			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\Yolo_SHRDC dataset\\train",
+					"E:\\SHRDC\\my_datasets\\Yolo_SHRDC dataset\\test");
 			cnn.generateDataIteratorObjectDetection(32);
-//			cnn.importTinyYolo();
-			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
+			cnn.importTinyYolo();
+//			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
 			cnn.configTransferLearningNetwork_ODetection(1e-4);
-			cnn.evaluate_TINYYOLO(100);
-			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2");
+			cnn.evaluate_TINYYOLO(20);
+			cnn.SaveModal("E:\\SHRDC\\models", "FRUIT");
 //			cnn.TrainNetwork(epochs, scorelistener);
 //			cnn.ValidateNetwork();
 
@@ -132,6 +134,7 @@ public class CnnTest {
 
 
 		} catch (Exception exception) {
+			System.out.println(Arrays.toString(exception.getStackTrace()));
 			System.out.println("EXCEPTION : " + exception.getMessage());
 		}
 
