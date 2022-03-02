@@ -55,6 +55,10 @@ public class ODDetector {
 	public ODDetector() throws IOException {
 	}
 
+	public ComputationGraph getDetectionModel() {
+		return DetectionModel;
+	}
+
 	public ArrayList<String> getClasses() {
 		return classes;
 	}
@@ -214,7 +218,8 @@ public class ODDetector {
 		this.scaler.transform(ds);
 		INDArray results = this.DetectionModel.outputSingle(ds);
 		List<DetectedObject> objects = NonMaxSuppression.getObjects(yout.getPredictedObjects(results, threshold));
-//		List<DetectedObject> objects = yout.getPredictedObjects(ds, threshold);
+//		List<DetectedObject> objects = yout.getPredictedObjects(results, threshold);
+//		YoloUtils.nms(objects, 0.4);
 		return objects;
 	}
 	

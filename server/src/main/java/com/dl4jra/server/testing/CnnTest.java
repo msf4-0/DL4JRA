@@ -56,14 +56,15 @@ public class CnnTest {
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
 //
-			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\Yolo_SHRDC dataset\\train",
-					"E:\\SHRDC\\my_datasets\\Yolo_SHRDC dataset\\test");
-			cnn.generateDataIteratorObjectDetection(32);
+			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\train",
+					"E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\test");
+			cnn.generateDataIteratorObjectDetection(16);
+
 			cnn.importTinyYolo();
 //			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
 			cnn.configTransferLearningNetwork_ODetection(1e-4);
-			cnn.evaluate_TINYYOLO(20);
-			cnn.SaveModal("E:\\SHRDC\\models", "FRUIT");
+			cnn.evaluate_TINYYOLO(40);
+			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2_0");
 //			cnn.TrainNetwork(epochs, scorelistener);
 //			cnn.ValidateNetwork();
 
