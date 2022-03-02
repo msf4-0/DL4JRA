@@ -1,12 +1,10 @@
 package com.dl4jra.server.odetection;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Date;
+import java.util.*;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -17,6 +15,18 @@ import javax.annotation.PostConstruct;
 import com.dl4jra.server.classification.request.Modelpath;
 import com.dl4jra.server.cnn.CNN;
 import com.dl4jra.server.cnn.request.Loaddatasetnode;
+import org.bytedeco.javacv.CanvasFrame;
+import org.bytedeco.javacv.Frame;
+import org.bytedeco.javacv.FrameGrabber;
+import org.bytedeco.javacv.OpenCVFrameConverter;
+import org.bytedeco.opencv.opencv_core.Point;
+import org.bytedeco.opencv.opencv_core.Scalar;
+import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.transform.ColorConversionTransform;
+import org.deeplearning4j.nn.layers.objdetect.DetectedObject;
+import org.deeplearning4j.nn.layers.objdetect.YoloUtils;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfByte;
 import org.opencv.core.Size;
@@ -37,6 +47,10 @@ import com.dl4jra.server.odetection.request.Pretrainedmodelname;
 import com.dl4jra.server.odetection.response.Modelconfigurationdata;
 import com.dl4jra.server.odetection.response.Processedimage;
 
+import static org.bytedeco.opencv.global.opencv_core.flip;
+import static org.bytedeco.opencv.global.opencv_imgproc.*;
+import static org.bytedeco.opencv.helper.opencv_core.RGB;
+
 @Controller
 public class ODController {
 	static { LibraryLoader.loadOpencvLibrary(); } 
@@ -50,7 +64,6 @@ public class ODController {
 	private FileWriter fwritter;
 	private boolean logging = false;
 	private int count = 0;
-	private CNN cnn;
 
 	public ODController() throws IOException {
 	}
@@ -89,23 +102,16 @@ public class ODController {
 	@MessageMapping("/objectdetection/loadmodel")
 	@SendTo("/response/objectdetection/loadmodel")
 	public Modelconfigurationdata loadmodel(Loaddatasetnode data) throws Exception {
-		cnn = new CNN();
+		CNN cnn = new CNN();
 		this.detector.ResetDetector();
-		String modelname = "tinyyolo";
-		ODModelConfigurationData modeldata = PMRepository.GetPretrainedModelData(modelname);
-		int imagewidth = modeldata.getModelinputwidth();
-		int imageheight = modeldata.getModelinputheight();
-		int channels = modeldata.getModelinputchannel();
-		int gridwidth = modeldata.getGridwidth();
-		int gridheight = modeldata.getGridheight();
-		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
+		this.detector.SetDetectorInputType(416, 416, 3, 13, 13);
 		this.detector.LoadModel(data.getPath(), 1);
-		this.cnn.loadDatasetObjectDetection(data.getTrainPath(), data.getTestPath());
-		this.cnn.generateDataIteratorObjectDetection(8);
+		cnn.loadDatasetObjectDetection(data.getTrainPath(), data.getTestPath());
+		cnn.generateDataIteratorObjectDetection(8);
 		this.detector.SetPredictionClasses((ArrayList<String>) cnn.getTrainGenerator().getLabels());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
 		System.out.println(this.detector.getClasses());
-		return new Modelconfigurationdata(modelname, imagewidth);
+		return new Modelconfigurationdata("tinyyolo", 416);
 	}
 
 
@@ -166,7 +172,8 @@ public class ODController {
 		System.out.println(Arrays.toString(exception.getStackTrace()));
 		return new Messageresponse(exception.getMessage());
 	}
-	
+
+
 	// Thread task
 	private class detectandreturn implements Callable<Processedimage> {
 		

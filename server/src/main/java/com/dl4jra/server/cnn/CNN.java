@@ -2,21 +2,15 @@ package com.dl4jra.server.cnn;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.Arrays;
 import java.util.List;
 
-import com.dl4jra.server.cnn.utilities.Visualization;
 import org.bytedeco.javacv.CanvasFrame;
 import org.bytedeco.javacv.OpenCVFrameConverter;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
-import org.datavec.api.split.FileSplit;
 import org.datavec.image.loader.NativeImageLoader;
-import org.datavec.image.transform.ImageTransform;
 import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -37,7 +31,6 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
 import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
-import org.deeplearning4j.util.ModelSerializer;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.TinyYOLO;
@@ -51,15 +44,11 @@ import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
-import org.nd4j.linalg.schedule.ScheduleType;
-import org.nd4j.linalg.schedule.StepSchedule;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 import com.dl4jra.server.cnn.response.UpdateResponse;
 import com.dl4jra.server.globalresponse.Messageresponse;
-
-import javax.swing.*;
 
 import static org.bytedeco.opencv.global.opencv_core.CV_8U;
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
@@ -70,7 +59,7 @@ public class CNN {
 	// Neural network properties
 	private CNNConfiguration cnnconfig;
 	private MultiLayerNetwork multiLayerNetwork;
-	private ComputationGraph computationGraph;
+	private ComputationGraph computationGraph, pretrained;
 	private boolean networkconstructed;
 
 	// Training dataset properties
@@ -671,7 +660,7 @@ public class CNN {
 		Nd4j.getRandom().setSeed(seed);
 		priors = Nd4j.create(priorBoxes);
 
-		this.computationGraph = (ComputationGraph) TinyYOLO.builder().build().initPretrained();;
+		this.pretrained = (ComputationGraph) TinyYOLO.builder().build().initPretrained();;
 	}
 
 	/**
@@ -701,7 +690,7 @@ public class CNN {
 		Nd4j.getRandom().setSeed(seed);
 		priors = Nd4j.create(priorBoxes);
 
-		this.computationGraph = ComputationGraph.load(file, true);
+		this.pretrained = ComputationGraph.load(file, true);
 	}
 
 	public void configTransferLearningNetwork_ODetection(double learningRate){
@@ -717,7 +706,7 @@ public class CNN {
 				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
 				.build();
 
-		computationGraph = new TransferLearning.GraphBuilder(computationGraph)
+		computationGraph = new TransferLearning.GraphBuilder(pretrained)
 				.fineTuneConfiguration(fineTuneConfiguration)
 				.removeVertexKeepConnections("conv2d_9")
 				.removeVertexKeepConnections("outputs")
@@ -744,31 +733,27 @@ public class CNN {
 	}
 
 	public void evaluate_TINYYOLO(int epochs) throws Exception {
+
 		computationGraph.setListeners(new ScoreIterationListener(1));
 		for (int i = 1; i < epochs + 1; i++) {
-//			trainGenerator.reset();
-//			while (trainGenerator.hasNext()) {
-//				computationGraph.fit(trainGenerator.next());
-//			}
 			computationGraph.fit(trainGenerator);
 			System.out.println("*** Completed epoch {" + i+ " } ***");
 		}
 
-
-
+		// Testing through visualization
 //		NativeImageLoader imageLoader = new NativeImageLoader();
 //		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
 //		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
+//		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
 //		Mat convertedMat = new Mat();
 //		Mat convertedMat_big = new Mat();
-
-		while (validationGenerator.hasNext()) {
-			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
-			INDArray features = ds.getFeatures();
-			INDArray results = computationGraph.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
-			YoloUtils.nms(objs, 0.4);
+//
+//		while (validationGenerator.hasNext()) {
+//			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
+//			INDArray features = ds.getFeatures();
+//			INDArray results = computationGraph.outputSingle(features);
+//			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
+//			YoloUtils.nms(objs, 0.4);
 //			Mat mat = imageLoader.asMat(features);
 //			mat.convertTo(convertedMat, CV_8U, 255, 0);
 //			int w = mat.cols() * 2;
@@ -777,7 +762,7 @@ public class CNN {
 //			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
 //			canvas.showImage(converter.convert(convertedMat_big));
 //			canvas.waitKey();
-		}
+//		}
 //		canvas.dispose();
 	}
 
@@ -789,13 +774,12 @@ public class CNN {
 		trainGenerator = TrainingDatasetGenerator.trainIterator_ObjectDetection( batchSize);
 		validationGenerator = TrainingDatasetGenerator.testIterator_ObjectDetection(1);
 	}
-
+//	private String labeltext = null;
 	private Mat drawResults(List<DetectedObject> objects, Mat mat, int w, int h) {
 		for (DetectedObject obj : objects) {
 			double[] xy1 = obj.getTopLeftXY();
 			double[] xy2 = obj.getBottomRightXY();
-			List<String> labels = trainGenerator.getLabels();
-			String label = labels.get(obj.getPredictedClass());
+			String label = trainGenerator.getLabels().get(obj.getPredictedClass());
 			int x1 = (int) Math.round(w * xy1[0] / 13);
 			int y1 = (int) Math.round(h * xy1[1] / 13);
 			int x2 = (int) Math.round(w * xy2[0] / 13);
@@ -803,7 +787,10 @@ public class CNN {
 			//Draw bounding box
 			Scalar GREEN = RGB(0, 255.0, 0);
 			Scalar YELLOW = RGB(255, 255, 0);
-			Scalar[] colormap = {GREEN, YELLOW};
+			Scalar b1 = RGB(0, 0, 255);
+			Scalar b2 = RGB(255, 0, 0);
+			Scalar b3 = RGB(0, 255, 255);
+			Scalar[] colormap = {GREEN, YELLOW, b1, b2, b3};
 			rectangle(mat, new Point(x1, y1), new Point(x2, y2), colormap[obj.getPredictedClass()], 2, 0, 0);
 			//Display label text
 			String labeltext = label + " " + String.format("%.2f", obj.getConfidence() * 100) + "%";

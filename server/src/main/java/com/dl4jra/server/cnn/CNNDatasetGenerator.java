@@ -365,13 +365,7 @@ public class CNNDatasetGenerator {
 	}
 
 	private RecordReaderDataSetIterator makeIterator_ObjectDetection(InputSplit split, Path dir, int batchSize) throws IOException {
-		int nChannels = 3;
-		int gridWidth = 13;
-		int gridHeight = 13;
-		int yolowidth = 416;
-		int yoloheight = 416;
-		ObjectDetectionRecordReader recordReader = new ObjectDetectionRecordReader(yoloheight, yolowidth, nChannels,
-				gridHeight, gridWidth, new VocLabelProvider(dir.toString()));
+		ObjectDetectionRecordReader recordReader = new ObjectDetectionRecordReader(416,416,3,13,13, new VocLabelProvider(dir.toString()));
 		recordReader.initialize(split);
 		RecordReaderDataSetIterator iter = new RecordReaderDataSetIterator(recordReader, batchSize, 1, 1, true);
 		iter.setPreProcessor(new ImagePreProcessingScaler(0, 1));

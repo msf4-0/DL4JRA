@@ -708,6 +708,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 } else if (element.type === "EvaluateModelRNN" ){
                     await this.processnode("/server/cnn/evaluatemodelrnn", element.id, element.data);
+                } else if (element.type === "ExportNN") {
+                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 }
             }
         }
@@ -794,6 +796,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
                 } else if (element.type === "Train_Test_PretrainedModel") {
                     await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                } else if (element.type === "ExportNN") {
+                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 }
             }
         }
