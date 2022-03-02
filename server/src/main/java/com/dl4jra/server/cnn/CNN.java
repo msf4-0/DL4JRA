@@ -741,29 +741,29 @@ public class CNN {
 		}
 
 		// Testing through visualization
-		NativeImageLoader imageLoader = new NativeImageLoader();
-		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
-		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
-		Mat convertedMat = new Mat();
-		Mat convertedMat_big = new Mat();
-
-		while (validationGenerator.hasNext()) {
-			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
-			INDArray features = ds.getFeatures();
-			INDArray results = computationGraph.outputSingle(features);
-			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
-			YoloUtils.nms(objs, 0.4);
-			Mat mat = imageLoader.asMat(features);
-			mat.convertTo(convertedMat, CV_8U, 255, 0);
-			int w = mat.cols() * 2;
-			int h = mat.rows() * 2;
-			resize(convertedMat, convertedMat_big, new Size(w, h));
-			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
-			canvas.showImage(converter.convert(convertedMat_big));
-			canvas.waitKey();
-		}
-		canvas.dispose();
+//		NativeImageLoader imageLoader = new NativeImageLoader();
+//		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
+//		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+//		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
+//		Mat convertedMat = new Mat();
+//		Mat convertedMat_big = new Mat();
+//
+//		while (validationGenerator.hasNext()) {
+//			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
+//			INDArray features = ds.getFeatures();
+//			INDArray results = computationGraph.outputSingle(features);
+//			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
+//			YoloUtils.nms(objs, 0.4);
+//			Mat mat = imageLoader.asMat(features);
+//			mat.convertTo(convertedMat, CV_8U, 255, 0);
+//			int w = mat.cols() * 2;
+//			int h = mat.rows() * 2;
+//			resize(convertedMat, convertedMat_big, new Size(w, h));
+//			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
+//			canvas.showImage(converter.convert(convertedMat_big));
+//			canvas.waitKey();
+//		}
+//		canvas.dispose();
 	}
 
 	public void loadDatasetObjectDetection(String trainDirAddress, String testDirAddress){
