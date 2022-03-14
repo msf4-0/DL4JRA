@@ -29,7 +29,8 @@ public class PMRepository {
 			odModelConfigurationData = new ODModelConfigurationData(classes.get("tinyyolo"), 416, 416,
 					3, 13, 13, rootpath + "/odmodels/tinyyolo.data");
 		else if(modelname.equals("yolo2"))
-			odModelConfigurationData =  new ODModelConfigurationData(classes.get("yolo2"), 608, 608, 3, 13, 13);
+			odModelConfigurationData =  new ODModelConfigurationData(classes.get("yolo2"), 416, 416,
+					3, 13, 13, rootpath + "/odmodels/yolo2.data");
 		else
 			throw new Exception("Pretrained model not found");
 		return  odModelConfigurationData;

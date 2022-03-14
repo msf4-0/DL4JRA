@@ -139,7 +139,7 @@ public class ODController {
 		System.out.println("[ODCONTROLLER] START STREAMING");
 		this.logging = data.isLogging();
 		if (data.isLogging()) {
-			this.fwritter = new FileWriter(loggingdirectory + "_" + count + ".txt");
+			this.fwritter = new FileWriter(loggingdirectory + "\\OD_Log_" + count + ".txt");
 			count++;
 		}
 		
