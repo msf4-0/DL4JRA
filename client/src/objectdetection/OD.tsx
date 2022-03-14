@@ -418,9 +418,12 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
      * @param encodedimage - Image data (base64 encoded string)
     */
     webcamstreamingcallback = (encodedimage: string) : void => {
-        let trimmedimage = encodedimage.split(",")[1];
-        let imagedata = { base64encodedstring: trimmedimage, length: trimmedimage.length, outputwidth: 500, outputheight: 500 };
-        this.stompwebsocket.sendmessage("/server/objectdetection/detect", JSON.stringify(imagedata));
+        // Check if string exists before splitting base64string
+        if( encodedimage ){
+            let trimmedimage = encodedimage.split(",")[1];
+            let imagedata = { base64encodedstring: trimmedimage, length: trimmedimage.length, outputwidth: 500, outputheight: 500 };
+            this.stompwebsocket.sendmessage("/server/objectdetection/detect", JSON.stringify(imagedata));
+        };
     }
 
     /**
@@ -452,10 +455,10 @@ export default class ObjectDetection extends Component <ODProps, ODStates> {
         this.webcamref.current.stopstreaming();
         this.resetcanvasbackground();
         this.setstreaming(false);
-        this.stompwebsocket.sendmessage("/server/objectdetection/streamingend", "");
         if (this.state.recording) {
             this.stoprecording();
         }
+        this.stompwebsocket.sendmessage("/server/objectdetection/streamingend", "");
     }
 
     /**
