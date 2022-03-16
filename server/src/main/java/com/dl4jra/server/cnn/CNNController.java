@@ -1035,8 +1035,7 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.cnn.setIterator_segmentation(data.getPath(),data.getBatchsize(), data.getTrainPerc(), data.getImagewidth(),
-					data.getImageheight(), data.getChannels(), data.getMaskFolderName());
+			this.cnn.setIterator_segmentation(data.getPath(),data.getBatchsize(), data.getTrainPerc(), data.getChannels(), data.getMaskFolderName());
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Dataset for segmentation loaded successfully");
 		}

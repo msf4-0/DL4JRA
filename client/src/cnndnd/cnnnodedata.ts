@@ -194,11 +194,9 @@ class CNNNodeService {
         let path = "C:\\Users\\User\\.deeplearning4j\\data\\data-science-bowl-2018\\data-science-bowl-2018\\data-science-bowl-2018-2\\train\\inputs";
         let batchsize = 2;
         let trainPerc = 0.1;
-        let imagewidth = 224;
-        let imageheight = 224;
         let channels = 1;
         let maskFolderName = "masks"
-        return {name, path, batchsize, trainPerc, imagewidth, imageheight, channels, maskFolderName};
+        return {name, path, batchsize, trainPerc, channels, maskFolderName};
     }
 
     prepareTrain = () : Dictionary => {

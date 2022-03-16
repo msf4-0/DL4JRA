@@ -73,6 +73,10 @@ public class CNN {
 	private RecordReaderDataSetIterator trainGenerator;
 	private RecordReaderDataSetIterator validationGenerator;
 
+	// Default values for segmentation Image record reader
+	private int segHeight;
+	private int segWidth;
+
 	// Constructor
 	public CNN() {
 		this.multiLayerNetwork = null;
@@ -85,6 +89,10 @@ public class CNN {
 		
 		this.ValidationDatasetGenerator = new CNNDatasetGenerator();
 		this.ValidationDatasetIterator = null;
+
+		// Default values for segmentation Image record reader
+		this.segHeight = 224;
+		this.segWidth = 224;
 	}
 
 	public RecordReaderDataSetIterator getTrainGenerator() {
@@ -630,9 +638,9 @@ public class CNN {
 		constructedModel = this.cnnconfig.build_TransferLearning();
 	}
 
-	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
+	public void setIterator_segmentation(String path, int batchSize, double trainPerc,
 										 int channels, String maskFileName){
-		this.TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, imageheight, imagewidth, channels,
+		this.TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, this.segHeight, this.segWidth, channels,
 				maskFileName);
 	}
 
