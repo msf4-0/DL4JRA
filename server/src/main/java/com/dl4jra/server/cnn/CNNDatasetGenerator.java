@@ -43,6 +43,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import javax.swing.*;
 
+import static java.lang.Math.floor;
+import static java.lang.Math.min;
 import static org.bytedeco.opencv.global.opencv_imgproc.CV_RGB2GRAY;
 
 public class CNNDatasetGenerator {
@@ -136,10 +138,66 @@ public class CNNDatasetGenerator {
 			throw new IllegalArgumentException("Percentage of data set aside for training has to be less than 100%. Test percentage = 100 - training percentage, has to be greater than 0");
 		}
 
+		// Checks if there are sufficient samples for each label
+		if (!DatasetLabelBalanceVerifier(parentDir, trainPerc)) {
+			throw new IllegalArgumentException("There is insufficient data for the label with the least samples. It would cause the train subset to not have a sample from every label, leading to a label mismatch between the train and test iterator. \n Please increase the number of samples");
+		}
+
 		//Split the image files into train and test
 		InputSplit[] filesInDirSplit = this.filesplit.sample(pathFilter, trainPerc, 100-trainPerc);
 		trainData = filesInDirSplit[0];
         testData = filesInDirSplit[1];
+	}
+
+	/**
+	 * Function to check if the dataset and the trainPerc given by the user will lead to a test and
+	 * train mismatch. That would occur if there is one labeled folder that has few enough samples
+	 * that after dividing the dataset between the test and train subsets, the test subset wouldnt have
+	 * a sample from all labels, leading to a validation error because of the mismatch between the
+	 * number of labels in the test and train iterators.
+	 *
+	 * @param parentDir
+	 * @param trainPerc
+	 * @return false if there are insufficient samples, true otherwise
+	 */
+	static boolean DatasetLabelBalanceVerifier(File parentDir, Integer trainPerc) {
+		int numLabels;
+		int lowerPercentage;
+		int totalFiles;
+		int minFolderSize = Integer.MAX_VALUE;
+
+		// get list of label directories
+		File[] directories = parentDir.listFiles(File::isDirectory);
+
+		// find the minimum folder size
+		numLabels = directories.length;
+		for(int i = 0; i < directories.length; i++ ){
+			int currentFolderSize = 0;
+			for (String aFile : directories[i].list()){
+				if (Arrays.stream(allowedExtensions).anyMatch(extension -> aFile.endsWith(extension))){
+					currentFolderSize ++;
+				}
+			}
+			minFolderSize = minFolderSize > currentFolderSize ? currentFolderSize : minFolderSize;
+		}
+
+		// calculate the number of files left over after random pruning by BalancedPathFilter
+		totalFiles = minFolderSize * numLabels;
+
+		// check if train or test is lower
+		if (trainPerc > 50){
+			lowerPercentage = 100 - trainPerc;
+		} else {
+			lowerPercentage = trainPerc;
+		}
+
+		// check if the folder with the lowest percentage of the dataset has at least the same number of samples
+		// as the number of labels
+		if (floor((totalFiles*lowerPercentage)/100) > numLabels) {
+			return true;
+		} else {
+			return false;
+		}
 	}
 
 	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
