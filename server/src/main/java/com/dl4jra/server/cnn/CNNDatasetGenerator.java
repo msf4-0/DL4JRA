@@ -1,7 +1,6 @@
 package com.dl4jra.server.cnn;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
@@ -9,8 +8,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 
-import com.dl4jra.server.cnn.response.UpdateResponse;
-import com.dl4jra.server.cnn.utilities.Visualization;
 import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
@@ -28,9 +25,6 @@ import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.optimize.api.InvocationType;
-import org.deeplearning4j.optimize.listeners.EvaluativeListener;
-import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -38,10 +32,8 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.shade.guava.base.Equivalence;
 import org.slf4j.Logger;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-
-import javax.swing.*;
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -172,6 +164,11 @@ public class CNNDatasetGenerator {
 		// find the minimum folder size
 		numLabels = directories.length;
 		for(int i = 0; i < directories.length; i++ ){
+			// Check if the current thread is interrupted, if so, break the loop.
+			if (Thread.currentThread().isInterrupted()){
+				break;
+			}
+
 			int currentFolderSize = 0;
 			for (String aFile : directories[i].list()){
 				if (Arrays.stream(allowedExtensions).anyMatch(extension -> aFile.endsWith(extension))){
@@ -359,17 +356,22 @@ public class CNNDatasetGenerator {
 	}
 
 
-	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model){
+	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException {
+		// Label to allow for thread breaking
+		epochLoop:
 		for (int i = 0; i < epoch; i++) {
 
 			log.info("Epoch: " + i);
 
 			while (trainGenerator.hasNext()) {
-				DataSet imageSet = trainGenerator.next();
+				// Check if the current thread is interrupted, if so, break the loop.
+				if (Thread.currentThread().isInterrupted()){
+					break epochLoop;
+				}
 
+				DataSet imageSet = trainGenerator.next();
 				model.fit(imageSet);
 			}
-
 			trainGenerator.reset();
 		}
 	}
@@ -381,6 +383,11 @@ public class CNNDatasetGenerator {
 		float IOUTotal = 0;
 		int count = 0;
 		while (validationGenerator.hasNext()) {
+			// Check if the current thread is interrupted, if so, break the loop.
+			if (Thread.currentThread().isInterrupted()){
+				break;
+			}
+
 			DataSet imageSetVal = validationGenerator.next();
 
 			INDArray predictVal = model.output(imageSetVal.getFeatures())[0];
@@ -398,10 +405,7 @@ public class CNNDatasetGenerator {
 			System.out.println("IOU Cell " + String.format("%.3f", IOU));
 
 			eval.reset();
-
-
 		}
-
 		System.out.println("Mean IOU: " + IOUTotal / count);
 	}
 

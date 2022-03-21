@@ -63,7 +63,7 @@ public class CnnTest {
 			cnn.importTinyYolo();
 //			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
 			cnn.configTransferLearningNetwork_ODetection(1e-4);
-			cnn.evaluate_TINYYOLO(40);
+//			cnn.evaluate_TINYYOLO(40);
 			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2_0");
 //			cnn.TrainNetwork(epochs, scorelistener);
 //			cnn.ValidateNetwork();
