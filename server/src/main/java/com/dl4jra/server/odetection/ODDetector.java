@@ -101,6 +101,8 @@ public class ODDetector {
 	/**
 	 * Load object detection model
 	 * @param path - Path to model
+	 * @param type 0 to use the Pascal VOC dataset labels, 1 to use labels
+	 *             from configuration data
 	 * @throws Exception
 	 */
 	public void LoadModel(String path, int type) throws Exception {
@@ -227,6 +229,8 @@ public class ODDetector {
 	 * Draw bounding box around detected object
 	 * @param image - Output image
 	 * @param objects - Detected objects
+     * @param type 0 to use the Pascal VOC dataset labels, 1 to use labels
+	 * 	        from configuration data
 	 * @return Processed image
 	 * @throws Exception
 	 */
@@ -265,6 +269,8 @@ public class ODDetector {
 	 * @param image - Output image
 	 * @param objects - Detected objects
 	 * @param fwritter - FileWriter
+	 * @param type 0 to use the Pascal VOC dataset labels, 1 to use labels
+	 * 	        from configuration data
 	 * @return Processed image
 	 * @throws Exception
 	 */
