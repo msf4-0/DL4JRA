@@ -669,7 +669,6 @@ public class CNNController {
 			return new RBProcessCompleted("Network training completed");
 		}
 		catch (ExecutionException ee){
-			;
 			return null;
 		}
 		catch (Exception exception) 
