@@ -5,6 +5,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import com.dl4jra.server.cnn.utilities.Visualization;
 import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
@@ -32,6 +33,15 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.shade.guava.base.Equivalence;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import javax.swing.*;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.model.stats.StatsListener;
+import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
+import org.deeplearning4j.core.storage.StatsStorage;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+
+
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -299,6 +309,30 @@ public class CNNDatasetGenerator {
 
 
 	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException {
+
+		// ui
+		// TODO
+		// Set listeners
+		StatsStorage statsStorage = new InMemoryStatsStorage();
+		StatsListener statsListener = new StatsListener(statsStorage);
+		ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
+
+
+		JFrame frame = Visualization.initFrame("Viz");
+		JPanel panel = Visualization.initPanel(
+				frame,
+				trainGenerator.batch(),
+				height,
+				width,
+				1
+		);
+
+		model.setListeners(statsListener, scoreIterationListener);
+
+		UIServer uiServer = UIServer.getInstance();
+		uiServer.attach(statsStorage);
+
+
 		// Label to allow for thread breaking
 		epochLoop:
 		for (int i = 0; i < epoch; i++) {
@@ -313,13 +347,39 @@ public class CNNDatasetGenerator {
 
 				DataSet imageSet = trainGenerator.next();
 				model.fit(imageSet);
+
+				INDArray predict = model.output(imageSet.getFeatures())[0];
+				Visualization.visualize(
+						imageSet.getFeatures(),
+						imageSet.getLabels(),
+						predict,
+						frame,
+						panel,
+						trainGenerator.batch(),
+						224,
+						224
+				);
 			}
 			trainGenerator.reset();
 		}
+
+
+		frame.setVisible(false);
+		frame.dispose();
 	}
 
 
 	public void validation_segmentation(RecordReaderDataSetIterator validationGenerator, ComputationGraph model) throws IOException {
+		// VISUALISATION -  validation
+		JFrame frameVal = Visualization.initFrame("Viz");
+		JPanel panelVal = Visualization.initPanel(
+				frameVal,
+				1,
+				height,
+				width,
+				1
+		);
+
 		Evaluation eval = new Evaluation(2);
 
 		float IOUTotal = 0;
@@ -335,6 +395,10 @@ public class CNNDatasetGenerator {
 			INDArray predictVal = model.output(imageSetVal.getFeatures())[0];
 			INDArray labels = imageSetVal.getLabels();
 
+//			if (count % 5 == 0) {
+//				Visualization.export(exportDir, imageSetVal.getFeatures(), imageSetVal.getLabels(), predict, count);
+//			}
+
 			count++;
 
 			eval.eval(labels, predictVal);
@@ -347,8 +411,23 @@ public class CNNDatasetGenerator {
 			System.out.println("IOU Cell " + String.format("%.3f", IOU));
 
 			eval.reset();
+
+			for (int n = 0; n < imageSetVal.asList().size(); n++) {
+				Visualization.visualize(
+						imageSetVal.get(n).getFeatures(),
+						imageSetVal.get(n).getLabels(),
+						predictVal,
+						frameVal,
+						panelVal,
+						1,
+						224,
+						224
+				);
+			}
 		}
 		System.out.println("Mean IOU: " + IOUTotal / count);
+		frameVal.setVisible(false);
+		frameVal.dispose();
 	}
 
 
