@@ -2,22 +2,13 @@ package com.dl4jra.server.cnn;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 import java.util.concurrent.Callable;
 
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
-import org.datavec.api.records.reader.SequenceRecordReader;
-import org.datavec.api.split.FileSplit;
-import org.datavec.api.split.InputSplit;
-import org.datavec.image.loader.BaseImageLoader;
-import org.datavec.image.recordreader.ImageRecordReader;
-import org.datavec.image.transform.ImageTransform;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
@@ -40,19 +31,15 @@ import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.TinyYOLO;
 import org.deeplearning4j.zoo.model.UNet;
-import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
-import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
-import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
-import org.slf4j.Logger;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -107,19 +94,6 @@ public class CNN {
 		return trainGenerator;
 	}
 
-//	/**
-//	 * Load training dataset
-//	 * @param path - Path to training dataset
-//	 * @param imagewidth - Width of image dataset
-//	 * @param imageheight - Height of image dataset
-//	 * @param channels - Channels of image dataset
-//	 * @param numLabels - Number of labels
-//	 * @param batchsize - Iterator batch size
-//	 * @throws Exception
-//	 */
-//	public void LoadTrainingDataset(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception{
-//		this.TrainingDatasetGenerator.LoadData(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
-//	}
 
 	public class LoadTrainingDatasetExecutor implements Callable<Void> {
 		private final String path;
@@ -130,7 +104,7 @@ public class CNN {
 		private final int batchsize;
 
 		/**
-		 *
+		 * Load training dataset
 		 * @param path - Path to training dataset
 		 * @param imagewidth - Width of image dataset
 		 * @param imageheight - Height of image dataset
@@ -153,11 +127,6 @@ public class CNN {
 			return null;
 		}
 	}
-
-
-//	public void LoadDatasetAutoSplit(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception{
-//		this.TrainingDatasetGenerator.LoadDataAutoSplit(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
-//	}
 
 	public class LoadDatasetAutoSplit implements Callable<Void> {
 		private final String path;
@@ -182,18 +151,17 @@ public class CNN {
 		}
 	}
 
-//	/**
-//	 * Flip training dataset
-//	 * @param flipmode - Flip image (x-axis/y-axis/both axis)
-//	 * @throws Exception
-//	 */
-//	public void FlipTrainingDataset(int flipmode) throws Exception {
-//		this.TrainingDatasetGenerator.FlipImage(flipmode);
-//	}
+
+
 
 	public class FlipTrainingDataset implements Callable<Void> {
 		private int flipmode;
 
+		/**
+		 * Flip training dataset
+		 * @param flipmode - Flip image (x-axis/y-axis/both axis)
+		 * @throws Exception
+		 */
 		public FlipTrainingDataset(int flipmode){
 			this.flipmode = flipmode;
 		}
@@ -209,40 +177,36 @@ public class CNN {
 		}
 	}
 	
-//	/**
-//	 * Rotate training dataset
-//	 * @param angle - Angle of rotation
-//	 * @throws Exception
-//	 */
-//	public void RotateTrainingDataset(float angle) throws Exception{
-//		this.TrainingDatasetGenerator.RotateImage(angle);
-//	}
-	public class RotateTrainingDataset implements Callable<Void> {
-	private float angle;
 
-	public RotateTrainingDataset(float angle) {
-		this.angle = angle;
-	}
-		@Override
-		public Void call() throws Exception {
-			TrainingDatasetGenerator.RotateImage(angle);
-			return null;
+
+	public class RotateTrainingDataset implements Callable<Void> {
+		private float angle;
+
+		/**
+		 * Rotate training dataset
+		 * @param angle - Angle of rotation
+		 * @throws Exception
+		 */
+		public RotateTrainingDataset(float angle) {
+			this.angle = angle;
 		}
+			@Override
+			public Void call() throws Exception {
+				TrainingDatasetGenerator.RotateImage(angle);
+				return null;
+			}
 	}
-	
-//	/**
-//	 * Resize training dataset
-//	 * @param width - Width of image after resize
-//	 * @param height - Height of image after resize
-//	 * @throws Exception
-//	 */
-//	public void ResizeTrainingDataset(int width, int height) throws Exception {
-//		this.TrainingDatasetGenerator.ResizeImage(width, height);
-//	}
+
 	public class ResizeTrainingDataset implements Callable<Void> {
 		private final int width;
 		private final int height;
 
+		/**
+		 * Resize training dataset
+		 * @param width - Width of image after resize
+		 * @param height - Height of image after resize
+		 * @throws Exception
+		 */
 		public ResizeTrainingDataset(int width, int height) {
 			this.width = width;
 			this.height = height;
@@ -254,14 +218,13 @@ public class CNN {
 		}
 	}
 	
-//	/**
-//	 * Generate training dataset iterator
-//	 * @throws Exception
-//	 */
-//	public void GenerateTrainingDatasetIterator() throws Exception{
-//		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.GetDatasetIterator();
-//	}
+
 	public class GenerateTrainingDatasetIterator implements Callable<Void> {
+
+		/**
+		 * Generate training dataset iterator
+		 * @throws Exception
+		 */
 		public GenerateTrainingDatasetIterator() {
 		}
 		@Override
@@ -271,13 +234,10 @@ public class CNN {
 		}
 	}
 
-//	public void GenerateDatasetAutoSplitIterator() throws Exception{
-//		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainIterator();
-//		this.ValidationDatasetIterator = this.TrainingDatasetGenerator.testIterator();
-//	}
 	public class GenerateDatasetAutoSplitIterator implements Callable<Void> {
 		public GenerateDatasetAutoSplitIterator() {
 		}
+
 		@Override
 		public Void call() throws Exception {
 			TrainingDatasetIterator = TrainingDatasetGenerator.trainIterator();
@@ -286,19 +246,6 @@ public class CNN {
 		}
 	}
 
-//	/**
-//	 * Load validation dataset
-//	 * @param path - Path to validation dataset
-//	 * @param imagewidth - Width of image dataset
-//	 * @param imageheight - Height of image dataset
-//	 * @param channels - Channels of image dataset
-//	 * @param numLabels - Number of labels
-//	 * @param batchsize - Iterator batch size
-//	 * @throws Exception
-//	 */
-//	public void LoadValidationDataset(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) throws Exception {
-//		this.ValidationDatasetGenerator.LoadData(path, imagewidth, imageheight, channels, numLabels, batchsize, true);
-//	}
 	public class LoadValidationDataset implements Callable<Void> {
 		private final String path;
 		private final int imagewidth;
@@ -307,6 +254,16 @@ public class CNN {
 		private final int numLabels;
 		private final int batchsize;
 
+		/**
+		 * Load validation dataset
+		 * @param path - Path to validation dataset
+		 * @param imagewidth - Width of image dataset
+		 * @param imageheight - Height of image dataset
+		 * @param channels - Channels of image dataset
+		 * @param numLabels - Number of labels
+		 * @param batchsize - Iterator batch size
+		 * @throws Exception
+		 */
 		public LoadValidationDataset(String path, int imagewidth, int imageheight, int channels, int numLabels, int batchsize) {
 			this.path = path;
 			this.imagewidth = imagewidth;
@@ -322,39 +279,36 @@ public class CNN {
 		}
 	}
 	
-//	/**
-//	 * Flip validation dataset
-//	 * @param flipmode - Flip image (x-axis/y-axis/both axis)
-//	 * @throws Exception
-//	 */
-//	public void FlipValidationDataset(int flipmode) throws Exception {
-//		this.ValidationDatasetGenerator.FlipImage(flipmode);
-//	}
-	public class FlipValidationDataset implements Callable<Void> {
-	private int flipmode;
 
-	public FlipValidationDataset(int flipmode) {
-		this.flipmode = flipmode;
-	}
-		@Override
-		public Void call() throws Exception {
-			ValidationDatasetGenerator.FlipImage(flipmode);
-			return null;
+
+	public class FlipValidationDataset implements Callable<Void> {
+		private int flipmode;
+
+			/**
+			 * Flip validation dataset
+			 * @param flipmode - Flip image (x-axis/y-axis/both axis)
+			 * @throws Exception
+			 */
+		public FlipValidationDataset(int flipmode) {
+			this.flipmode = flipmode;
 		}
+			@Override
+			public Void call() throws Exception {
+				ValidationDatasetGenerator.FlipImage(flipmode);
+				return null;
+			}
 	}
 	
-//	/**
-//	 * Rotate validation dataset
-//	 * @param angle - Angle of rotation
-//	 * @throws Exception
-//	 */
-//	public void RotateValidationDataset(float angle) throws Exception {
-//		this.ValidationDatasetGenerator.RotateImage(angle);
-//	}
+
 
 	public class RotateValidationDataset implements Callable<Void> {
 		private float angle;
 
+		/**
+		 * Rotate validation dataset
+		 * @param angle - Angle of rotation
+		 * @throws Exception
+		 */
 		public RotateValidationDataset(float angle) {
 			this.angle = angle;
 		}
@@ -364,21 +318,17 @@ public class CNN {
 			return null;
 		}
 	}
-	
-//	/**
-//	 * Resize validation dataset
-//	 * @param width - Width of image after resize
-//	 * @param height - Height of image after resize
-//	 * @throws Exception
-//	 */
-//	public void ResizeValidationDataset(int width, int height) throws Exception {
-//		this.ValidationDatasetGenerator.ResizeImage(width, height);
-//	}
 
 	public class ResizeValidationDataset implements Callable<Void> {
 		private final int width;
 		private final int height;
 
+		/**
+		 * Resize validation dataset
+		 * @param width - Width of image after resize
+		 * @param height - Height of image after resize
+		 * @throws Exception
+		 */
 		public ResizeValidationDataset(int width, int height) {
 			this.width = width;
 			this.height = height;
@@ -389,15 +339,11 @@ public class CNN {
 			return null;
 		}
 	}
-//
-//	/**
-//	 * Generate validation dataset iterator
-//	 * @throws Exception
-//	 */
-//	public void GenerateValidationDatasetIterator() throws Exception {
-//		this.ValidationDatasetIterator = this.ValidationDatasetGenerator.GetDatasetIterator();
-//	}
 
+	/**
+	 * Generate validation dataset iterator
+	 * @throws Exception
+	 */
 	public class GenerateValidationDatasetIterator implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
@@ -406,17 +352,7 @@ public class CNN {
 		}
 	}
 
-//	public void LoadTrainingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws Exception{
-////		this.TrainingDatasetGenerator.LoadTrainDataCSV(path, numSkipLines, numClassLabels, batchsize, delimeter);
-////	}
-////
-////	public void LoadTestingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize, char delimeter) throws Exception{
-////		this.TrainingDatasetGenerator.LoadTestDataCSV(path, numSkipLines, numClassLabels, batchsize, delimeter);
-////	}
 
-//	public void LoadTrainingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws Exception{
-//		this.TrainingDatasetGenerator.LoadTrainDataCSV(path, numSkipLines, numClassLabels, batchsize);
-//	}
 
 	public class LoadTrainingDatasetCSV implements Callable<Void> {
 		private final String path;
@@ -437,9 +373,6 @@ public class CNN {
 		}
 	}
 
-	public void LoadTestingDatasetCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws Exception{
-		this.TrainingDatasetGenerator.LoadTestDataCSV(path, numSkipLines, numClassLabels, batchsize);
-	}
 
 	public class LoadTestingDatasetCSV implements Callable<Void> {
 		private final String path;
@@ -461,10 +394,6 @@ public class CNN {
 	}
 
 
-//	public void GenerateTrainingDatasetIteratorCSV() throws Exception {
-//		this.TrainingDatasetIterator = this.TrainingDatasetGenerator.trainDataSetIteratorCSV();
-//	}
-
 	public class GenerateTrainingDatasetIteratorCSV implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
@@ -473,9 +402,6 @@ public class CNN {
 		}
 	}
 
-//	public void GenerateValidatingDatasetIteratorCSV() throws Exception{
-//		this.ValidationDatasetIterator = this.TrainingDatasetGenerator.testDataSetIteratorCSV();
-//	}
 
 	public class GenerateValidatingDatasetIteratorCSV implements Callable<Void> {
 		@Override
@@ -641,25 +567,6 @@ public class CNN {
 		);
 	}
 
-
-
-//	public void EvaluateModel_CG(){
-//		System.out.println("***** Test Evaluation *****");
-//		Evaluation eval = new Evaluation(6);
-//		ValidationDatasetIterator.reset();
-//		DataSet testDataSet = ValidationDatasetIterator.next(1);
-//		INDArray s = testDataSet.getFeatures();
-//		System.out.println(s);
-//		while(ValidationDatasetIterator.hasNext())
-//		{
-//			testDataSet = ValidationDatasetIterator.next();
-//			INDArray[] predicted = this.computationGraph.output(testDataSet.getFeatures());
-//			INDArray labels = testDataSet.getLabels();
-//
-//			eval.evalTimeSeries(labels, predicted[0], testDataSet.getLabelsMaskArray());
-//		}
-////		System.out.println(eval.stats());
-//	}
 	public class EvaluateModel_CG implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
@@ -682,41 +589,18 @@ public class CNN {
 		}
 	}
 
-//
-//	/**
-//	 * Network training
-//	 * @param epochs - Number of epoch for network training
-//	 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
-//	 * @throws Exception
-//	 */
-//	public void TrainNetwork (int epochs, int scoreListener) throws Exception {
-//		try {
-//			if (this.TrainingDatasetIterator == null)
-//				throw new Exception("There is no training dataset");
-//			if (!this.networkconstructed)
-//				throw new Exception("Neural network is not constructed");
-//			for (int counter = 0; counter < epochs; counter++) {
-//				if (this.multiLayerNetwork != null) {
-//					this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
-//					if (epochs % scoreListener == 0)
-//						System.out.println("Score in epoch " + counter + " : " + this.multiLayerNetwork.score());
-//				}
-//				if (this.computationGraph != null) {
-//					this.computationGraph.fit(this.TrainingDatasetIterator);
-//					if (epochs % scoreListener == 0)
-//						System.out.println("Score in epoch " + counter + " : " + this.computationGraph.score());
-//				}
-//				this.TrainingDatasetIterator.reset();
-//			}
-//		}
-//		catch (Exception e){
-//			System.out.println(e.getMessage());
-//		}
-//	}
+
+
 	public class TrainNetwork implements Callable<Void> {
 		private final int epochs;
 		private final int scoreListener;
 
+		/**
+		 * Network training
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @throws Exception
+		 */
 		public TrainNetwork (int epochs, int scoreListener) {
 			this.epochs = epochs;
 			this.scoreListener = scoreListener;
@@ -753,57 +637,19 @@ public class CNN {
 			return null;
 		}
 	}
-	
-//	/**
-//	 * Training (Respond using SseEmitter)
-//	 * @param epochs - Number of epoch for network training
-//	 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
-//	 * @param sseEmitter
-//	 * @throws Exception
-//	 */
-//	public void TrainNetwork (int epochs, int scoreListener, SseEmitter sseEmitter) throws Exception {
-//		Object message;
-//		if (this.TrainingDatasetIterator == null) {
-//			message = "Training dataset not set";
-//			sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
-//			throw new Exception("Training dataset not set");
-//		}
-//		if (! this.networkconstructed) {
-//			message = "Neural network is not constructed";
-//			sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
-//			throw new Exception("Neural network is not constructed");
-//		}
-//
-//		for (int counter = 0; counter < epochs; counter++) {
-//			if(this.multiLayerNetwork != null) {
-//				this.TrainingDatasetIterator.reset();
-//				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
-//				message = counter;
-//				sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
-//				if (counter % scoreListener == 0) {
-//					message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
-//					sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
-//				}
-//			}
-//			if(this.computationGraph != null){
-//				this.TrainingDatasetIterator.reset();
-//				this.computationGraph.fit(this.TrainingDatasetIterator);
-//				message = counter;
-//				sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
-//				if (counter % scoreListener == 0) {
-//					message = "Score in epoch " + counter + " : " + String.format("%.2f", this.computationGraph.score());
-//					sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
-//				}
-//			}
-//		}
-//		message = "Network Training completed";
-//		sseEmitter.send(SseEmitter.event().name("TrainingCompleteEvent").data(message));
-//	}
+
 	public class TrainNetworkSSEmitter implements Callable<Void> {
 		private final int epochs;
 		private final int scoreListener;
 		private final SseEmitter sseEmitter;
 
+		/**
+		 * Training (Respond using SseEmitter)
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @param sseEmitter
+		 * @throws Exception
+		 */
 		public TrainNetworkSSEmitter(int epochs, int scoreListener, SseEmitter sseEmitter) {
 			this.epochs = epochs;
 			this.scoreListener = scoreListener;
@@ -855,50 +701,19 @@ public class CNN {
 			return null;
 		}
 	}
-	
-//	/**
-//	 * Training (Respond using Websocket)
-//	 * @param epochs - Number of epoch for network training
-//	 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
-//	 * @param template
-//	 * @throws Exception
-//	 */
-//	public void TrainNetwork(int epochs, int scoreListener, SimpMessagingTemplate template) throws Exception {
-//		if (this.TrainingDatasetIterator == null) {
-//			throw new Exception("Training dataset not set");
-//		}
-//		if (! this.networkconstructed) {
-//			throw new Exception("Neural network is not constructed");
-//		}
-//		template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
-//		for (int counter = 0; counter < epochs; counter++) {
-//			if(this.multiLayerNetwork != null) {
-//				this.TrainingDatasetIterator.reset();
-//				this.multiLayerNetwork.fit(this.TrainingDatasetIterator);
-//				template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
-//				if (counter % scoreListener == 0) {
-//					String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.multiLayerNetwork.score());
-//					template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-//				}
-//			}
-//
-//			if(this.computationGraph != null) {
-//				this.computationGraph.fit(this.TrainingDatasetIterator);
-//				this.TrainingDatasetIterator.reset();
-//				template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
-//				if (counter % scoreListener == 0) {
-//					String message = "Score in epoch " + counter + " : " + String.format("%.2f", this.computationGraph.score());
-//					template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-//				}
-//			}
-//		}
-//
-//	}
+
 	public class TrainNetworkSimpMessagingTemplate implements Callable<Void> {
 		private final int epochs;
 		private final int scoreListener;
 		private final SimpMessagingTemplate template;
 
+		/**
+		 * Training (Respond using Websocket)
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @param template
+		 * @throws Exception
+		 */
 		public TrainNetworkSimpMessagingTemplate(int epochs, int scoreListener, SimpMessagingTemplate template) {
 			this.epochs = epochs;
 			this.scoreListener = scoreListener;
@@ -928,9 +743,11 @@ public class CNN {
 						template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 					}
 				}
-
+				System.out.println(computationGraph != null);
 				if(computationGraph != null) {
+					System.out.println("Starting Training");
 					computationGraph.fit(TrainingDatasetIterator);
+					System.out.println("After fit");
 					TrainingDatasetIterator.reset();
 					template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
 					if (counter % scoreListener == 0) {
@@ -943,27 +760,9 @@ public class CNN {
 		}
 	}
 	
-//	/**
-//	 * Evaluation & validation
-//	 * @throws Exception
-//	 */
-//	public void ValidateNetwork() throws Exception{
-//		Evaluation evaluation;
-//		if (this.ValidationDatasetIterator == null)
-//			throw new Exception("There is no validation dataset");
-//		if (! this.networkconstructed)
-//			throw new Exception("Neural network is not constructed");
-//		if(multiLayerNetwork != null) {
-//			evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
-//			System.out.println("Accuracy - " + evaluation.accuracy());
-//			System.out.println("Network stats - \n" + evaluation.stats());
-//		}
-//		if(computationGraph != null){
-//			evaluation = this.computationGraph.evaluate(this.ValidationDatasetIterator);
-//			System.out.println("Accuracy - " + evaluation.accuracy());
-//			System.out.println("Network stats - \n" + evaluation.stats());
-//		}
-//	}
+	/**
+	 * Evaluation & validation
+	 */
 	public class ValidateNetwork implements Callable<Void> {
 
 		@Override
@@ -987,41 +786,14 @@ public class CNN {
 		}
 	}
 
-//	/**
-//	 * Evaluation & validation (Respond using SseEmitter)
-//	 * @param sseEmitter
-//	 * @throws Exception
-//	 */
-//	public void ValidateNetwork(SseEmitter sseEmitter) throws Exception{
-//		if (this.ValidationDatasetIterator == null) {
-//			Object message = "Validation dataset not set";
-//			sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
-//			throw new Exception("Validation dataset not set");
-//		}
-//		if (! this.networkconstructed) {
-//			Object message = "Neural network is not constructed";
-//			sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
-//			throw new Exception("Neural network is not constructed");
-//		}
-//		if(multiLayerNetwork != null) {
-//			Evaluation evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
-//			Object accuracy = "Network accuracy : " + evaluation.accuracy();
-//			sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
-//			Object message = "Network Validation Completed";
-//			sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
-//		}
-//
-//		if(computationGraph != null) {
-//			Evaluation evaluation = this.computationGraph.evaluate(this.ValidationDatasetIterator);
-//			Object accuracy = "Network accuracy : " + evaluation.accuracy();
-//			sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
-//			Object message = "Network Validation Completed";
-//			sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
-//		}
-//	}
+
 	public class ValidateNetworkSSEmitter implements Callable<Void> {
 		private SseEmitter sseEmitter;
 
+		/**
+		 * Evaluation & validation (Respond using SseEmitter)
+		 * @param sseEmitter
+		 */
 		public ValidateNetworkSSEmitter(SseEmitter sseEmitter) {
 			this.sseEmitter = sseEmitter;
 		}
@@ -1056,33 +828,18 @@ public class CNN {
 		}
 	}
 	
-//	/**
-//	 * Evaluation & validation (Respond using Websocket)
-//	 * @param template
-//	 * @throws Exception
-//	 */
-//	public void ValidateNetwork(SimpMessagingTemplate template) throws Exception {
-//		if (this.ValidationDatasetIterator == null)
-//			throw new Exception("There is no validation dataset");
-//		if (! this.networkconstructed)
-//			throw new Exception("Neural network is not constructed");
-//		if(multiLayerNetwork != null) {
-//			Evaluation evaluation = this.multiLayerNetwork.evaluate(this.ValidationDatasetIterator);
-//			String message = "Network accuracy : " + evaluation.accuracy();
-//			template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-//		}
-//		if(computationGraph != null) {
-//			Evaluation evaluation = this.computationGraph.evaluate(this.ValidationDatasetIterator);
-//			String message = "Network accuracy : " + evaluation.accuracy();
-//			template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-//		}
-//	}
+
 	public class ValidateNetworkSimpMessagingTemplate implements Callable<Void> {
 		private SimpMessagingTemplate template;
 
+		/**
+		 * Evaluation & validation (Respond using Websocket)
+		 * @param template
+		 */
 		public ValidateNetworkSimpMessagingTemplate(SimpMessagingTemplate template) {
 			this.template = template;
 		}
+
 		@Override
 		public Void call() throws Exception {
 			if (ValidationDatasetIterator == null)
@@ -1119,19 +876,17 @@ public class CNN {
 		this.cnnconfig.configureFineTune(seed);
 	}
 
-//	public class configureFineTuneExecutor implements Callable<Void> {
-//		private int seed;
-//		public configureFineTuneExecutor (int seed){
-//			this.seed = seed;
-//		}
-//		@Override
-//		public Void call() throws Exception {
-//            cnnconfig.configureFineTune(seed);
-//			return null;
-//		}
-//	}
-
-
+	public class configureFineTuneExecutor implements Callable<Void> {
+		private int seed;
+		public configureFineTuneExecutor (int seed){
+			this.seed = seed;
+		}
+		@Override
+		public Void call() throws Exception {
+            cnnconfig.configureFineTune(seed);
+			return null;
+		}
+	}
 
 	public void configureTranferLearning( String featurizeExtractionLayer, String vertexName,
 										  String nInName, int nIn, WeightInit nInWeightInit,
@@ -1153,11 +908,7 @@ public class CNN {
 		constructedModel = this.cnnconfig.build_TransferLearning();
 	}
 
-//	public void setIterator_segmentation(String path, int batchSize, double trainPerc,
-//										 int channels, String maskFileName){
-//		this.TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, this.segHeight, this.segWidth, channels,
-//				maskFileName);
-//	}
+
 	public class setIterator_segmentation implements Callable<Void> {
 		private final String path;
 		private final int batchSize;
@@ -1181,10 +932,7 @@ public class CNN {
 		}
 	}
 
-//	public void generateIterator() throws Exception{
-//		this.trainGenerator = this.TrainingDatasetGenerator.trainIterator_segmentation();
-//		this.validationGenerator = this.TrainingDatasetGenerator.testIterator_segmentation();
-//	}
+
 	public class generateIterator implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
@@ -1194,26 +942,14 @@ public class CNN {
 		}
 	}
 
-//	public void train_segmentation(int epoch) throws Exception {
-//		this.TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
-//	}
-
-//	public void train_segmentation(int epoch) throws Exception {
-//
-//		this.TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
-//	}
 
 	public class train_segmentation implements Callable<Void> {
 		private int epoch;
-//		CNNDatasetGenerator TrainingDatasetGeneratorCopy;
 		public train_segmentation(int epoch) {
 			this.epoch = epoch;
 		}
 		@Override
 		public Void call() throws Exception {
-//			this.TrainingDatasetGeneratorCopy = new CNNDatasetGenerator(TrainingDatasetGenerator);
-//			this.TrainingDatasetGeneratorCopy.train_segmentation(epoch, trainGenerator, constructedModel);
-//			TrainingDatasetGenerator = this.TrainingDatasetGeneratorCopy;
 			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
 			return null;
 		}

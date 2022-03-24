@@ -3,10 +3,7 @@ package com.dl4jra.server.cnn;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Random;
+import java.util.*;
 
 import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
@@ -131,7 +128,7 @@ public class CNNDatasetGenerator {
 		}
 
 		// Checks if there are sufficient samples for each label
-		if (!DatasetLabelBalanceVerifier(parentDir, trainPerc)) {
+		if (!DatasetLabelBalanceVerifier(parentDir, trainPerc, allowedExtensions)) {
 			throw new IllegalArgumentException("There is insufficient data for the label with the least samples. It would cause the train subset to not have a sample from every label, leading to a label mismatch between the train and test iterator. \n Please increase the number of samples");
 		}
 
@@ -152,49 +149,41 @@ public class CNNDatasetGenerator {
 	 * @param trainPerc
 	 * @return false if there are insufficient samples, true otherwise
 	 */
-	static boolean DatasetLabelBalanceVerifier(File parentDir, Integer trainPerc) {
+	private boolean DatasetLabelBalanceVerifier(File parentDir, Integer trainPerc, String[] allowedExtensions) {
 		int numLabels;
 		int lowerPercentage;
 		int totalFiles;
 		int minFolderSize = Integer.MAX_VALUE;
 
-		// get list of label directories
 		File[] directories = parentDir.listFiles(File::isDirectory);
 
-		// find the minimum folder size
+		// Section to find the minimum folder size
+		assert directories != null;
 		numLabels = directories.length;
-		for(int i = 0; i < directories.length; i++ ){
+
+		for (File directory : directories) {
+
 			// Check if the current thread is interrupted, if so, break the loop.
-			if (Thread.currentThread().isInterrupted()){
+			if (Thread.currentThread().isInterrupted()) {
 				break;
 			}
 
 			int currentFolderSize = 0;
-			for (String aFile : directories[i].list()){
-				if (Arrays.stream(allowedExtensions).anyMatch(extension -> aFile.endsWith(extension))){
-					currentFolderSize ++;
+			for (String aFile : Objects.requireNonNull(directory.list())) {
+				if (Arrays.stream(allowedExtensions).anyMatch(aFile::endsWith)) {
+					currentFolderSize++;
 				}
 			}
 			minFolderSize = minFolderSize > currentFolderSize ? currentFolderSize : minFolderSize;
 		}
 
-		// calculate the number of files left over after random pruning by BalancedPathFilter
+		// Section to calculate the number of files left over after random pruning by BalancedPathFilter
 		totalFiles = minFolderSize * numLabels;
-
-		// check if train or test is lower
-		if (trainPerc > 50){
-			lowerPercentage = 100 - trainPerc;
-		} else {
-			lowerPercentage = trainPerc;
-		}
-
 		// check if the folder with the lowest percentage of the dataset has at least the same number of samples
-		// as the number of labels
-		if (floor((totalFiles*lowerPercentage)/100) > numLabels) {
-			return true;
-		} else {
-			return false;
-		}
+     	// as the number of labels
+		lowerPercentage = trainPerc > 50 ? 100 - trainPerc : trainPerc;
+
+		return floor((totalFiles * lowerPercentage) / 100) > numLabels;
 	}
 
 	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,

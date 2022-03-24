@@ -1,17 +1,9 @@
 package com.dl4jra.server.cnn;
 
 import java.io.*;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.*;
 import javax.annotation.PostConstruct;
-
 import com.dl4jra.server.cnn.request.*;
-import org.bytedeco.javacv.CanvasFrame;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
@@ -91,7 +83,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			cnn.LoadTrainingDataset(data.getPath(), data.getImagewidth(), data.getImageheight(), data.getChannels(), data.getNumLabels(), data.getBatchsize())
 			this.future = this.executor.submit(cnn.new LoadTrainingDatasetExecutor(data.getPath(), data.getImagewidth(), data.getImageheight(), data.getChannels(), data.getNumLabels(), data.getBatchsize()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -139,7 +130,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			cnn.FlipTrainingDataset(data.getFlipmode());
 			this.future = this.executor.submit(cnn.new FlipTrainingDataset(data.getFlipmode()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -163,7 +153,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.RotateTrainingDataset(data.getAngle());
 			this.future = this.executor.submit(cnn.new RotateTrainingDataset(data.getAngle()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -187,7 +176,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.ResizeTrainingDataset(data.getImagewidth(), data.getImageheight());
 			this.future = this.executor.submit(cnn.new ResizeTrainingDataset(data.getImagewidth(), data.getImageheight()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -211,7 +199,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.GenerateTrainingDatasetIterator();
 			this.future = this.executor.submit(cnn.new GenerateTrainingDatasetIterator());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -236,7 +223,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.GenerateDatasetAutoSplitIterator();
 			this.future = this.executor.submit(cnn.new GenerateDatasetAutoSplitIterator());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -260,8 +246,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.LoadValidationDataset(data.getPath(), data.getImagewidth(), data.getImageheight(),
-//					data.getChannels(), data.getNumLabels(), data.getBatchsize());
 			this.future = this.executor.submit(cnn.new LoadValidationDataset(data.getPath(), data.getImagewidth(), data.getImageheight(),
 					data.getChannels(), data.getNumLabels(), data.getBatchsize()));
 			this.future.get();
@@ -286,7 +270,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.FlipValidationDataset(data.getFlipmode());
 			this.future = this.executor.submit(cnn.new FlipValidationDataset(data.getFlipmode()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -310,7 +293,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.RotateValidationDataset(data.getAngle());
 			this.future = this.executor.submit(cnn.new RotateValidationDataset(data.getAngle()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -334,7 +316,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.ResizeValidationDataset(data.getImagewidth(), data.getImageheight());
 			this.future = this.executor.submit(cnn.new ResizeValidationDataset(data.getImagewidth(), data.getImageheight()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -358,7 +339,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.GenerateValidationDatasetIterator();
 			this.future = this.executor.submit(cnn.new GenerateValidationDatasetIterator());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -663,7 +643,6 @@ public class CNNController {
 		try 
 		{
 			System.out.println(new RBProcessCompleted("START TRAINING"));
-//			this.cnn.TrainNetwork(data.getEpochs(), data.getScoreListener(), template);
 			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), data.getScoreListener(), template));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
@@ -690,7 +669,6 @@ public class CNNController {
 		try 
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.ValidateNetwork(this.template);
 			this.future = this.executor.submit(cnn.new ValidateNetworkSimpMessagingTemplate(this.template));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -728,44 +706,6 @@ public class CNNController {
 			throw new CNNException(exception.getMessage(), data.getNodeId());
 		}
 	}
-	
-	/**
-	 * Abort cnn training process, called when user aborts training process
-	 * on the front end.
-	 *
-	 * The aborting process works as follows:
-	 *
-	 * Preliminary: Most cnn operations are submitted to an execution service, except
-	 * a few processes like configure nn that do not take very long
-	 *
-	 * When the user calls abort training
-	 * 1. The front end will stop sending any further tasks
-	 * 2. The execution service that all the tasks have been submitted to is terminated
-	 * 3. Loops that are still running polls the isInterrupted status on the current thread
-	 * using Thread.currentThread().isInterrupted() and breaks out of the loop if true
-	 * 4. Execution exceptions are caught and dealt with
-	 * 5. A new execution service is then instantiated
-	 * @throws Exception
-	 */
-	@MessageMapping("/cnn/abort")
-	public void Abort() throws Exception {
-
-//		List<Runnable> unfinishedTasks;
-
-		try {
-			this.executor.shutdownNow();
-//			for (Runnable unfinishedTask : unfinishedTasks) {
-//				System.out.println(unfinishedTask.toString());
-//			}
-		}
-		catch (Exception e){
-//			System.out.println("printed all unfinished tasks");
-			System.out.println(e);
-		}
-//		System.out.println("printed all unfinished tasks");
-		this.executor = Executors.newSingleThreadExecutor();
-	}
-
 
 //	FOR RNN & CSV inputs
 
@@ -786,8 +726,7 @@ public class CNNController {
 			System.out.println(data.getNumClassLabels());
 			System.out.println(data.getBatchsize());
 			System.out.println(data.getDelimeter());
-//			this.cnn.LoadTrainingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
-//					data.getBatchsize());
+
 			this.future = this.executor.submit(cnn.new LoadTrainingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
 					data.getBatchsize()));
 			this.future.get();
@@ -811,7 +750,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.GenerateTrainingDatasetIteratorCSV();
 			this.future = this.executor.submit(cnn.new GenerateTrainingDatasetIteratorCSV());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -839,8 +777,9 @@ public class CNNController {
 			System.out.println(data.getNumClassLabels());
 			System.out.println(data.getBatchsize());
 			System.out.println(data.getDelimeter());
-			this.cnn.LoadTestingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
-					data.getBatchsize());
+			this.future = this.executor.submit(cnn.new LoadTestingDatasetCSV(data.getPath(), data.getNumSkipLines(), data.getNumClassLabels(),
+					data.getBatchsize()));
+			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Validation dataset CSV loaded successfully");
 		}
@@ -862,7 +801,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.GenerateValidatingDatasetIteratorCSV();
 			this.future = this.executor.submit(cnn.new GenerateValidatingDatasetIteratorCSV());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -1060,7 +998,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.EvaluateModel_CG();
 			this.future = this.executor.submit(cnn.new EvaluateModel_CG());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -1117,7 +1054,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.setIterator_segmentation(data.getPath(),data.getBatchsize(), data.getTrainPerc(), data.getChannels(), data.getMaskFolderName());
 			this.future = this.executor.submit(cnn.new setIterator_segmentation(data.getPath(),data.getBatchsize(), data.getTrainPerc(), data.getChannels(), data.getMaskFolderName()));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -1141,7 +1077,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.generateIterator();
 			this.future = this.executor.submit(cnn.new generateIterator());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -1166,8 +1101,6 @@ public class CNNController {
 		{
 			System.out.println(new RBProcessCompleted("START TRAINING"));
 			System.out.println(new RBProcessCompleted("Details on command prompt"));
-//			this.cnn.train_segmentation(data.getEpochs());
-//			this.cnn.train_segmentation(data.getEpochs());
 			System.out.println("This is the main thread");
 			System.out.println(Thread.currentThread().getName());
 			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
@@ -1193,7 +1126,6 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-//			this.cnn.validation_segmentation();
 			this.future = this.executor.submit(cnn.new validation_segmentation());
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
@@ -1239,9 +1171,8 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			cnn.configureFineTune(data.getSeed());
-//			this.future = this.executor.submit(cnn.new configureFineTuneExecutor(data.getSeed()));
-//			this.future.get();
+			this.future = this.executor.submit(cnn.new configureFineTuneExecutor(data.getSeed()));
+			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("FineTune Configuration done!");
 		}
@@ -1506,6 +1437,36 @@ public class CNNController {
 			throw new CNNException(exception.getMessage(), data.getNodeId());
 		}
 	}
+
+	/**
+	 * Abort cnn training process, called when user aborts training process
+	 * on the front end.
+	 *
+	 * The aborting process works as follows:
+	 *
+	 * Preliminary: Most cnn operations are submitted to an execution service, except
+	 * a few processes like configure nn that do not take very long
+	 *
+	 * When the user calls abort training
+	 * 1. The front end will stop sending any further tasks
+	 * 2. The execution service that all the tasks have been submitted to is terminated
+	 * 3. Loops that are still running polls the isInterrupted status on the current thread
+	 * using Thread.currentThread().isInterrupted() and breaks out of the loop if true
+	 * 4. Execution exceptions are caught and dealt with
+	 * 5. A new execution service is then instantiated
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/abort")
+	public void Abort() throws Exception {
+		try {
+			this.executor.shutdownNow();
+		}
+		catch (Exception e){
+			System.out.println(e);
+		}
+		this.executor = Executors.newSingleThreadExecutor();
+	}
+
 }
 
 
