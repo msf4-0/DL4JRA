@@ -331,12 +331,12 @@ public class CNNDatasetGenerator {
 
 //		Thread UiThread = new Thread(() -> {
 //			try {
-		UIServer uiServer = UIServer.getInstance();
-		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-//		StatsStorage statsStorage = new InMemoryStatsStorage();
-		int listenerFrequency = 5;
-		model.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, listenerFrequency));
-		uiServer.attach(statsStorage);
+//		UIServer uiServer = UIServer.getInstance();
+//		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+////		StatsStorage statsStorage = new InMemoryStatsStorage();
+//		int listenerFrequency = 5;
+//		model.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, listenerFrequency));
+//		uiServer.attach(statsStorage);
 //				while (true){
 //					if (Thread.currentThread().isInterrupted()){
 //						uiServer.stop();
@@ -393,10 +393,10 @@ public class CNNDatasetGenerator {
 			while (trainGenerator.hasNext()) {
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
-					uiServer.detach(statsStorage);
-					statsStorage.close();
-					System.out.println("stopping ui server");
-					uiServer.stop();
+//					uiServer.detach(statsStorage);
+//					statsStorage.close();
+//					System.out.println("stopping ui server");
+//					uiServer.stop();
 					trainFrame.setVisible(false);
 					trainFrame.dispose();
 					break epochLoop;
@@ -422,9 +422,9 @@ public class CNNDatasetGenerator {
 		}
 
 //		UiThread.interrupt();
-		uiServer.detach(statsStorage);
-		statsStorage.close();
-		uiServer.stop();
+//		uiServer.detach(statsStorage);
+//		statsStorage.close();
+//		uiServer.stop();
 		trainFrame.setVisible(false);
 		trainFrame.dispose();
 	}

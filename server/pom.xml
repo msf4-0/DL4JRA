@@ -37,82 +37,12 @@
 			<scope>test</scope>
 		</dependency>
 
-		<!-- deeplearning4j-ui is used for visualization: see http://deeplearning4j.org/visualization -->
-		<dependency>
-			<groupId>org.deeplearning4j</groupId>
-			<artifactId>deeplearning4j-ui</artifactId>
-			<version>1.0.0-M1.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>org.deeplearning4j</groupId>
-			<artifactId>deeplearning4j-ui</artifactId>
-			<version>1.0.0-M1.1</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-buffer</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-transport</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-handler</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-codec-socks</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-codec</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-codec-http</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-codec-http2</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-handler-proxy</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-resolver</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-resolver-dns</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-common</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-all</artifactId>
-			<version>4.1.48.Final</version>
-		</dependency>
-
-
+<!--		&lt;!&ndash; deeplearning4j-ui is used for visualization: see http://deeplearning4j.org/visualization &ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>org.deeplearning4j</groupId>-->
+<!--			<artifactId>deeplearning4j-ui</artifactId>-->
+<!--			<version>${dl4j.version}</version>-->
+<!--		</dependency>-->
 
 		<!-- WEB SOCKET -->
 		<dependency>
@@ -124,43 +54,43 @@
 		<dependency>
 	  		<groupId>org.deeplearning4j</groupId>
 	  		<artifactId>deeplearning4j-core</artifactId>
-	  		<version>1.0.0-M1.1</version>
+	  		<version>1.0.0-beta7</version>
 	  	</dependency>
 	  	
 	  	<!-- DL4J PRETRAINED MODEL -->
 	  	<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-zoo</artifactId>
-			<version>1.0.0-M1.1</version>
+			<version>1.0.0-beta7</version>
 		</dependency>
 		
-<!--		&lt;!&ndash; DL4J CUDNN &ndash;&gt;		-->
-<!--		<dependency>-->
-<!--		    <groupId>org.deeplearning4j</groupId>-->
-<!--		    <artifactId>deeplearning4j-cuda-10.2</artifactId>-->
-<!--		    <version>1.0.0-M1.1</version>-->
-<!--		</dependency>-->
+		<!-- DL4J CUDNN -->		
+		<dependency>
+		    <groupId>org.deeplearning4j</groupId>
+		    <artifactId>deeplearning4j-cuda-10.2</artifactId>
+		    <version>1.0.0-beta7</version>
+		</dependency>
 		
-<!--		&lt;!&ndash; GPU BACKEND &ndash;&gt;		-->
-<!--		<dependency>-->
-<!--		    <groupId>org.nd4j</groupId>-->
-<!--		    <artifactId>nd4j-cuda-10.2-platform</artifactId>-->
-<!--		    <version>1.0.0-M1.1</version>-->
-<!--		</dependency>-->
+		<!-- GPU BACKEND -->		
+		<dependency>
+		    <groupId>org.nd4j</groupId>
+		    <artifactId>nd4j-cuda-10.2-platform</artifactId>
+		    <version>1.0.0-beta7</version>
+		</dependency>
 		
 		<!-- CPU BACKEND -->
 		<dependency>
 		    <groupId>org.nd4j</groupId>
 		    <artifactId>nd4j-native-platform</artifactId>
-		    <version>1.0.0-M1.1</version>
+		    <version>1.0.0-beta7</version>
 		</dependency>
 		 
-<!--		&lt;!&ndash; JAVACPP PRESETS PLATFORM FOR CUDA &ndash;&gt;-->
-<!--		<dependency>-->
-<!--		    <groupId>org.bytedeco</groupId>-->
-<!--		    <artifactId>cuda</artifactId>-->
-<!--		    <version>10.2-7.6-1.5.3</version>-->
-<!--		</dependency>-->
+		<!-- JAVACPP PRESETS PLATFORM FOR CUDA -->
+		<dependency>
+		    <groupId>org.bytedeco</groupId>
+		    <artifactId>cuda</artifactId>
+		    <version>10.2-7.6-1.5.3</version>
+		</dependency>
 		
 		<dependency>
 	    	<groupId>org.slf4j</groupId>
@@ -206,12 +136,6 @@
 			<groupId>org.projectlombok</groupId>
 			<artifactId>lombok</artifactId>
 			<version>${lombok.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>io.netty</groupId>
-			<artifactId>netty-common</artifactId>
-			<version>4.1.48.Final</version>
-			<scope>compile</scope>
 		</dependency>
 
 	</dependencies>
