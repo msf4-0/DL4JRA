@@ -1099,10 +1099,8 @@ public class CNNController {
 	public RBProcessCompleted TrainSegmentation(Trainnetworknode data) throws Exception {
 		try
 		{
-			System.out.println(new RBProcessCompleted("START TRAINING"));
-			System.out.println(new RBProcessCompleted("Details on command prompt"));
-			System.out.println("This is the main thread");
-			System.out.println(Thread.currentThread().getName());
+			System.out.println("START TRAINING");
+			System.out.println("Details on command prompt");
 			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");

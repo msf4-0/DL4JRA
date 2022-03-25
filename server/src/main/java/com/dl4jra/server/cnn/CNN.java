@@ -551,10 +551,10 @@ public class CNN {
 		this.multiLayerNetwork = new MultiLayerNetwork(this.cnnconfig.build());
 		this.multiLayerNetwork.init();
 		this.networkconstructed = true;
-		this.multiLayerNetwork.setListeners(
-				new ScoreIterationListener(5),
-				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
-		);
+//		this.multiLayerNetwork.setListeners(
+//				new ScoreIterationListener(5),
+//				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+//		);
 	}
 
 	public void ConstructNetworkRNN(){
@@ -607,6 +607,7 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
+
 			try {
 				if (TrainingDatasetIterator == null)
 					throw new Exception("There is no training dataset");
@@ -619,6 +620,10 @@ public class CNN {
 					}
 
 					if (multiLayerNetwork != null) {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+						);
 						multiLayerNetwork.fit(TrainingDatasetIterator);
 						if (epochs % scoreListener == 0)
 							System.out.println("Score in epoch " + counter + " : " + multiLayerNetwork.score());
@@ -670,12 +675,17 @@ public class CNN {
 			}
 
 			for (int counter = 0; counter < epochs; counter++) {
+
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
 					break;
 				}
 
 				if(multiLayerNetwork != null) {
+					multiLayerNetwork.setListeners(
+							new ScoreIterationListener(scoreListener),
+							new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+					);
 					TrainingDatasetIterator.reset();
 					multiLayerNetwork.fit(TrainingDatasetIterator);
 					message = counter;
@@ -721,6 +731,10 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
+			multiLayerNetwork.setListeners(
+					new ScoreIterationListener(scoreListener),
+					new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+			);
 			if (TrainingDatasetIterator == null) {
 				throw new Exception("Training dataset not set");
 			}
@@ -869,7 +883,7 @@ public class CNN {
 		zooModel = UNet.builder().build();
 
 		unet = (ComputationGraph) zooModel.initPretrained(PretrainedType.SEGMENT);
-		System.out.println(unet.summary());
+//		System.out.println(unet.summary());
 	}
 
 	public void configureFineTune(int seed){
