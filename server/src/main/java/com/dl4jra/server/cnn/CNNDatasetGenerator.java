@@ -24,7 +24,7 @@ import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
-import org.deeplearning4j.ui.model.storage.FileStatsStorage;
+//import org.deeplearning4j.ui.model.storage.FileStatsStorage;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -40,9 +40,9 @@ import java.awt.Desktop;
 import java.net.URI;
 
 import javax.swing.*;
-import org.deeplearning4j.ui.api.UIServer;
-import org.deeplearning4j.ui.model.stats.StatsListener;
-import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
+//import org.deeplearning4j.ui.api.UIServer;
+//import org.deeplearning4j.ui.model.stats.StatsListener;
+//import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
 import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 
