@@ -280,12 +280,12 @@ public class CNNConfiguration {
 
 	public ComputationGraph build_TransferLearning(){
 		this.computationGraph = tranferlearningBuilder.build();
-		computationGraph.summary();
+//		computationGraph.summary();
 
 		// Set listeners
 		ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
 		computationGraph.setListeners(scoreIterationListener);
-		System.out.println(computationGraph.summary());
+//		System.out.println(computationGraph.summary());
 		return this.computationGraph;
 	}
 

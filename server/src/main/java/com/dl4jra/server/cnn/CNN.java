@@ -869,7 +869,7 @@ public class CNN {
 		zooModel = UNet.builder().build();
 
 		unet = (ComputationGraph) zooModel.initPretrained(PretrainedType.SEGMENT);
-		System.out.println(unet.summary());
+//		System.out.println(unet.summary());
 	}
 
 	public void configureFineTune(int seed){

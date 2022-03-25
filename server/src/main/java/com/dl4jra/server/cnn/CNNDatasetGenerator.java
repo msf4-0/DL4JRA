@@ -1,10 +1,13 @@
 package com.dl4jra.server.cnn;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+import com.dl4jra.server.cnn.utilities.Visualization;
+import com.dl4jra.server.cnn.utilities.Visualization;
 import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
@@ -22,6 +25,7 @@ import org.datavec.image.transform.*;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
+import org.deeplearning4j.ui.model.storage.FileStatsStorage;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
@@ -32,6 +36,18 @@ import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.shade.guava.base.Equivalence;
 import org.slf4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.awt.Desktop;
+import java.net.URI;
+
+import javax.swing.*;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.model.stats.StatsListener;
+import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
+import org.deeplearning4j.core.storage.StatsStorage;
+import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+
+
 
 import static java.lang.Math.floor;
 import static java.lang.Math.min;
@@ -298,7 +314,77 @@ public class CNNDatasetGenerator {
 	}
 
 
-	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException {
+	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException, InterruptedException, URISyntaxException {
+
+		// ui
+
+
+		// TODO
+		// Set listeners
+//
+
+//		StatsStorage statsStorage = new InMemoryStatsStorage();
+//		StatsListener statsListener = new StatsListener(statsStorage);
+//		ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
+
+		//Configure where the network information (gradients, activations, score vs. time etc) is to be stored
+		//Then add the StatsListener to collect this information from the network, as it trains
+
+//		Thread UiThread = new Thread(() -> {
+//			try {
+		UIServer uiServer = UIServer.getInstance();
+		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+//		StatsStorage statsStorage = new InMemoryStatsStorage();
+		int listenerFrequency = 5;
+		model.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, listenerFrequency));
+		uiServer.attach(statsStorage);
+//				while (true){
+//					if (Thread.currentThread().isInterrupted()){
+//						uiServer.stop();
+//					}
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//		UiThread.start();
+
+
+
+
+		JFrame trainFrame = Visualization.initFrame("Training Visualization");
+		JPanel trainPanel = Visualization.initPanel(
+				trainFrame,
+				trainGenerator.batch(),
+				height,
+				width,
+				1
+		);
+
+//		model.setListeners(statsListener, scoreIterationListener);
+
+
+
+
+		if(Desktop.isDesktopSupported())
+		{
+			Desktop.getDesktop().browse(new URI("http://localhost:9000"));
+		}
+
+//		if( Desktop.isDesktopSupported() )
+//		{
+//			Thread BrowserThread = new Thread(() -> {
+//				try {
+//					Desktop.getDesktop().browse( new URI( "http://localhost:9000" ) );
+//				} catch (IOException | URISyntaxException e1) {
+//					e1.printStackTrace();
+//				}
+//			});
+//			BrowserThread.start();
+//			BrowserThread.interrupt();
+//		}
+
+
 		// Label to allow for thread breaking
 		epochLoop:
 		for (int i = 0; i < epoch; i++) {
@@ -308,18 +394,54 @@ public class CNNDatasetGenerator {
 			while (trainGenerator.hasNext()) {
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
+					trainFrame.setVisible(false);
+					trainFrame.dispose();
 					break epochLoop;
 				}
 
 				DataSet imageSet = trainGenerator.next();
 				model.fit(imageSet);
+
+				INDArray predict = model.output(imageSet.getFeatures())[0];
+				Visualization.visualize(
+						imageSet.getFeatures(),
+						imageSet.getLabels(),
+						predict,
+						trainFrame,
+						trainPanel,
+						trainGenerator.batch(),
+						224,
+						224
+				);
+
 			}
 			trainGenerator.reset();
 		}
+
+//		UiThread.interrupt();
+		uiServer.detach(statsStorage);
+		statsStorage.close();
+		uiServer.stop();
+		trainFrame.setVisible(false);
+		trainFrame.dispose();
 	}
 
 
 	public void validation_segmentation(RecordReaderDataSetIterator validationGenerator, ComputationGraph model) throws IOException {
+		// VISUALISATION -  validation
+		JFrame validateFrame = Visualization.initFrame("Validation Visualization");
+		JPanel validatePanel = Visualization.initPanel(
+				validateFrame,
+				1,
+				height,
+				width,
+				1
+		);
+
 		Evaluation eval = new Evaluation(2);
 
 		float IOUTotal = 0;
@@ -347,8 +469,23 @@ public class CNNDatasetGenerator {
 			System.out.println("IOU Cell " + String.format("%.3f", IOU));
 
 			eval.reset();
+
+			for (int n = 0; n < imageSetVal.asList().size(); n++) {
+				Visualization.visualize(
+						imageSetVal.get(n).getFeatures(),
+						imageSetVal.get(n).getLabels(),
+						predictVal,
+						validateFrame,
+						validatePanel,
+						1,
+						224,
+						224
+				);
+			}
 		}
 		System.out.println("Mean IOU: " + IOUTotal / count);
+		validateFrame.setVisible(false);
+		validateFrame.dispose();
 	}
 
 
