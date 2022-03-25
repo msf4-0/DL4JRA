@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.imageio.ImageIO;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -37,6 +38,10 @@ public class Visualization {
     private static int displayHeight = 256;
     private static Java2DNativeImageLoader _Java2DNativeImageLoader;
     private static final String OUTPUT_PATH = "/out/";
+    private static TitledBorder OriginalImageTitle = BorderFactory.createTitledBorder("Original Image");
+    private static TitledBorder MaskTitle = BorderFactory.createTitledBorder("Mask");
+    private static TitledBorder PredictedTitle = BorderFactory.createTitledBorder("Predicted Image");
+
 
 
     public static JFrame initFrame(String title) {
@@ -44,6 +49,7 @@ public class Visualization {
         frame.setTitle(title);
         frame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
         frame.setLayout(new BorderLayout());
+        frame.setVisible(false);
         return frame;
     }
 
@@ -53,6 +59,12 @@ public class Visualization {
         JPanel panel = new JPanel();
         panel.setLayout(new GridLayout((displaySamples > MAX_SAMPLE_DISPLAY ? MAX_SAMPLE_DISPLAY : displaySamples), 3, 1, 1));
         frame.add(panel, BorderLayout.CENTER);
+
+        frame.setLocationRelativeTo(null);
+        frame.getContentPane().setSize(800,400);
+        frame.toFront();
+        frame.repaint();
+
         frame.setVisible(true);
         return panel;
     }
@@ -61,9 +73,15 @@ public class Visualization {
         panel.removeAll();
         for (int i = 0; i < displaySamples; i++) {
             if (i < image.size(0) && i < MAX_SAMPLE_DISPLAY) {
-                panel.add(BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(image.slice(i, 0).mul(255))));
-                panel.add(BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(label.slice(i, 0).mul(255))));
-                panel.add(BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(predict.slice(i, 0).mul(255))));
+                JLabel image1 = BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(image.slice(i, 0).mul(255)));
+                image1.setBorder(OriginalImageTitle);
+                panel.add(image1);
+                JLabel image2 = BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(label.slice(i, 0).mul(255)));
+                image2.setBorder(MaskTitle);
+                panel.add(image2);
+                JLabel image3 = BufferedImagetoJLabel(_Java2DNativeImageLoader.asBufferedImage(predict.slice(i, 0).mul(255)));
+                image3.setBorder(PredictedTitle);
+                panel.add(image3);
             }
         }
         frame.revalidate();
@@ -100,6 +118,4 @@ public class Visualization {
 
         }
     }
-
-
 }

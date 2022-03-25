@@ -1,8 +1,6 @@
 package com.dl4jra.server.cnn;
 
-import com.dl4jra.server.cnn.request.SetOutputNode;
 import org.springframework.stereotype.Component;
-
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
@@ -11,7 +9,6 @@ import static java.lang.Math.floor;
 
 /**
  * Class containing helper methods for CNNDatasetGenerator
- * TODO: Write junit tests for the file
  */
 @Component
 public class CNNDatasetGeneratorHelper {
@@ -19,7 +16,7 @@ public class CNNDatasetGeneratorHelper {
     /**
      * Function to check if the dataset and the trainPerc given by the user will lead to a test and
      * train mismatch. That would occur if there is one labeled folder that has few enough samples
-     * that after dividing the dataset between the test and train subsets, the test subset wouldnt have
+     * that after dividing the dataset between the test and train subsets, the test subset wouldn not have
      * a sample from all labels, leading to a validation error because of the mismatch between the
      * number of labels in the test and train iterators.
      *
@@ -32,7 +29,6 @@ public class CNNDatasetGeneratorHelper {
         int lowerPercentage;
         int totalFiles;
         int minFolderSize = Integer.MAX_VALUE;
-
         File[] directories = parentDir.listFiles(File::isDirectory);
 
         // Section to find the minimum folder size
@@ -40,12 +36,11 @@ public class CNNDatasetGeneratorHelper {
         numLabels = directories.length;
 
         for (File directory : directories) {
-
-            // Check if the current thread is interrupted, if so, break the loop.
+            // check if the current thread is interrupted, if so, break the loop.
             if (Thread.currentThread().isInterrupted()) {
                 break;
             }
-
+            // finding smallest folder
             int currentFolderSize = 0;
             for (String aFile : Objects.requireNonNull(directory.list())) {
                 if (Arrays.stream(allowedExtensions).anyMatch(aFile::endsWith)) {
