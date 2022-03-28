@@ -945,14 +945,12 @@ public class CNN {
 
 	public class train_segmentation implements Callable<Void> {
 		private int epoch;
-		private int scoreListenerFrequency;
-		public train_segmentation(int epoch, int scoreListenerFrequency) {
+		public train_segmentation(int epoch) {
 			this.epoch = epoch;
-			this.scoreListenerFrequency = scoreListenerFrequency;
 		}
 		@Override
 		public Void call() throws Exception {
-			TrainingDatasetGenerator.train_segmentation(epoch, scoreListenerFrequency, trainGenerator, constructedModel);
+			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
 			return null;
 		}
 	}
