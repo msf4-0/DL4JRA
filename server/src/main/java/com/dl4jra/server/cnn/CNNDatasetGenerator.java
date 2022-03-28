@@ -314,7 +314,7 @@ public class CNNDatasetGenerator {
 	}
 
 
-	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException, InterruptedException, URISyntaxException {
+	public void train_segmentation(int epoch, int scoreListenerFrequency, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException, InterruptedException, URISyntaxException {
 
 		// ui
 
@@ -335,8 +335,7 @@ public class CNNDatasetGenerator {
 		UIServer uiServer = UIServer.getInstance();
 		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
 //		StatsStorage statsStorage = new InMemoryStatsStorage();
-		int listenerFrequency = 5;
-		model.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, listenerFrequency));
+		model.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, scoreListenerFrequency));
 		uiServer.attach(statsStorage);
 //				while (true){
 //					if (Thread.currentThread().isInterrupted()){

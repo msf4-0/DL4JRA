@@ -1101,7 +1101,7 @@ public class CNNController {
 		{
 			System.out.println("START TRAINING");
 			System.out.println("Details on command prompt");
-			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
+			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs(), data.getScoreListener()));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
 		}
