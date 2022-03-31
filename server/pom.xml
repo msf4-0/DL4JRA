@@ -21,6 +21,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
+			<exclusions>
+				<exclusion>
+					<groupId>ch.qos.logback</groupId>
+					<artifactId>logback-classic</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- SPRING BOOT DEVTOOLS -->
@@ -184,14 +190,14 @@
 		    <version>1.1.1</version>
 		</dependency>
 		
+
 		<!-- OPEN CV -->
-		<!--
+
 		<dependency>
 		    <groupId>org.bytedeco</groupId>
 		    <artifactId>opencv</artifactId>
-		    <version>4.5.3-1.5.6</version>
+		    <version>4.3.0-1.5.3</version>
 		</dependency>
-		 -->
 
 <!--		lombok for VocLableProvider-->
 		<dependency>
