@@ -682,10 +682,19 @@ public class CNN {
 				}
 
 				if(multiLayerNetwork != null) {
-					multiLayerNetwork.setListeners(
-							new ScoreIterationListener(scoreListener),
-							new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
-					);
+					if (ValidationDatasetIterator != null){
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+						);
+					}
+					else{
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener)
+						);
+					}
+
+
 					TrainingDatasetIterator.reset();
 					multiLayerNetwork.fit(TrainingDatasetIterator);
 					message = counter;
@@ -731,10 +740,7 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
-			multiLayerNetwork.setListeners(
-					new ScoreIterationListener(scoreListener),
-					new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
-			);
+
 			if (TrainingDatasetIterator == null) {
 				throw new Exception("Training dataset not set");
 			}
@@ -749,6 +755,17 @@ public class CNN {
 				}
 
 				if(multiLayerNetwork != null) {
+					if (ValidationDatasetIterator != null){
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+						);
+					}
+					else{
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener)
+						);
+					}
 					TrainingDatasetIterator.reset();
 					multiLayerNetwork.fit(TrainingDatasetIterator);
 					template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
