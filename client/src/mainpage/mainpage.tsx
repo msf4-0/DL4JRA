@@ -55,7 +55,7 @@ export default class Mainpage extends Component <MainpageProps, MainpageStates>{
                             <CardTitle tag="h5">NEURAL NETWORK </CardTitle>
                             <CardText>-Train and validate NN for image and CSV input classification</CardText>
                             <CardText>-Image Segmentation with importing pretrained model (UNET)</CardText>
-                            <CardText>-ReTrain pretrained model (TINYYOLO) for obeject detection</CardText>
+                            <CardText>-ReTrain pretrained model (TINYYOLO) for object detection</CardText>
                             <Button color='primary' onClick={this.navigatecnnmultitabpage}>Continue</Button>
                         </Card>
                     </Col>
@@ -82,7 +82,7 @@ export default class Mainpage extends Component <MainpageProps, MainpageStates>{
                     <Col sm={6}>
                         <Card body>
                             <CardTitle tag="h5">MQTT SIGNALLING</CardTitle>
-                            <CardText>CONNEC TO TEST BROKER AND SEND OUT TEST SIGNAL</CardText>
+                            <CardText>CONNECT TO TEST BROKER AND SEND OUT TEST SIGNAL</CardText>
                             <Button color='primary' onClick={this.navigatemqttsignallingpage}>Continue</Button>
                         </Card>
                     </Col>

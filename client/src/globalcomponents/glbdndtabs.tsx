@@ -27,6 +27,7 @@ interface DNDTabsProps {
     setnumberofelementstosend: (count: number) => void;
     sendnodedataforsaving: (tabindex: number, node: Node) => void;
     sendedgedataforsaving: (tabindex: number, edge: Edge) => void;
+    manualloadflow:(directory: string, filename: string) => void;
     manualsaveflow: (elements: Elements, directory: string, filename: string) => void;
     onNodeDoubleClick: (event: ReactMouseEvent, node: Node) => void;
 }
@@ -43,8 +44,10 @@ interface DNDTabsStates {
     activetab: number;
     dndelements: Elements[];
     savemodalisactive: boolean;
+    loadmodalisactive: boolean;
 }
 
+// This class is the only one accessible by cnnmultitab
 export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsStates> {
 
     /**
@@ -56,18 +59,21 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     rfwrapperref : React.RefObject<any>;
     currentnodeId: number;
     flowindextosave: number;
+    flowindextoload: number;
 
     constructor(props: DNDTabsProps) {
         super(props);
         this.state = {
             rfInstance: null,
-            activetab: 0,
+            activetab: 0,  
             dndelements: [ [] ],
             savemodalisactive: false,
+            loadmodalisactive: false
         }
         this.rfwrapperref = React.createRef();
         this.currentnodeId = 0;
         this.flowindextosave = -1;
+        this.flowindextoload = -1;
     }
 
     /**
@@ -110,8 +116,38 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     }
 
     /**
+     * remove all elements in the current tab
+     */
+    removeelementscurrenttab = () : void => {
+        if (this.state.dndelements[this.state.activetab].length != 0){
+            this.setState (
+                {
+                    dndelements: 
+                    [ 
+                        ...this.state.dndelements.slice(0, this.state.activetab),
+                        [],
+                        ...this.state.dndelements.slice(this.state.activetab + 1)
+                    ]
+                }
+            )
+        }
+    }
+
+    restoreelementcurrenttab = (element: FlowElement) : void => {
+        console.log(element);
+        if (this.state.activetab >= this.state.dndelements.length) {
+            let numbertoadd = this.state.activetab - this.state.dndelements.length + 1;
+            for (let counter = 0; counter < numbertoadd; counter++) {
+                this.setState({dndelements: [ ...this.state.dndelements, [] ]}, () => this.addelement(this.state.activetab, element));
+            }
+        } else {
+            this.addelement(this.state.activetab, element);
+        }
+    }
+
+    /**
      * Restore previously saved element
-     * 1. If target tabindex is greater than number of current tab, add new tab(s) before add the element
+     * 1. If target tabindex is greater than number of current tab, add new tab(s) before adding the element
      * @param tabindex - Tab index which element belongs to 
      * @param element - node or edge
     */
@@ -125,6 +161,7 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
             this.addelement(tabindex, element);
         }
     }
+    
 
     /**
      * Add element to target flow
@@ -134,6 +171,11 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
      * @param element - FlowElement object (node or edge)
     */
     addelement = (tabindex: number, element: FlowElement) : void => {
+        console.log(element);
+        if(element === void 0) {
+            alert("element is the special value `undefined`");
+            return;
+          }
         if (isNode(element)) {
             this.currentnodeId = Math.max(Number(element.id), this.currentnodeId);
             element.data.error = false;
@@ -236,10 +278,13 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
         let reactFlowBounds = this.rfwrapperref.current.getBoundingClientRect();
         let type = event.dataTransfer.getData("application/reactflow");
         if (this.state.rfInstance !== null) {
+            // TODO: find exact difference in position instead of hardcoding values
+            // TODO: find the exact part of the node that the user is grabbing in menu bar and use that for precise corrections 
             let position = this.state.rfInstance.project({
-                x: event.clientX - reactFlowBounds.left,
-                y: event.clientY - reactFlowBounds.top,
+                x: event.clientX - reactFlowBounds.left - 50,
+                y: event.clientY - reactFlowBounds.top - 50,
             })
+
             let data = this.props.preparenodedata(type);
             data['error'] = false;
             let newnode = {id: this.generateId(), type, position, data};
@@ -451,6 +496,17 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     }
 
     /**
+     * Called when LOAD button is clicked
+     * 1. Update value of flowindextoload to tabindex
+     * 2. Open load modal and let users fill the directory and filname
+     * @param tabindex - Index of flow tab which users wants to load previous flow     
+     */
+    loadbtnOnClick = (tabindex:number) : void => {
+        this.flowindextoload = tabindex;
+        this.openloadmodal();
+    }
+
+    /**
      * Called when SAVE button is clicked
      * 1. Update value of "flowindextosave" to tabindex
      * 2. Open save modal (let user to fill in the directory and filename)
@@ -477,6 +533,23 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
 
     /**
      * [UPDATE COMPONENT'S STATE] 
+     * Set loadmodalisactive to true => Load modal (which allow user to set directory and filename) opens
+    */
+    openloadmodal = () : void => {
+        this.setState({ loadmodalisactive: true });
+    }
+
+    /**
+     * [UPDATE COMPONENT'S STATE] 
+     * Set loadmodalisactive to false => Load modal (which allow user to set directory and filename) closes
+    */
+    closeloadmodal = () : void => {
+        this.setState({ loadmodalisactive: false });
+    }
+
+
+    /**
+     * [UPDATE COMPONENT'S STATE] 
      * Set savemodalisactive to true => Save modal (which allow user to set directory and filename) opens
     */
     opensavemodal = () : void => {
@@ -489,6 +562,17 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     */
     closesavemodal = () : void => {
         this.setState({ savemodalisactive: false });
+    }
+
+    /**
+     * Called when user clicked on LOAD button in load modal
+     * 
+     * 
+     * @param directory - Directory to load JSON file
+     * @param filename - Filename of JSON file
+    */
+    loadflow = (directory: string, filename: string) : void => {
+        this.props.manualloadflow(directory, filename);
     }
 
     /**
@@ -511,6 +595,11 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
                     saveflow={this.saveflow}
                     closemodal={this.closesavemodal}
                 />
+                <LoadFlowModel 
+                    active={this.state.loadmodalisactive}
+                    loadflow={this.loadflow}
+                    closemodal={this.closeloadmodal}
+                />
                 <div ref={this.rfwrapperref} style={{ flexGrow:1, height: '100%' }}>
                     <div className='tabs'>
                         { this.state.dndelements.map ((elements, index) => 
@@ -519,9 +608,11 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
                                 tabisactive={this.state.activetab === index}
                                 tabcandelete={this.state.dndelements.length > 1}
                                 tabcansave={this.props.flowdatacansave}
+                                tabcanload={this.props.flowdatacansave}
                                 tabindex={index}
                                 tabOnclick={this.changeactivetab}
                                 savebtnOnclick={this.savebtnOnclick}
+                                loadbtnOnclick={this.loadbtnOnClick}
                                 detelebtnOnclick={this.deletedndflow}
                             />
                         ) }
@@ -557,17 +648,21 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
  * tabisactive: If the tab is currently active
  * tabcandelete: If user can delete the tab (False if it is the last and only tab)
  * tabcansave: If user can save the flow (False if client is not connected to server)
+ * tabcanload: If the user can load a flow (False if client is not connected to server)
  * tabindex: Index of the tab
  * tabOnclick: Callback function when user clicked on the tab
  * savebtnOnclick: Callback function when user clicked on SAVE button of the tab
+ * loadbtnOnclick: Callback function when user clicks on LOAD button of the tab
  * deletebtnOnclick: Callback function when user clicked on DELETE button on the tab
 */
 interface TabComponentProps {
     tabisactive: boolean;
     tabcandelete: boolean;
+    tabcanload: boolean;
     tabcansave: boolean;
     tabindex: number;
     tabOnclick: ((tabindex: number) => void);
+    loadbtnOnclick:((tabindex: number) => void);
     savebtnOnclick:((tabindex: number) => void);
     detelebtnOnclick: ((tabindex: number) => void);
 }
@@ -604,6 +699,15 @@ class TabComponent extends Component <TabComponentProps, TabComponentStates> {
     }
 
     /**
+     * Called when user clicks on LOAD button on the menu
+     * @param event
+     */
+    loadbtnOnclick = (event: React.MouseEvent<HTMLElement>) : void => {
+        event.stopPropagation();
+        this.props.loadbtnOnclick(this.props.tabindex);
+    }
+
+    /**
      * Called when user clicked on SAVE button on the menu
      * 1. Stop propagation -> Prevent changing of active tab
      * 2. Invoke savebtnOnclick callback function
@@ -637,6 +741,7 @@ class TabComponent extends Component <TabComponentProps, TabComponentStates> {
         this.setmenuvisible(false);
     }
 
+
     render = () => {
         return (
             <div 
@@ -648,6 +753,7 @@ class TabComponent extends Component <TabComponentProps, TabComponentStates> {
                 FLOW {this.props.tabindex + 1}
                 { this.state.menuvisible && 
                     <div className='tab-component-menu'>
+                        <Button block onClick={this.loadbtnOnclick}disabled={! this.props.tabcanload}>Load</Button>
                         <Button block onClick={this.savebtnOnclick} disabled={! this.props.tabcansave}>Save</Button>
                         <Button block onClick={this.deletebtnOnclick} disabled={! this.props.tabcandelete}>Delete</Button>
                         <Button block onClick={this.closebtnOnclick}>Close</Button>
@@ -725,7 +831,7 @@ class SaveFlowModal extends Component <SaveFlowModalProps, SaveFlowModalStates> 
     */
     savebtnOnclick = () : void => {
         this.props.saveflow(this.state.directory, this.state.filename);
-        this.setState({ directory: "C://Users/User/Desktop", filename: "testflowmanualsave" });
+        this.setState({ directory: "C://Users/Luke Yeo/Code/tests", filename: "testflowmanualsave" });
         this.props.closemodal();
     }
 
@@ -759,6 +865,116 @@ class SaveFlowModal extends Component <SaveFlowModalProps, SaveFlowModalStates> 
                 </ModalBody>
                 <ModalFooter>
                     <Button block onClick={this.savebtnOnclick} disabled={! this.checksavebtnavailable()}>SAVE</Button>
+                    <Button block onClick={this.closebtnOnclick}>CLOSE</Button>
+                </ModalFooter>
+            </Modal>
+        )
+    }
+}
+
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Load k props
+ * active: If modal is active (visible)
+ * closemodal: Callback function when user clicks on CLOSE button
+ * saveflow: Callback function when user clicks on SAVE button
+*/
+interface LoadModalProps {
+    active: boolean;
+    closemodal: (() => void);
+    loadflow: ((directory: string, filename: string) => void);
+}
+
+/**
+ * SaveFlowModal states
+ * directory - Directory to save/export the JSON file 
+ * filename - Filename of the JSON file
+*/
+interface FlowModalStates {
+    directory: string;
+    filename: string;
+}
+
+class LoadFlowModel extends Component <LoadModalProps, FlowModalStates> {
+
+    constructor(props: LoadModalProps) {
+        super(props);
+        this.state = { directory: "C://Users/User/Desktop", filename: "testflowmanualload" }
+    }
+
+    /**
+     * Called when directory (state) on change
+     * 1. Update value of directory
+     * @param event 
+    */
+    handledirectoryOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
+        this.setState({ directory: event.target.value });
+    }
+
+    /**
+     * Called when filename (state) on change
+     * 1. Update value of filename
+     * @param event 
+    */
+    handlefilenameOnchange = (event: React.ChangeEvent<HTMLInputElement>) : void => {
+        this.setState({ filename: event.target.value });
+    }
+
+    /**
+     * Called when user clicks on CLOSE button 
+     * 1. Reset value of directory and filename (state) 
+     * 2. Invoke closemodal props callback function
+    */
+    closebtnOnclick = () : void => {
+        this.setState({ directory: "C://Users/User/Desktop", filename: "testflowmanualload" });
+        this.props.closemodal();
+    }
+
+    /**
+     * Called when user clicks on LOAD button
+     * 1. Invoke saveflow props callback function
+     * 2. Reset value of diretory and filename (state)
+     * 3. Invoke closemodal props callback function
+    */
+    loadbtnOnclick = () : void => {
+        this.props.loadflow(this.state.directory, this.state.filename);
+        this.setState({ directory: "C://Users/User/Desktop", filename: "testflowmanualload" });
+        this.props.closemodal();
+    }
+
+    /**
+     * Check if user is allowed to load a flow
+     * False if value of directory or filename is blank
+     * @returns True if value of directory or filename is not blank (!= )
+    */
+    checkloadbtnavailable = () : boolean => {
+        if (this.state.directory === "" || this.state.filename === "") return false;
+        return true;
+    }
+
+    render = () => {
+        return (
+            <Modal centered isOpen={this.props.active}>
+                <ModalHeader>CNNFlow Import (JSON)</ModalHeader>
+                <ModalBody>
+                    <Form>
+                        <FormGroup>
+                            <Label for='directory'>Directory</Label>
+                            <Input type='text' name='directory' value={this.state.directory} onChange={this.handledirectoryOnchange} valid={this.state.directory !== ""} invalid={this.state.directory === ""}></Input>
+                            <FormFeedback valid={false} >Directory cannot be blank</FormFeedback>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for='filename'>Filename</Label>
+                            <Input type='text' name='filename' value={this.state.filename} onChange={this.handlefilenameOnchange} valid={this.state.filename !== ""} invalid={this.state.filename === ""}></Input>
+                            <FormFeedback valid={false} >Filename cannot be blank</FormFeedback>
+                        </FormGroup>
+                    </Form>
+                </ModalBody>
+                <ModalFooter>
+                    <Button block onClick={this.loadbtnOnclick} disabled={! this.checkloadbtnavailable()}>LOAD</Button>
                     <Button block onClick={this.closebtnOnclick}>CLOSE</Button>
                 </ModalFooter>
             </Modal>

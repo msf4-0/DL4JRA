@@ -105,6 +105,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
     numberofelementstosavemanually: number;
     elementsavedmanually: number;
     manualsavecancontinue: boolean;
+    manualloadcancontinue: boolean;
 
     constructor(props: CNNProps) {
         super(props);
@@ -149,6 +150,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.numberofelementstosavemanually = 0;
         this.elementsavedmanually = 0;
         this.manualsavecancontinue = true;
+        this.manualloadcancontinue = true;
         this.eventemitter = new EventEmitter();
         // Initialize websocket and set callbacks (onConnect/onDisconnect/onClose/onError)
         this.cnnwebsocket = new WebsocketService("ws://localhost:8081/stomp");
@@ -188,6 +190,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             this.cnnwebsocket.unsubscribe("/response/cnnmanualflowsaving/elementsaved");
             this.cnnwebsocket.unsubscribe("/response/cnnmanualflowsaving/completed");
             this.cnnwebsocket.unsubscribe("/response/cnnmanualflowsaving/error");
+            this.cnnwebsocket.unsubscribe("/response/cnnflowloading/node");
+            this.cnnwebsocket.unsubscribe("/response/cnnflowloading/edge");
         }
         this.cnnwebsocket.disconnect();
     }
@@ -268,9 +272,15 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.cnnwebsocket.subscribe("/response/cnnmanualflowsaving/complete", this.manualsaveFlowSaved);
         this.cnnwebsocket.subscribe("/response/cnnmanualflowsaving/error", this.manualsaveExceptionHandler);
 
+        this.cnnwebsocket.subscribe("/response/cnnflowloading/node", this.restorenodeCurrentTab);
+        this.cnnwebsocket.subscribe("/response/cnnflowloading/edge", this.restoreedgeCurrentTab);
+        this.cnnwebsocket.subscribe("/response/cnnflowloading/complete", this.manualloadFlowLoaded);
+        this.cnnwebsocket.subscribe("/response/cnnflowloading/error", this.manualloadExceptionHandler);
+
         this.cnnwebsocket.sendmessage("/server/getbackend", "");
         this.cnnwebsocket.sendmessage("/server/cnnmtflowsaving/reset", "");
         this.cnnwebsocket.sendmessage("/server/cnnmtflowloading", "");
+
     }
 
     /**
@@ -336,6 +346,36 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         if (data.nodeId !== null && data.nodeId !== "")
             this.dndref.current.setErrorNode(data.nodeId);
         setImmediate(() => this.eventemitter.emit("processcompleted"));
+    }
+
+    /**
+     * [WEBSOCKET SUBSCRIPTION CALLBACK]
+     * Restore previously saved node for current tab
+     * Called when server sends ove node data
+     * 1. Get node data  
+     * 2. Restore element
+     * @param response 
+    */
+    restorenodeCurrentTab = (response: IMessage) : void => {
+        let node = JSON.parse(response.body);
+        let nodedata = node.node;
+        console.log(nodedata);
+        this.dndref.current.restoreelementcurrenttab(nodedata);
+    }
+
+    /**
+     * [WEBSOCKET SUBSCRIPTION CALLBACK]
+     * Restore previously saved edge
+     * Called when server sends over edge data
+     * 1. Get edge data 
+     * 2. Restore element
+     * @param response 
+    */
+     restoreedgeCurrentTab = (response: IMessage) : void => {
+        let node = JSON.parse(response.body);
+        let edgedata = node.edge;
+        console.log(edgedata);
+        this.dndref.current.restoreelementcurrenttab(edgedata);
     }
 
     /**
@@ -1028,6 +1068,12 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.processdndmtflowsaved();
     }
 
+
+    /**
+     * MANUAL SAVE SECTION
+     */
+
+
     /**
      * [MANUAL SAVE] Export flow into JSON file
      * 1. Open loading screen overlay
@@ -1142,7 +1188,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
 
     /**
      * [WEBSOCKET SUBSCRIPTION CALLBACK]
-     * Called wen there is an exception during manual saving
+     * Called when there is an exception during manual saving
      * 1. Set "manualsavecancontinue" to false -> Will abort entire process
      * 2. Emit all events used in manual saving -> Prevent asynchronous waiting forever
      * 3. Get error message (reason) from server's response and open error modal
@@ -1159,6 +1205,67 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         this.errormodalref.current.openmodal("FLOW SAVING ERROR", data.message);
     }
 
+
+
+    /**
+     * MANUAL LOAD SECTION
+     */
+
+    /**
+     * 
+     * @param directory 
+     * @param filename 
+     */
+
+    manualloadflow = async(directory: string, filename: string) : Promise<any> => {
+        this.manualloadcancontinue = true;
+        this.setlsoverlayactive(true);
+        // remove elements from current tab
+        this.dndref.current.removeelementscurrenttab();
+
+        if (this.manualloadcancontinue) {
+            this.manualimportflow(directory, filename);
+            await waitFor("manual-loading-completed", this.eventemitter);
+        }
+        this.setlsoverlayactive(false);
+    }
+
+
+    manualimportflow = (directory: string, filename: string) : void => {
+        if (this.cnnwebsocket.isConnected()) {
+            let data = JSON.stringify({ directory, filename });
+            this.cnnwebsocket.sendmessage("/server/cnnflowloading", data);
+        }
+    }
+
+    /**
+     * [WEBSOCKET SUBSCRIPTION CALLBACK]
+     * Called when server has successfully write + export flow into JSON file
+     * 1. Open success modal
+     * 2. Emit "manual-saving-completed" event
+    */
+    manualloadFlowLoaded = () : void => {
+        this.successmodalref.current.openmodal("FLOW HAS BEEN LOADED SUCCESSFULLY");
+        setImmediate(() => this.eventemitter.emit("manual-loading-completed"));
+    }
+    
+    /**
+     * [WEBSOCKET SUBSCRIPTION CALLBACK]
+     * Called when there is an exception during manual loading
+     * 1. Set "manualloadcancontinue" to false -> Will abort entire process
+     * 2. Emit all events used in manual saving -> Prevent asynchronous waiting forever
+     * 3. Get error message (reason) from server's response and open error modal
+     * @param response 
+    */
+     manualloadExceptionHandler = (response: IMessage) : void => {
+        this.manualloadcancontinue = false;
+        // emits the messages that manual load flow is waiting for
+        setImmediate(() => {
+            this.eventemitter.emit("manual-loading-completed");
+        });
+        let data = JSON.parse(response.body);
+        this.errormodalref.current.openmodal("FLOW LOADING ERROR", data.message);
+    }
 
     render = () => {
         return (
@@ -1199,6 +1306,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                             setnumberofelementstosend={this.setnumberofelementstosend}
                             sendnodedataforsaving={this.sendnodedataforsaving}
                             sendedgedataforsaving={this.sendedgedataforsaving}
+                            manualloadflow={this.manualloadflow}
                             manualsaveflow={this.manualsaveflow}
                             onNodeDoubleClick={this.onNodeDoubleClick}
                             ref={this.dndref}
