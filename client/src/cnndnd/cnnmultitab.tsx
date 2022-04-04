@@ -19,7 +19,7 @@ import {FlipImage, RotateImage, ResizeImage,
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
     generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
-    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel} from './cnnlayers' 
+    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2 } from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -141,7 +141,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
             generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
-            ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel
+            ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, 
+            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -359,7 +360,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
     restorenodeCurrentTab = (response: IMessage) : void => {
         let node = JSON.parse(response.body);
         let nodedata = node.node;
-        console.log(nodedata);
         this.dndref.current.restoreelementcurrenttab(nodedata);
     }
 
@@ -374,7 +374,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
      restoreedgeCurrentTab = (response: IMessage) : void => {
         let node = JSON.parse(response.body);
         let edgedata = node.edge;
-        console.log(edgedata);
         this.dndref.current.restoreelementcurrenttab(edgedata);
     }
 
@@ -695,7 +694,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 } else if (element.type === "LocalResponseNormalizationLayer") {
                     await this.processnodewithordering("/server/cnn/appendlocalresponsenormalizationlayer", element.id, element.data, ordering);
                     ordering++;
-                }else if (element.type === "SetInputType") {
+                } else if (element.type === "SetInputType") {
                     await this.processnode("/server/cnn/setinputtype", element.id, element.data);
                 } else if (element.type === "ConstructCNN") {
                     await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
@@ -740,7 +739,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/appendrnnoutputlayer", element.id, element.data);
                 } else if (element.type === "ConstructNetworkRNN") {
                     await this.processnode("/server/cnn/constructnetwork_rnn", element.id, element.data);
-                }else if (element.type === "TrainNN") {
+                } else if (element.type === "TrainNN") {
                     await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
                 } else if (element.type === "ValidateNN") {
                     await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
@@ -798,7 +797,9 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
                 } else if (element.type === "validation_segmentation") {
                     await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
-                } 
+                } else if (element.type === "ExportNN") {
+                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                }
             }
         }
 
@@ -820,24 +821,48 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         }
     }
 
+    // TO DO: Rewrite to reduce repeated code
     ConstructReTrainPretrainedModelFlowSequence = async () : Promise<any> => {
         let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("EditPretrainedStartNode");
         let cnnsequences : FlowElement[];
         if (cnnstartnodeId !== null) {
+            let cnntinyyolonode : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportTinyYolo");
+            let cnnyolo2node : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportYolo2");
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
-            for (let index = 0; index < cnnsequences.length; index ++) {
-                if (! this.seqcancontinue) return;
-                let element = cnnsequences[index];
-                if (element.type === "ImportTinyYolo") {
-                    await this.processnode("/server/cnn/importtinyyolo", element.id, element.data);
-                } else if (element.type === "LoadPretrainedModel") {
-                    await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
-                } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
-                    await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
-                } else if (element.type === "Train_Test_PretrainedModel") {
-                    await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
-                } else if (element.type === "ExportNN") {
-                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+            if(cnntinyyolonode != null && cnnyolo2node == null){
+                console.log("Im dancing in the rain");
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "ImportTinyYolo") {
+                        await this.processnode("/server/cnn/importtinyyolo", element.id, element.data);
+                    } else if (element.type === "LoadPretrainedModel") {
+                        await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
+                        await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
+                    } else if (element.type === "Train_Test_PretrainedModel") {
+                        await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                }
+            }
+            else if(cnnyolo2node != null && cnntinyyolonode == null){
+                console.log("Im not dancing in the rain");
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "ImportYolo2") {
+                        await this.processnode("/server/cnn/importyolo2", element.id, element.data);
+                    } else if (element.type === "LoadPretrainedModel") {
+                        await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
+                        await this.processnode("/server/cnn/configtransferlearningodetectionyolo2", element.id, element.data);
+                    } else if (element.type === "Train_Test_PretrainedModel") {
+                        await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
                 }
             }
         }

@@ -59,7 +59,6 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     rfwrapperref : React.RefObject<any>;
     currentnodeId: number;
     flowindextosave: number;
-    flowindextoload: number;
 
     constructor(props: DNDTabsProps) {
         super(props);
@@ -73,7 +72,6 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
         this.rfwrapperref = React.createRef();
         this.currentnodeId = 0;
         this.flowindextosave = -1;
-        this.flowindextoload = -1;
     }
 
     /**
@@ -134,7 +132,6 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
     }
 
     restoreelementcurrenttab = (element: FlowElement) : void => {
-        console.log(element);
         if (this.state.activetab >= this.state.dndelements.length) {
             let numbertoadd = this.state.activetab - this.state.dndelements.length + 1;
             for (let counter = 0; counter < numbertoadd; counter++) {
@@ -171,7 +168,6 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
      * @param element - FlowElement object (node or edge)
     */
     addelement = (tabindex: number, element: FlowElement) : void => {
-        console.log(element);
         if(element === void 0) {
             alert("element is the special value `undefined`");
             return;
@@ -497,12 +493,10 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
 
     /**
      * Called when LOAD button is clicked
-     * 1. Update value of flowindextoload to tabindex
-     * 2. Open load modal and let users fill the directory and filname
+     * Open load modal and let users fill the directory and filname
      * @param tabindex - Index of flow tab which users wants to load previous flow     
      */
-    loadbtnOnClick = (tabindex:number) : void => {
-        this.flowindextoload = tabindex;
+    loadbtnOnClick = () : void => {
         this.openloadmodal();
     }
 
@@ -662,7 +656,7 @@ interface TabComponentProps {
     tabcansave: boolean;
     tabindex: number;
     tabOnclick: ((tabindex: number) => void);
-    loadbtnOnclick:((tabindex: number) => void);
+    loadbtnOnclick:(() => void);
     savebtnOnclick:((tabindex: number) => void);
     detelebtnOnclick: ((tabindex: number) => void);
 }
@@ -704,7 +698,7 @@ class TabComponent extends Component <TabComponentProps, TabComponentStates> {
      */
     loadbtnOnclick = (event: React.MouseEvent<HTMLElement>) : void => {
         event.stopPropagation();
-        this.props.loadbtnOnclick(this.props.tabindex);
+        this.props.loadbtnOnclick();
     }
 
     /**
@@ -755,8 +749,8 @@ class TabComponent extends Component <TabComponentProps, TabComponentStates> {
                     <div className='tab-component-menu'>
                         <Button block onClick={this.loadbtnOnclick}disabled={! this.props.tabcanload}>Load</Button>
                         <Button block onClick={this.savebtnOnclick} disabled={! this.props.tabcansave}>Save</Button>
-                        <Button block onClick={this.deletebtnOnclick} disabled={! this.props.tabcandelete}>Delete</Button>
-                        <Button block onClick={this.closebtnOnclick}>Close</Button>
+                        <Button block onClick={this.deletebtnOnclick} disabled={! this.props.tabcandelete}>Close</Button>
+                        <Button block onClick={this.closebtnOnclick}>hide</Button>
                     </div>
                 }
             </div>
@@ -818,8 +812,8 @@ class SaveFlowModal extends Component <SaveFlowModalProps, SaveFlowModalStates> 
      * 1. Reset value of directory and filename (state) 
      * 2. Invoke closemodal props callback function
     */
-    closebtnOnclick = () : void => {
-        this.setState({ directory: "C://Users/User/Desktop", filename: "testflowmanualsave" });
+    closebtnOnclick = (event: React.MouseEvent<HTMLElement>) : void => {
+        event.stopPropagation();
         this.props.closemodal();
     }
 
@@ -831,7 +825,7 @@ class SaveFlowModal extends Component <SaveFlowModalProps, SaveFlowModalStates> 
     */
     savebtnOnclick = () : void => {
         this.props.saveflow(this.state.directory, this.state.filename);
-        this.setState({ directory: "C://Users/Luke Yeo/Code/tests", filename: "testflowmanualsave" });
+        this.setState({ directory: "C://Users/User/Desktop", filename: "testflowmanualsave" });
         this.props.closemodal();
     }
 

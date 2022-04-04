@@ -955,4 +955,72 @@ export class Train_Test_PretrainedModel extends Component<NodeProps> {
     }
 }
 
+//ImportVgg16 node
+export class ImportVgg16 extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+//ImportVgg19 node
+export class ImportVgg19 extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+
+//ImportSqueezeNet node
+export class ImportSqueezeNet extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+//ImportYolo2 node
+export class ImportYolo2 extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
 
