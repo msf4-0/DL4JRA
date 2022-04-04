@@ -121,6 +121,14 @@ class CNNNodeService {
                 return this.prepareConfigTransferLearningNetwork_ODetection();
             case "Train_Test_PretrainedModel":
                 return this.prepareTrain_Test_PretrainedModel();
+            case "ImportVgg16":
+                return { name: "Import Vgg16"};
+            case "ImportVgg19":
+                return { name: "Import Vgg19"};
+            case "ImportSqueezeNet":
+                return { name: "Import SqueezeNet"};
+            case "ImportYolo2":
+                return { name: "Import Yolo2"};
             default:
                 return { name: nodetype };
         }
@@ -452,6 +460,8 @@ class CNNNodeService {
         let filename = "";
         return { name, path, filename };
     }
+
+
 }
 
 

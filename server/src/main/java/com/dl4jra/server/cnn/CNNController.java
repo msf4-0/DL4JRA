@@ -1410,6 +1410,28 @@ public class CNNController {
 	}
 
 	/**
+	 *  Configure Transfer Learning ODetection
+	 * @param data - CNN configuration data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configtransferlearningodetectionyolo2")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted ConfigTransferLearningODetectionYolo2(Mlconfigurationnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configTransferLearningNetwork_ODetection_Yolo2(data.getLearningrate());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for object detection done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to configure transfer learning for object detection!", data.getNodeId());
+		}
+	}
+
+	/**
 	 * Train_Test_PretrainedModel
 	 * @param data - Trainnetworknode data since it has epoch attribute
 	 * @return ProcessCompleted message
@@ -1429,6 +1451,96 @@ public class CNNController {
 		}
 		catch (ExecutionException Ee){
 			return null;
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+
+
+	/**
+	 * Import Pretrained Model (VGG16)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importvgg16")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importvgg16(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importvgg16();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (VGG16) completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Import Pretrained Model (VGG19)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importvgg19")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importvgg19(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importvgg19();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (VGG19) completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Import Pretrained Model (SqueezeNet)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importsqueezenet")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importsqueezenet(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importSqueezeNet();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (SqueezeNet) completed");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
+	 * Import Pretrained Model (YOLO2)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/importyolo2")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted importyolo2(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.importYolo2();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Importing pre trained model (YOLO2) completed");
 		}
 		catch (Exception exception)
 		{

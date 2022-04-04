@@ -240,6 +240,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     {/* EditPretrainedStartNode */}
                     <ToolboxNode nodetype="EditPretrainedStartNode" nodename=" StartNode (S) " />
 
+
                     {/* ImportTinyYolo */}
                     <ToolboxNode nodetype="ImportTinyYolo" nodename="Import New TinyYolo" />
 
@@ -251,6 +252,19 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     
                      {/* Train_Test_PretrainedModel */}
                      <ToolboxNode nodetype="Train_Test_PretrainedModel" nodename=" Train & Test" />
+
+                    <div className="description">MODELS</div>
+                    {/* ImportVgg16 */}
+                    <ToolboxNode nodetype="ImportVgg16" nodename="Import Vgg16" />
+
+                    {/* ImportVgg19 */}
+                    <ToolboxNode nodetype="ImportVgg19" nodename="Import Vgg19" />
+
+                    {/* ImportSqueezeNet */}
+                    <ToolboxNode nodetype="ImportSqueezeNet" nodename="Import SqueezeNet" />
+
+                    {/* ImportYolo2 */}
+                    <ToolboxNode nodetype="ImportYolo2" nodename="Import Yolo2" />
                     
                     </div>
             </aside>
@@ -283,3 +297,4 @@ class ToolboxNode extends Component <ToolboxNodeProps, {}> {
         )
     }
 }
+

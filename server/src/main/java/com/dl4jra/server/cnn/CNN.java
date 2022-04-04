@@ -1,14 +1,19 @@
 package com.dl4jra.server.cnn;
 
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+import com.dl4jra.server.cnn.utilities.Visualization;
 import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
+import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
@@ -29,8 +34,7 @@ import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
-import org.deeplearning4j.zoo.model.TinyYOLO;
-import org.deeplearning4j.zoo.model.UNet;
+import org.deeplearning4j.zoo.model.*;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.buffer.DataType;
@@ -67,6 +71,9 @@ public class CNN {
 
 	private RecordReaderDataSetIterator trainGenerator;
 	private RecordReaderDataSetIterator validationGenerator;
+
+	// Zoomodel for access to model zoo
+	private ZooModel zooModel;
 
 	// Default values for segmentation Image record reader
 	private int segHeight;
@@ -150,9 +157,6 @@ public class CNN {
 			return null;
 		}
 	}
-
-
-
 
 	public class FlipTrainingDataset implements Callable<Void> {
 		private int flipmode;
@@ -578,6 +582,9 @@ public class CNN {
 			System.out.println(s);
 			while(ValidationDatasetIterator.hasNext())
 			{
+				if (Thread.currentThread().isInterrupted()){
+					break;
+				}
 				testDataSet = ValidationDatasetIterator.next();
 				INDArray[] predicted = computationGraph.output(testDataSet.getFeatures());
 				INDArray labels = testDataSet.getLabels();
@@ -893,13 +900,10 @@ public class CNN {
 
 	// SEGMENTATION
 
-	ZooModel zooModel;
-	ComputationGraph unet, constructedModel;
+
 
 	public void importPretrainedModel() throws IOException {
-		zooModel = UNet.builder().build();
-
-		unet = (ComputationGraph) zooModel.initPretrained(PretrainedType.SEGMENT);
+		pretrained = (ComputationGraph) UNet.builder().build().initPretrained(PretrainedType.SEGMENT);
 //		System.out.println(unet.summary());
 	}
 
@@ -922,7 +926,7 @@ public class CNN {
 	public void configureTranferLearning( String featurizeExtractionLayer, String vertexName,
 										  String nInName, int nIn, WeightInit nInWeightInit,
 										  String nOutName, int nOut, WeightInit nOutWeightInit){
-		this.cnnconfig.configureTransferLearning(unet, featurizeExtractionLayer, vertexName, nInName, nIn, nInWeightInit,
+		this.cnnconfig.configureTransferLearning(pretrained, featurizeExtractionLayer, vertexName, nInName, nIn, nInWeightInit,
 				nOutName, nOut, nOutWeightInit);
 	}
 
@@ -936,7 +940,7 @@ public class CNN {
 	}
 
 	public void build_TransferLearning(){
-		constructedModel = this.cnnconfig.build_TransferLearning();
+		computationGraph = this.cnnconfig.build_TransferLearning();
 	}
 
 
@@ -981,15 +985,16 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
-			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, constructedModel);
+			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, computationGraph);
 			return null;
 		}
 	}
 
+
 	public class validation_segmentation implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
-			TrainingDatasetGenerator.validation_segmentation(validationGenerator, constructedModel);
+			TrainingDatasetGenerator.validation_segmentation(validationGenerator, computationGraph);
 			return null;
 		}
 	}
@@ -1074,7 +1079,44 @@ public class CNN {
 						"conv2d_9")
 				.setOutputs("outputs")
 				.build();
+	}
 
+	public void configTransferLearningNetwork_ODetection_Yolo2(double learningRate){
+		FineTuneConfiguration fineTuneConfiguration = new FineTuneConfiguration.Builder()
+				.seed(seed)
+				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
+				.gradientNormalization(GradientNormalization.RenormalizeL2PerLayer)
+				.gradientNormalizationThreshold(1.0)
+				.updater(new Adam.Builder().learningRate(learningRate).build())
+				.l2(0.00001)
+				.activation(Activation.IDENTITY)
+				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
+				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
+				.build();
+
+		computationGraph = new TransferLearning.GraphBuilder(pretrained)
+				.fineTuneConfiguration(fineTuneConfiguration)
+				.removeVertexKeepConnections("conv2d_23")
+				.removeVertexKeepConnections("outputs")
+				.addLayer("conv2d_23",
+						new ConvolutionLayer.Builder(1, 1 )
+								.nIn(1024)
+								.nOut(5 * (5 + trainGenerator.getLabels().size()))
+								.stride(1, 1)
+								.convolutionMode(ConvolutionMode.Same)
+								.weightInit(WeightInit.XAVIER)
+								.activation(Activation.IDENTITY)
+								.build(),
+						"leaky_re_lu_22")
+				.addLayer("outputs",
+						new Yolo2OutputLayer.Builder()
+								.lambdaNoObj(0.5)
+								.lambdaCoord(5.0)
+								.boundingBoxPriors(priors.castTo(DataType.FLOAT))
+								.build(),
+						"conv2d_23")
+				.setOutputs("outputs")
+				.build();
 	}
 
 //	public void evaluate_TINYYOLO(int epochs) throws Exception {
@@ -1179,4 +1221,39 @@ public class CNN {
 		}
 		return mat;
 	}
+
+
+	/**
+	 * NEW MODELS
+	 */
+
+
+	public void importvgg16() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
+		this.pretrained  = (ComputationGraph) VGG16.builder().build().initPretrained();
+	}
+
+	public void importvgg19() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
+		this.pretrained  = (ComputationGraph) VGG19.builder().build().initPretrained();
+	}
+
+	public void importSqueezeNet() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
+		this.pretrained = (ComputationGraph) SqueezeNet.builder().build().initPretrained();
+	}
+
+	public void importYolo2() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
+		this.pretrained = (ComputationGraph) YOLO2.builder().build().initPretrained();
+	}
+
 }
