@@ -737,7 +737,6 @@ public class CNN {
 		private final int epochs;
 		private final int scoreListener;
 		private final SimpMessagingTemplate template;
-
 		/**
 		 * Training (Respond using Websocket)
 		 * @param epochs - Number of epoch for network training
@@ -752,6 +751,7 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
+			System.out.println(TrainingDatasetIterator.getLabels().size());
 
 			if (TrainingDatasetIterator == null) {
 				throw new Exception("Training dataset not set");
@@ -761,26 +761,29 @@ public class CNN {
 			}
 
 			// start ui server
-			UIServer uiServer = UIServer.getInstance();
+			System.out.println("Starting UI server");
+//			UIServer uiServer = UIServer.getInstance();
 			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-			uiServer.attach(statsStorage);
+//			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
 			if(Desktop.isDesktopSupported())
 			{
-				Desktop.getDesktop().browse(new URI("http://localhost:9000"));
+				Desktop.getDesktop(
+				).browse(new URI("http://localhost:9000"));
 			}
 
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
 			for (int counter = 0; counter < epochs; counter++) {
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
-					uiServer.detach(statsStorage);
-					statsStorage.close();
-					System.out.println("stopping ui server");
-					uiServer.stop();
+//					uiServer.detach(statsStorage);
+//					statsStorage.close();
+//					System.out.println("stopping ui server");
+//					uiServer.stop();
 					break;
 				}
 
 				if(multiLayerNetwork != null) {
+					System.out.println("Starting Training");
 					if (ValidationDatasetIterator != null){
 						multiLayerNetwork.setListeners(
 								new ScoreIterationListener(scoreListener),
@@ -802,13 +805,12 @@ public class CNN {
 						template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 					}
 				}
-				System.out.println(computationGraph != null);
 				if(computationGraph != null) {
+					System.out.println("Starting Training");
 					computationGraph.setListeners(
 							new ScoreIterationListener((scoreListener)),
 							new StatsListener(statsStorage, 5)
 					);
-					System.out.println("Starting Training");
 					computationGraph.fit(TrainingDatasetIterator);
 					System.out.println("After fit");
 					TrainingDatasetIterator.reset();
@@ -819,10 +821,10 @@ public class CNN {
 					}
 				}
 			}
-			uiServer.detach(statsStorage);
+//			uiServer.detach(statsStorage);
 			statsStorage.close();
 			System.out.println("stopping ui server");
-			uiServer.stop();
+//			uiServer.stop();
 			return null;
 		}
 	}
@@ -1084,6 +1086,7 @@ public class CNN {
 				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
 				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
 				.build();
+//								.nOut(5 * (5 + trainGenerator.getLabels().size()))
 
 		computationGraph = new TransferLearning.GraphBuilder(pretrained)
 				.fineTuneConfiguration(fineTuneConfiguration)
@@ -1092,7 +1095,7 @@ public class CNN {
 				.addLayer("conv2d_9",
 						new ConvolutionLayer.Builder(1, 1 )
 								.nIn(1024)
-								.nOut(5 * (5 + trainGenerator.getLabels().size()))
+								.nOut(5 * (5 + TrainingDatasetIterator.getLabels().size()))
 								.stride(1, 1)
 								.convolutionMode(ConvolutionMode.Same)
 								.weightInit(WeightInit.XAVIER)
@@ -1108,6 +1111,8 @@ public class CNN {
 						"conv2d_9")
 				.setOutputs("outputs")
 				.build();
+		this.networkconstructed = true;
+
 	}
 
 	/**
@@ -1127,6 +1132,8 @@ public class CNN {
 				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
 				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
 				.build();
+//
+//								.nOut(5 * (5 + trainGenerator.getLabels().size()))
 
 		computationGraph = new TransferLearning.GraphBuilder(pretrained)
 				.fineTuneConfiguration(fineTuneConfiguration)
@@ -1135,7 +1142,7 @@ public class CNN {
 				.addLayer("conv2d_23",
 						new ConvolutionLayer.Builder(1, 1 )
 								.nIn(1024)
-								.nOut(5 * (5 + trainGenerator.getLabels().size()))
+								.nOut(5 * (5 + TrainingDatasetIterator.getLabels().size()))
 								.stride(1, 1)
 								.convolutionMode(ConvolutionMode.Same)
 								.weightInit(WeightInit.XAVIER)
@@ -1151,6 +1158,8 @@ public class CNN {
 						"conv2d_23")
 				.setOutputs("outputs")
 				.build();
+		this.networkconstructed = true;
+
 	}
 
 //	public void evaluate_TINYYOLO(int epochs) throws Exception {
@@ -1256,12 +1265,10 @@ public class CNN {
 		return mat;
 	}
 
-
-
 	public void configTransferLearningNetwork_vgg(double learningRate){
 		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
 		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
-				.updater(new Nesterovs(5e-5))
+				.updater(new Adam.Builder().learningRate(learningRate).build())
 				.seed(seed)
 				.build();
 
@@ -1272,21 +1279,23 @@ public class CNN {
 				.removeVertexKeepConnections("predictions")
 				.addLayer("predictions",
 						new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
-								.nIn(4096).nOut(trainGenerator.getLabels().size())
+								.nIn(4096).nOut(TrainingDatasetIterator.getLabels().size())
 								.weightInit(WeightInit.XAVIER)
 								.activation(Activation.SOFTMAX).build(),
 						"fc2")
 				.build();
-	};
+		this.networkconstructed = true;
+	}
 
 	public void configTransferLearningNetwork_squeezenet(double learningRate){
 		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
+
+//						.updater(new Nesterovs(5e-5))
 		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
-				.updater(new Nesterovs(5e-5))
+				.updater(new Adam.Builder().learningRate(learningRate).build())
 				.seed(seed)
 				.build();
-
-		ComputationGraph squeezeNetTransfer = new TransferLearning.GraphBuilder(computationGraph)
+		computationGraph = new TransferLearning.GraphBuilder(this.pretrained)
 				.fineTuneConfiguration(fineTuneCOnf)
 				.setFeatureExtractor("drop9")
 				.removeVertexKeepConnections("conv10")
@@ -1294,7 +1303,7 @@ public class CNN {
 				.removeVertexAndConnections("global_average_pooling2d_5")
 				.removeVertexAndConnections("loss")
 				.addLayer("conv10",
-						new ConvolutionLayer.Builder(1,1).nIn(512).nOut(trainGenerator.getLabels().size())
+						new ConvolutionLayer.Builder(1,1).nIn(512).nOut(TrainingDatasetIterator.getLabels().size())
 								.build(),
 						"drop9")
 				.addLayer("conv10_act", new ActivationLayer(Activation.RELU), "conv10")
@@ -1303,7 +1312,8 @@ public class CNN {
 				.addLayer("loss", new LossLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD).build(), "softmax")
 				.setOutputs("loss")
 				.build();
-	};
+		this.networkconstructed = true;
+	}
 
 
 
@@ -1314,30 +1324,18 @@ public class CNN {
 
 
 	public void importvgg16() throws IOException {
-		seed = 123;
-		Nd4j.getRandom().setSeed(seed);
-		priors = Nd4j.create(priorBoxes);
 		this.pretrained  = (ComputationGraph) VGG16.builder().build().initPretrained();
 	}
 
 	public void importvgg19() throws IOException {
-		seed = 123;
-		Nd4j.getRandom().setSeed(seed);
-		priors = Nd4j.create(priorBoxes);
 		this.pretrained  = (ComputationGraph) VGG19.builder().build().initPretrained();
 	}
 
 	public void importSqueezeNet() throws IOException {
-		seed = 123;
-		Nd4j.getRandom().setSeed(seed);
-		priors = Nd4j.create(priorBoxes);
 		this.pretrained = (ComputationGraph) SqueezeNet.builder().build().initPretrained();
 	}
 
 	public void importYolo2() throws IOException {
-		seed = 123;
-		Nd4j.getRandom().setSeed(seed);
-		priors = Nd4j.create(priorBoxes);
 		this.pretrained = (ComputationGraph) YOLO2.builder().build().initPretrained();
 	}
 
