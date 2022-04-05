@@ -19,7 +19,7 @@ import {FlipImage, RotateImage, ResizeImage,
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
     generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
-    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2 } from './cnnlayers' 
+    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification } from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -142,7 +142,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
             ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, 
-            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2
+            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -672,39 +672,105 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("CNNStartNode");
         let cnnsequences : FlowElement[];
         if (cnnstartnodeId !== null) {
+            let importVgg16 : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportVgg16");
+            let importVgg19 : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportVgg19");
+            let importsqueezenet : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportSqueezeNet")
+            let cnnconfiguration : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("CNNConfiguration")
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
-            let ordering = 0;
-            for (let index = 0; index < cnnsequences.length; index ++) {
-                if (! this.seqcancontinue) return;
-                let element = cnnsequences[index];
-                if (element.type === "CNNConfiguration") {
-                    await this.processnode("/server/cnn/initializeconfiguration", element.id, element.data);
-                } else if (element.type === "ConvolutionLayer") {
-                    await this.processnodewithordering("/server/cnn/appendconvolutionlayer", element.id, element.data, ordering);
-                    ordering ++;
-                } else if (element.type === "SubsamplingLayer") {
-                    await this.processnodewithordering("/server/cnn/appendsubsamplinglayer", element.id, element.data, ordering);
-                    ordering++;
-                } else if (element.type === "DenseLayer") {
-                    await this.processnodewithordering("/server/cnn/appenddenselayer", element.id, element.data, ordering);
-                    ordering++;
-                } else if (element.type === "OutputLayer") {
-                    await this.processnodewithordering("/server/cnn/appendoutputlayer", element.id, element.data, ordering);
-                    ordering++;
-                } else if (element.type === "LocalResponseNormalizationLayer") {
-                    await this.processnodewithordering("/server/cnn/appendlocalresponsenormalizationlayer", element.id, element.data, ordering);
-                    ordering++;
-                } else if (element.type === "SetInputType") {
-                    await this.processnode("/server/cnn/setinputtype", element.id, element.data);
-                } else if (element.type === "ConstructCNN") {
-                    await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
-                } else if (element.type === "TrainNN") {
-                    await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
-                } else if (element.type === "ValidateNN") {
-                    await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
-                } else if (element.type === "ExportNN") {
-                    await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+            if(cnnconfiguration !== null ){
+                let ordering = 0;
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "CNNConfiguration") {
+                        await this.processnode("/server/cnn/initializeconfiguration", element.id, element.data);
+                    } else if (element.type === "ConvolutionLayer") {
+                        await this.processnodewithordering("/server/cnn/appendconvolutionlayer", element.id, element.data, ordering);
+                        ordering ++;
+                    } else if (element.type === "SubsamplingLayer") {
+                        await this.processnodewithordering("/server/cnn/appendsubsamplinglayer", element.id, element.data, ordering);
+                        ordering++;
+                    } else if (element.type === "DenseLayer") {
+                        await this.processnodewithordering("/server/cnn/appenddenselayer", element.id, element.data, ordering);
+                        ordering++;
+                    } else if (element.type === "OutputLayer") {
+                        await this.processnodewithordering("/server/cnn/appendoutputlayer", element.id, element.data, ordering);
+                        ordering++;
+                    } else if (element.type === "LocalResponseNormalizationLayer") {
+                        await this.processnodewithordering("/server/cnn/appendlocalresponsenormalizationlayer", element.id, element.data, ordering);
+                        ordering++;
+                    } else if (element.type === "SetInputType") {
+                        await this.processnode("/server/cnn/setinputtype", element.id, element.data);
+                    } else if (element.type === "ConstructCNN") {
+                        await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "ValidateNN") {
+                        await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                    
                 }
+                return;
+            }
+            else if (importVgg16 != null){
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "ImportVgg16") {
+                        await this.processnode("/server/cnn/importvgg16", element.id, element.data);
+                    } else if (element.type === "ConfigTransferLearning_IClassification") {
+                        await this.processnode("/server/cnn/configurevgg", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "ValidateNN") {
+                        await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                    
+                }
+                return;
+            }
+
+            else if (importVgg19 != null){
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "ImportVgg19") {
+                        await this.processnode("/server/cnn/importvgg19", element.id, element.data);
+                    } else if (element.type === "ConfigTransferLearning_IClassification") {
+                        await this.processnode("/server/cnn/configurevgg", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "ValidateNN") {
+                        await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                    
+                }
+                return;
+            }
+            else if (importsqueezenet != null){
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "ImportSqueezeNet") {
+                        await this.processnode("/server/cnn/importsqueezenet", element.id, element.data);
+                    } else if (element.type === "ConfigTransferLearning_IClassification") {
+                        await this.processnode("/server/cnn/configuresqueezenet", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "ValidateNN") {
+                        await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                    
+                }
+                return;
             }
         }
     }
@@ -821,7 +887,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         }
     }
 
-    // TO DO: Rewrite to reduce repeated code
+    // TODO: Rewrite to reduce repeated code
     ConstructReTrainPretrainedModelFlowSequence = async () : Promise<any> => {
         let cnnstartnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("EditPretrainedStartNode");
         let cnnsequences : FlowElement[];

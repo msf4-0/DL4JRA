@@ -20,7 +20,7 @@ import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
 import org.deeplearning4j.nn.conf.RNNFormat;
 import org.deeplearning4j.nn.conf.WorkspaceMode;
-import org.deeplearning4j.nn.conf.layers.ConvolutionLayer;
+import org.deeplearning4j.nn.conf.layers.*;
 import org.deeplearning4j.nn.conf.layers.SubsamplingLayer.PoolingType;
 import org.deeplearning4j.nn.conf.layers.objdetect.Yolo2OutputLayer;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -32,6 +32,9 @@ import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.optimize.api.InvocationType;
 import org.deeplearning4j.optimize.listeners.EvaluativeListener;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
+import org.deeplearning4j.ui.api.UIServer;
+import org.deeplearning4j.ui.model.stats.StatsListener;
+import org.deeplearning4j.ui.model.storage.FileStatsStorage;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.*;
@@ -43,6 +46,8 @@ import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
+import org.nd4j.linalg.learning.config.Nesterovs;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -475,7 +480,7 @@ public class CNN {
 										ConvolutionMode convolutionMode) throws Exception {
 		this.cnnconfig.AppendSubsamplingLayer(ordering, kernalx, kernaly, stridex, stridey, paddingx, paddingy, poolingType, convolutionMode);
 	}
-	
+
 	/**
 	 * Append dense layer
 	 * @param ordering - Ordering of layer
@@ -754,10 +759,24 @@ public class CNN {
 			if (!networkconstructed) {
 				throw new Exception("Neural network is not constructed");
 			}
+
+			// start ui server
+			UIServer uiServer = UIServer.getInstance();
+			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			uiServer.attach(statsStorage);
+			if(Desktop.isDesktopSupported())
+			{
+				Desktop.getDesktop().browse(new URI("http://localhost:9000"));
+			}
+
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
 			for (int counter = 0; counter < epochs; counter++) {
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
 					break;
 				}
 
@@ -765,12 +784,14 @@ public class CNN {
 					if (ValidationDatasetIterator != null){
 						multiLayerNetwork.setListeners(
 								new ScoreIterationListener(scoreListener),
-								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+								new StatsListener(statsStorage, 5)
 						);
 					}
 					else{
 						multiLayerNetwork.setListeners(
-								new ScoreIterationListener(scoreListener)
+								new ScoreIterationListener(scoreListener),
+								new StatsListener(statsStorage, 5)
 						);
 					}
 					TrainingDatasetIterator.reset();
@@ -783,6 +804,10 @@ public class CNN {
 				}
 				System.out.println(computationGraph != null);
 				if(computationGraph != null) {
+					computationGraph.setListeners(
+							new ScoreIterationListener((scoreListener)),
+							new StatsListener(statsStorage, 5)
+					);
 					System.out.println("Starting Training");
 					computationGraph.fit(TrainingDatasetIterator);
 					System.out.println("After fit");
@@ -794,6 +819,10 @@ public class CNN {
 					}
 				}
 			}
+			uiServer.detach(statsStorage);
+			statsStorage.close();
+			System.out.println("stopping ui server");
+			uiServer.stop();
 			return null;
 		}
 	}
@@ -1081,6 +1110,11 @@ public class CNN {
 				.build();
 	}
 
+	/**
+	 *
+	 * NEW FEATURES THAT SHOULD BE REFACTORED
+	 */
+	//
 	public void configTransferLearningNetwork_ODetection_Yolo2(double learningRate){
 		FineTuneConfiguration fineTuneConfiguration = new FineTuneConfiguration.Builder()
 				.seed(seed)
@@ -1223,7 +1257,58 @@ public class CNN {
 	}
 
 
+
+	public void configTransferLearningNetwork_vgg(double learningRate){
+		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
+		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
+				.updater(new Nesterovs(5e-5))
+				.seed(seed)
+				.build();
+
+		// STEP 3: Build the neural network configuration by using ComputationGraph
+		computationGraph = new TransferLearning.GraphBuilder(this.pretrained)
+				.fineTuneConfiguration(fineTuneCOnf)
+				.setFeatureExtractor("fc2")
+				.removeVertexKeepConnections("predictions")
+				.addLayer("predictions",
+						new OutputLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD)
+								.nIn(4096).nOut(trainGenerator.getLabels().size())
+								.weightInit(WeightInit.XAVIER)
+								.activation(Activation.SOFTMAX).build(),
+						"fc2")
+				.build();
+	};
+
+	public void configTransferLearningNetwork_squeezenet(double learningRate){
+		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
+		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
+				.updater(new Nesterovs(5e-5))
+				.seed(seed)
+				.build();
+
+		ComputationGraph squeezeNetTransfer = new TransferLearning.GraphBuilder(computationGraph)
+				.fineTuneConfiguration(fineTuneCOnf)
+				.setFeatureExtractor("drop9")
+				.removeVertexKeepConnections("conv10")
+				.removeVertexAndConnections("relu10")
+				.removeVertexAndConnections("global_average_pooling2d_5")
+				.removeVertexAndConnections("loss")
+				.addLayer("conv10",
+						new ConvolutionLayer.Builder(1,1).nIn(512).nOut(trainGenerator.getLabels().size())
+								.build(),
+						"drop9")
+				.addLayer("conv10_act", new ActivationLayer(Activation.RELU), "conv10")
+				.addLayer("global_avg_pool", new GlobalPoolingLayer(org.deeplearning4j.nn.conf.layers.PoolingType.AVG), "conv10_act")
+				.addLayer("softmax", new ActivationLayer(Activation.SOFTMAX), "global_avg_pool")
+				.addLayer("loss", new LossLayer.Builder(LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD).build(), "softmax")
+				.setOutputs("loss")
+				.build();
+	};
+
+
+
 	/**
+	 *
 	 * NEW MODELS
 	 */
 

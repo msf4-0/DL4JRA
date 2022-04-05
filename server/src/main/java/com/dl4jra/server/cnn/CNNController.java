@@ -1549,6 +1549,51 @@ public class CNNController {
 	}
 
 	/**
+	 * Configure Pretrained Model (VGG)
+	 * @param data
+	 * @return
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configurevgg")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted configurevgg(Mlconfigurationnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configTransferLearningNetwork_vgg(data.getLearningrate());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for image classification done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to configure transfer learning for image classification!", data.getNodeId());
+		}
+	}
+	/**
+	 * Configure Pretrained Model (SqueezeNet)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/configuresqueezenet")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted configuresqueezenet(Mlconfigurationnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.configTransferLearningNetwork_squeezenet(data.getLearningrate());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for image classification done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to configure transfer learning for image classification!", data.getNodeId());
+		}
+	}
+
+
+
+	/**
 	 * Abort cnn training process, called when user aborts training process
 	 * on the front end.
 	 *
