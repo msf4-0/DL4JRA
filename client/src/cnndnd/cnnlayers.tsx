@@ -1024,3 +1024,20 @@ export class ImportYolo2 extends Component<NodeProps> {
     }
 }
 
+//ConfigTransferLearning_IClassification node
+export class ConfigTransferLearning_IClassification extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+

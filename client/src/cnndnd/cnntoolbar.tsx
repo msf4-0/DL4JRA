@@ -102,14 +102,17 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 {/* SECTION FOR CONVOLUTIONAL NEURAL NETWORK (Multilayer configuration) */}
                 <div style={{ margin: 5, padding: 5, }}>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
-                    <div className='description'>MultiLayer</div>
+                    {/* <div className='description'>MultiLayer</div> */}
+                    <div className='description'>Image classification</div>
                     <div className='description'>Configuration Network</div>
                     
                     {/* CNN START NODE */}
                     <ToolboxNode nodetype="CNNStartNode" nodename="MulitiLayer (S)" />
 
                     {/* CNN CONFIGURATION */}
-                    <ToolboxNode nodetype="CNNConfiguration" nodename="MultiLayer Config" />
+                    {/* <ToolboxNode nodetype="CNNConfiguration" nodename="MultiLayer Config" /> */}
+                    <ToolboxNode nodetype="CNNConfiguration" nodename="Image classification Config" />
+
 
                     {/* CONVOLUTION LAYER */}
                     <ToolboxNode nodetype="ConvolutionLayer" nodename="Convolutional" />
@@ -265,6 +268,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                     {/* ImportYolo2 */}
                     <ToolboxNode nodetype="ImportYolo2" nodename="Import Yolo2" />
+
+                    {/* ConfigTransferLearning_IClassification */}
+                    <ToolboxNode nodetype="ConfigTransferLearning_IClassification" nodename="Config Transfer Learning IClassification" />
                     
                     </div>
             </aside>

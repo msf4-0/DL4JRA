@@ -117,7 +117,7 @@ export default class DragNDropTabs extends Component <DNDTabsProps, DNDTabsState
      * remove all elements in the current tab
      */
     removeelementscurrenttab = () : void => {
-        if (this.state.dndelements[this.state.activetab].length != 0){
+        if (this.state.dndelements[this.state.activetab].length !== 0){
             this.setState (
                 {
                     dndelements: 
