@@ -1591,6 +1591,11 @@ public class CNNController {
 		}
 	}
 
+	// Load Csv Data
+
+	// Configure Csv Data
+	// Normalize Csv Data?
+
 
 
 	/**

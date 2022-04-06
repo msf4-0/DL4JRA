@@ -84,6 +84,12 @@ public class CNN {
 	private int segHeight;
 	private int segWidth;
 
+	// Test and train dataset for csv
+	private DataSet trainDataCsv;
+	private DataSet testDataCsv;
+
+
+
 	// Constructor
 	public CNN() {
 		this.multiLayerNetwork = null;
@@ -762,9 +768,9 @@ public class CNN {
 
 			// start ui server
 			System.out.println("Starting UI server");
-//			UIServer uiServer = UIServer.getInstance();
+			UIServer uiServer = UIServer.getInstance();
 			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-//			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
+			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
 			if(Desktop.isDesktopSupported())
 			{
 				Desktop.getDesktop(
@@ -775,15 +781,14 @@ public class CNN {
 			for (int counter = 0; counter < epochs; counter++) {
 				// Check if the current thread is interrupted, if so, break the loop.
 				if (Thread.currentThread().isInterrupted()){
-//					uiServer.detach(statsStorage);
-//					statsStorage.close();
-//					System.out.println("stopping ui server");
-//					uiServer.stop();
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
 					break;
 				}
 
 				if(multiLayerNetwork != null) {
-					System.out.println("Starting Training");
 					if (ValidationDatasetIterator != null){
 						multiLayerNetwork.setListeners(
 								new ScoreIterationListener(scoreListener),
@@ -806,7 +811,6 @@ public class CNN {
 					}
 				}
 				if(computationGraph != null) {
-					System.out.println("Starting Training");
 					computationGraph.setListeners(
 							new ScoreIterationListener((scoreListener)),
 							new StatsListener(statsStorage, 5)
@@ -821,10 +825,10 @@ public class CNN {
 					}
 				}
 			}
-//			uiServer.detach(statsStorage);
+			uiServer.detach(statsStorage);
 			statsStorage.close();
 			System.out.println("stopping ui server");
-//			uiServer.stop();
+			uiServer.stop();
 			return null;
 		}
 	}
@@ -1268,7 +1272,7 @@ public class CNN {
 	public void configTransferLearningNetwork_vgg(double learningRate){
 		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
 		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
-				.updater(new Adam.Builder().learningRate(learningRate).build())
+				.updater(new Nesterovs(learningRate, Nesterovs.DEFAULT_NESTEROV_MOMENTUM))
 				.seed(seed)
 				.build();
 
@@ -1338,5 +1342,11 @@ public class CNN {
 	public void importYolo2() throws IOException {
 		this.pretrained = (ComputationGraph) YOLO2.builder().build().initPretrained();
 	}
+
+//	public void loadandCSVData(String path, int labelIndex, int numberLabels, float fractionTrain) throws IOException, InterruptedException {
+//		this.TrainingDatasetGenerator.LoadandConfigureCSVData(path, labelIndex, numberLabels, fractionTrain);
+//	}
+
+
 
 }
