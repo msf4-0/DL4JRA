@@ -55,16 +55,22 @@ public class CnnTest {
 			CNN cnn = new CNN();
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
-//
-			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\train",
-					"E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\test");
-			cnn.generateDataIteratorObjectDetection(16);
+			// CSV DatasetGenerator Test
 
-			cnn.importTinyYolo();
-//			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
-			cnn.configTransferLearningNetwork_ODetection(1e-4);
-//			cnn.evaluate_TINYYOLO(40);
-			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2_0");
+			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
+
+			cnn.ConfigureCsvData();
+//
+
+//			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\train",
+//					"E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\test");
+//			cnn.generateDataIteratorObjectDetection(16);
+//
+//			cnn.importTinyYolo();
+////			cnn.LoadModal("E:\\SHRDC\\models\\TINYYOLO.zip");
+//			cnn.configTransferLearningNetwork_ODetection(1e-4);
+////			cnn.evaluate_TINYYOLO(40);
+//			cnn.SaveModal("E:\\SHRDC\\models", "TINYYOLO2_0");
 //			cnn.TrainNetwork(epochs, scorelistener);
 //			cnn.ValidateNetwork();
 

@@ -235,8 +235,25 @@ export class LoadDataset extends Component<NodeProps> {
     }
 }
 
-// LoadDataset node
+// General node for loading dataset
 export class LoadDatasetCSV extends Component<NodeProps> {
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.TrainingDataset, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.TrainingDataset, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
+// LoadDataset node
+export class LoadCsvDataGeneral extends Component<NodeProps> {
     render = () => {
         return (
             <div 

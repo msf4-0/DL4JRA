@@ -7,15 +7,18 @@ import java.nio.file.Paths;
 import java.util.*;
 
 import com.dl4jra.server.cnn.utilities.Visualization;
-import com.dl4jra.server.cnn.utilities.Visualization;
 import com.dl4jra.server.cnn.utilities.VocLabelProvider;
 import org.datavec.api.io.filters.BalancedPathFilter;
 import org.datavec.api.io.labels.ParentPathLabelGenerator;
+import org.datavec.api.records.reader.RecordReader;
 import org.datavec.api.records.reader.SequenceRecordReader;
+import org.datavec.api.records.reader.impl.collection.CollectionRecordReader;
+import org.datavec.api.records.reader.impl.csv.CSVRecordReader;
 import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.datavec.api.split.InputSplit;
 import org.datavec.api.split.NumberedFileInputSplit;
+import org.datavec.api.writable.Writable;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
 import org.datavec.image.recordreader.ImageRecordReader;
@@ -26,16 +29,17 @@ import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
 import org.deeplearning4j.ui.model.storage.FileStatsStorage;
+import org.nd4j.common.io.ClassPathResource;
 import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
-import org.nd4j.shade.guava.base.Equivalence;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.slf4j.Logger;
-import org.springframework.beans.factory.annotation.Autowired;
 
 import java.awt.Desktop;
 import java.net.URI;
@@ -43,13 +47,10 @@ import java.net.URI;
 import javax.swing.*;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.model.stats.StatsListener;
-import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
 import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 
 
-
-import static java.lang.Math.floor;
 import static java.lang.Math.min;
 import static org.bytedeco.opencv.global.opencv_imgproc.CV_RGB2GRAY;
 
@@ -76,8 +77,25 @@ public class CNNDatasetGenerator {
 	private static final Logger log = org.slf4j.LoggerFactory.getLogger(
 			CNNDatasetGenerator.class);
 
+
 	RecordReaderDataSetIterator trainIter, testIter;
 	private Path trainDirAddress, testDirAddress;
+
+	// move and restructure
+	private CSVRecordReader csvRecordReader;
+	private DataSet trainCsvData;
+	private DataSet testCsvData;
+
+	// Default values for segmentation Image record reader
+	private int defaultHeight = 224;
+	private int defaultWidth = 224;
+
+	private int datasetSize;
+	private int labelIndex;
+	private int numberLabels;
+	private int numSkipLines;
+	private float fractionTrain;
+
 
 
 	public CNNDatasetGenerator() {
@@ -117,8 +135,6 @@ public class CNNDatasetGenerator {
 	/**
 	 * Load image dataset
 	 * @param path - Path to image dataset
-	 * @param imagewidth - Width of image dataset
-	 * @param imageheight - Height of image dataset
 	 * @param channels - Channel of image dataset
 	 * @param numLabels - Number of labels
 	 * @param batchsize - Iterator batch size
@@ -155,7 +171,7 @@ public class CNNDatasetGenerator {
         testData = filesInDirSplit[1];
 	}
 
-	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
+	public void setIterator_segmentation(String path, int batchSize, double trainPerc,
 										 int channels, String maskFileName){
 		// set transform
 		ImageTransform rgb2gray = new ColorConversionTransform(CV_RGB2GRAY);
@@ -166,8 +182,6 @@ public class CNNDatasetGenerator {
 		transform =  new PipelineImageTransform(pipeline, false);
 
 		batchsize = batchSize;
-		height = imageheight;
-		width = imagewidth;
 		this.channels = channels;
 
 		File imagesPath = new File(path);
@@ -178,7 +192,7 @@ public class CNNDatasetGenerator {
 				new Pair<>(".jpg", "_mask.png")
 		);
 
-		labelMaker = new CustomLabelGenerator(imageheight, imagewidth, channels, replacement);
+		labelMaker = new CustomLabelGenerator(defaultHeight, defaultWidth, channels, replacement);
 		BalancedPathFilter imageSplitPathFilter = new BalancedPathFilter(new Random(12345), NativeImageLoader.ALLOWED_FORMATS, labelMaker);
 		InputSplit[] imagesSplits = imageFileSplit.sample(imageSplitPathFilter, trainPerc, 1 - trainPerc);
 
@@ -224,7 +238,10 @@ public class CNNDatasetGenerator {
 	public DataSetIterator testDataSetIteratorCSV(){
 		return new SequenceRecordReaderDataSetIterator(testFeatures, testLabels, batchsize, numClassLabels,
 				false, SequenceRecordReaderDataSetIterator.AlignmentMode.ALIGN_END);
-}
+	}
+
+
+
 
 	/**
 	 * Add FlipImageTransform to dataset
@@ -360,10 +377,6 @@ public class CNNDatasetGenerator {
 				width,
 				1
 		);
-
-//		model.setListeners(statsListener, scoreIterationListener);
-
-
 
 
 		if(Desktop.isDesktopSupported())
@@ -512,4 +525,50 @@ public class CNNDatasetGenerator {
 		iter.setPreProcessor(new ImagePreProcessingScaler(0, 1));
 		return iter;
 	}
+
+	public void LoadCsvDataAutoSplitGeneral(String path, int labelIndex, int numLabels, int numSkipLines, float fractionTrain) throws IOException, InterruptedException {
+		this.labelIndex = labelIndex;
+		this.numberLabels = numLabels;
+		this.numSkipLines = numSkipLines;
+		this.fractionTrain = fractionTrain;
+		File csvFile = new File(path);
+		FileSplit fileSplit = new FileSplit(csvFile);
+		//set CSV Record Reader and initialize it
+		this.csvRecordReader = new CSVRecordReader(numSkipLines, ',');
+			csvRecordReader.initialize(fileSplit);
+	}
+
+	public void ConfigureCSVData() throws IOException, InterruptedException {
+		//File split
+
+		List<List<Writable>> allData = new ArrayList<>();
+		while (csvRecordReader.hasNext()) {
+			allData.add(csvRecordReader.next());
+		}
+ 		datasetSize = allData.size();
+		CollectionRecordReader collectionRR = new CollectionRecordReader(allData);
+		DataSetIterator dataSetIterator = new RecordReaderDataSetIterator(collectionRR, allData.size(), labelIndex, numberLabels);
+
+		//Create Iterator and shuffle the dat
+		DataSet fullDataset = dataSetIterator.next();
+		Random random = new Random(System.currentTimeMillis());
+		int seed = random.nextInt();
+		fullDataset.shuffle(seed);
+
+        //Input split ratio
+		SplitTestAndTrain testAndTrain = fullDataset.splitTestAndTrain(fractionTrain);
+		DataNormalization normalizer = new NormalizerMinMaxScaler();
+		trainCsvData = testAndTrain.getTrain();
+		testCsvData = testAndTrain.getTest();
+		normalizer.fit(trainCsvData);
+		normalizer.transform(trainCsvData);
+		normalizer.transform(testCsvData);
+	}
+
+	public DataSet getTrainCsvData(){return trainCsvData;}
+	public DataSet getTestCsvData(){return testCsvData;}
+	public int getDatasetSize(){return datasetSize;}
+
 }
+
+

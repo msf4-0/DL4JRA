@@ -19,7 +19,7 @@ import {FlipImage, RotateImage, ResizeImage,
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
     generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
-    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification } from './cnnlayers' 
+    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral } from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -142,7 +142,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
             ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, 
-            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification
+            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -628,13 +628,27 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("TrainingDatasetStartNodeCSV");
         if (startnodeId === null) return;
         let trainingsequences : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
-        for(let index = 0; index < trainingsequences.length; index++) {
-            if (! this.seqcancontinue) return;
-            let element = trainingsequences[index];
-            if (element.type === "LoadDatasetCSV") {
-                await this.processnode("/server/cnn/loadtrainingdataset_csv", element.id, element.data);
-            }else if (element.type === "GenerateDatasetIteratorCSV") {
-                await this.processnode("/server/cnn/generatetrainingdatasetiterator_csv", element.id, element.data);
+
+        let loadCsvDataGeneral : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("LoadCsvDataGeneral");
+        if(loadCsvDataGeneral !== null ){
+            for(let index = 0; index < trainingsequences.length; index++) {
+                if (! this.seqcancontinue) return;
+                let element = trainingsequences[index];
+                if (element.type === "LoadCsvDataGeneral") {
+                    await this.processnode("/server/cnn/loadcsvdatageneral", element.id, element.data);
+                }else if (element.type === "GenerateDatasetIteratorCSV") {
+                    await this.processnode("/server/cnn/generatetrainingdatasetiteratorcsvgeneral", element.id, element.data);
+                }
+            }
+        }else{
+            for(let index = 0; index < trainingsequences.length; index++) {
+                if (! this.seqcancontinue) return;
+                let element = trainingsequences[index];
+                if (element.type === "LoadDatasetCSV") {
+                    await this.processnode("/server/cnn/loadtrainingdataset_csv", element.id, element.data);
+                }else if (element.type === "GenerateDatasetIteratorCSV") {
+                    await this.processnode("/server/cnn/generatetrainingdatasetiterator_csv", element.id, element.data);
+                }
             }
         }
     }

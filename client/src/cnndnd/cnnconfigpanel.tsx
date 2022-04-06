@@ -234,6 +234,8 @@ export default class ConfigurationPanel extends Component <ConfigurationPanelPro
                                         // RNN    
                                         case "kernalSize":
                                         case "numSkipLines":
+                                        case "labelIndex":
+                                        case "fractionTrain":
                                         case "numClassLabels":
                                         case "inputName":
                                             return (

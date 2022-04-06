@@ -43,7 +43,9 @@ import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.buffer.DataType;
 import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
+import org.nd4j.linalg.dataset.ViewIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.VGG16ImagePreProcessor;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
 import org.nd4j.linalg.learning.config.Nesterovs;
@@ -80,9 +82,12 @@ public class CNN {
 	// Zoomodel for access to model zoo
 	private ZooModel zooModel;
 
-	// Default values for segmentation Image record reader
-	private int segHeight;
-	private int segWidth;
+
+	// Test and train dataset for csv
+	private DataSet trainDataCsv;
+	private DataSet testDataCsv;
+
+
 
 	// Constructor
 	public CNN() {
@@ -97,9 +102,7 @@ public class CNN {
 		this.ValidationDatasetGenerator = new CNNDatasetGenerator();
 		this.ValidationDatasetIterator = null;
 
-		// Default values for segmentation Image record reader
-		this.segHeight = 224;
-		this.segWidth = 224;
+
 	}
 
 	public RecordReaderDataSetIterator getTrainGenerator() {
@@ -613,6 +616,7 @@ public class CNN {
 		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
 		 * @throws Exception
 		 */
+		@Deprecated
 		public TrainNetwork (int epochs, int scoreListener) {
 			this.epochs = epochs;
 			this.scoreListener = scoreListener;
@@ -667,6 +671,7 @@ public class CNN {
 		 * @param sseEmitter
 		 * @throws Exception
 		 */
+		@Deprecated
 		public TrainNetworkSSEmitter(int epochs, int scoreListener, SseEmitter sseEmitter) {
 			this.epochs = epochs;
 			this.scoreListener = scoreListener;
@@ -762,69 +767,88 @@ public class CNN {
 
 			// start ui server
 			System.out.println("Starting UI server");
-//			UIServer uiServer = UIServer.getInstance();
+			UIServer uiServer = UIServer.getInstance();
 			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-//			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
+			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
 			if(Desktop.isDesktopSupported())
 			{
 				Desktop.getDesktop(
 				).browse(new URI("http://localhost:9000"));
 			}
-
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
-			for (int counter = 0; counter < epochs; counter++) {
-				// Check if the current thread is interrupted, if so, break the loop.
-				if (Thread.currentThread().isInterrupted()){
-//					uiServer.detach(statsStorage);
-//					statsStorage.close();
-//					System.out.println("stopping ui server");
-//					uiServer.stop();
-					break;
+
+
+			if (trainDataCsv != null){
+				for (int counter = 0; counter < epochs; counter++) {
+					if (multiLayerNetwork != null) {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener((scoreListener)),
+								new StatsListener(statsStorage, 5)
+						);
+						multiLayerNetwork.fit(trainDataCsv);
+						Evaluation eval;
+						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
+						System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
+					}
 				}
 
-				if(multiLayerNetwork != null) {
-					System.out.println("Starting Training");
-					if (ValidationDatasetIterator != null){
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener(scoreListener),
-								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+			} else{
+				for (int counter = 0; counter < epochs; counter++) {
+					// Check if the current thread is interrupted, if so, break the loop.
+					if (Thread.currentThread().isInterrupted()){
+						uiServer.detach(statsStorage);
+						statsStorage.close();
+						System.out.println("stopping ui server");
+						uiServer.stop();
+						break;
+					}
+
+					if(multiLayerNetwork != null) {
+						if (ValidationDatasetIterator != null){
+							multiLayerNetwork.setListeners(
+									new ScoreIterationListener(scoreListener),
+									new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+									new StatsListener(statsStorage, 5)
+							);
+						}
+						else{
+							multiLayerNetwork.setListeners(
+									new ScoreIterationListener(scoreListener),
+									new StatsListener(statsStorage, 5)
+							);
+						}
+						TrainingDatasetIterator.reset();
+						multiLayerNetwork.fit(TrainingDatasetIterator);
+						template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
+						if (counter % scoreListener == 0) {
+							String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
+							template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+						}
+					}
+					if(computationGraph != null) {
+						computationGraph.setListeners(
+								new ScoreIterationListener((scoreListener)),
 								new StatsListener(statsStorage, 5)
 						);
-					}
-					else{
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener(scoreListener),
-								new StatsListener(statsStorage, 5)
-						);
-					}
-					TrainingDatasetIterator.reset();
-					multiLayerNetwork.fit(TrainingDatasetIterator);
-					template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
-					if (counter % scoreListener == 0) {
-						String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
-						template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-					}
-				}
-				if(computationGraph != null) {
-					System.out.println("Starting Training");
-					computationGraph.setListeners(
-							new ScoreIterationListener((scoreListener)),
-							new StatsListener(statsStorage, 5)
-					);
-					computationGraph.fit(TrainingDatasetIterator);
-					System.out.println("After fit");
-					TrainingDatasetIterator.reset();
-					template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
-					if (counter % scoreListener == 0) {
-						String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
-						template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+						computationGraph.fit(TrainingDatasetIterator);
+						System.out.println("After fit");
+						TrainingDatasetIterator.reset();
+						template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
+						if (counter % scoreListener == 0) {
+							String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+							template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+						}
 					}
 				}
 			}
-//			uiServer.detach(statsStorage);
+
+
+			uiServer.detach(statsStorage);
 			statsStorage.close();
 			System.out.println("stopping ui server");
-//			uiServer.stop();
+			uiServer.stop();
+			trainDataCsv = null;
+			testDataCsv = null;
 			return null;
 		}
 	}
@@ -832,6 +856,7 @@ public class CNN {
 	/**
 	 * Evaluation & validation
 	 */
+	@Deprecated
 	public class ValidateNetwork implements Callable<Void> {
 
 		@Override
@@ -855,7 +880,7 @@ public class CNN {
 		}
 	}
 
-
+	@Deprecated
 	public class ValidateNetworkSSEmitter implements Callable<Void> {
 		private SseEmitter sseEmitter;
 
@@ -992,7 +1017,7 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
-			TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, segHeight, segWidth, channels,
+			TrainingDatasetGenerator.setIterator_segmentation(path, batchSize, trainPerc, channels,
 					maskFileName);
 			return null;
 		}
@@ -1095,7 +1120,7 @@ public class CNN {
 				.addLayer("conv2d_9",
 						new ConvolutionLayer.Builder(1, 1 )
 								.nIn(1024)
-								.nOut(5 * (5 + TrainingDatasetIterator.getLabels().size()))
+								.nOut(5 * (5 + trainGenerator.getLabels().size()))
 								.stride(1, 1)
 								.convolutionMode(ConvolutionMode.Same)
 								.weightInit(WeightInit.XAVIER)
@@ -1121,6 +1146,7 @@ public class CNN {
 	 */
 	//
 	public void configTransferLearningNetwork_ODetection_Yolo2(double learningRate){
+
 		FineTuneConfiguration fineTuneConfiguration = new FineTuneConfiguration.Builder()
 				.seed(seed)
 				.optimizationAlgo(OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT)
@@ -1132,17 +1158,15 @@ public class CNN {
 				.trainingWorkspaceMode(WorkspaceMode.ENABLED)
 				.inferenceWorkspaceMode(WorkspaceMode.ENABLED)
 				.build();
-//
-//								.nOut(5 * (5 + trainGenerator.getLabels().size()))
 
 		computationGraph = new TransferLearning.GraphBuilder(pretrained)
 				.fineTuneConfiguration(fineTuneConfiguration)
 				.removeVertexKeepConnections("conv2d_23")
 				.removeVertexKeepConnections("outputs")
 				.addLayer("conv2d_23",
-						new ConvolutionLayer.Builder(1, 1 )
+						new ConvolutionLayer.Builder(1, 1)
 								.nIn(1024)
-								.nOut(5 * (5 + TrainingDatasetIterator.getLabels().size()))
+								.nOut(5 * (5 + trainGenerator.getLabels().size()))
 								.stride(1, 1)
 								.convolutionMode(ConvolutionMode.Same)
 								.weightInit(WeightInit.XAVIER)
@@ -1158,6 +1182,7 @@ public class CNN {
 						"conv2d_23")
 				.setOutputs("outputs")
 				.build();
+
 		this.networkconstructed = true;
 
 	}
@@ -1211,15 +1236,36 @@ public class CNN {
 
 			@Override
 			public Void call() throws Exception {
-				computationGraph.setListeners(new ScoreIterationListener(1));
+
+				UIServer uiServer = UIServer.getInstance();
+				StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+				uiServer.attach(statsStorage);
+
+				computationGraph.setListeners(new ScoreIterationListener(1),
+						 					  new StatsListener(statsStorage, 5));
+				if(Desktop.isDesktopSupported())
+				{
+					Desktop.getDesktop(
+					).browse(new URI("http://localhost:9000"));
+				}
 				for (int i = 1; i < epochs + 1; i++) {
 					// Check if the current thread is interrupted, if so, break the loop.
 					if (Thread.currentThread().isInterrupted()) {
+
+						uiServer.detach(statsStorage);
+						statsStorage.close();
+						System.out.println("stopping ui server");
+						uiServer.stop();
+
 						break;
 					}
 					computationGraph.fit(trainGenerator);
 					System.out.println("*** Completed epoch {" + i + " } ***");
 				}
+				uiServer.detach(statsStorage);
+				statsStorage.close();
+				System.out.println("stopping ui server");
+				uiServer.stop();
 				return null;
 			}
 		}
@@ -1268,7 +1314,7 @@ public class CNN {
 	public void configTransferLearningNetwork_vgg(double learningRate){
 		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
 		FineTuneConfiguration fineTuneCOnf = new FineTuneConfiguration.Builder()
-				.updater(new Adam.Builder().learningRate(learningRate).build())
+				.updater(new Nesterovs(learningRate, Nesterovs.DEFAULT_NESTEROV_MOMENTUM))
 				.seed(seed)
 				.build();
 
@@ -1284,6 +1330,7 @@ public class CNN {
 								.activation(Activation.SOFTMAX).build(),
 						"fc2")
 				.build();
+//		TrainingDatasetIterator.setPreProcessor(VGG16ImagePreProcessor);
 		this.networkconstructed = true;
 	}
 
@@ -1336,7 +1383,24 @@ public class CNN {
 	}
 
 	public void importYolo2() throws IOException {
+		seed = 123;
+		Nd4j.getRandom().setSeed(seed);
+		priors = Nd4j.create(priorBoxes);
 		this.pretrained = (ComputationGraph) YOLO2.builder().build().initPretrained();
 	}
+
+	public void LoadCSVDataGeneral(String path, int labelIndex, int numLabels, int numSkipLines, float fractionTrain) throws IOException, InterruptedException {
+		this.TrainingDatasetGenerator.LoadCsvDataAutoSplitGeneral(path, labelIndex, numLabels, numSkipLines, fractionTrain);
+	}
+
+	public void ConfigureCsvData() throws IOException, InterruptedException {
+		this.TrainingDatasetGenerator.ConfigureCSVData();
+		this.trainDataCsv = TrainingDatasetGenerator.getTrainCsvData();
+		this.testDataCsv = TrainingDatasetGenerator.getTestCsvData();
+	}
+
+
+
+
 
 }
