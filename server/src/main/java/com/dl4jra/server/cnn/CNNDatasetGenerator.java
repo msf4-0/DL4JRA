@@ -38,6 +38,7 @@ import org.nd4j.linalg.dataset.SplitTestAndTrain;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
 import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
 import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
+import org.nd4j.linalg.dataset.api.preprocessor.NormalizerMinMaxScaler;
 import org.slf4j.Logger;
 
 import java.awt.Desktop;
@@ -82,8 +83,18 @@ public class CNNDatasetGenerator {
 
 	// move and restructure
 	private CSVRecordReader csvRecordReader;
+	private DataSet trainCsvData;
+	private DataSet testCsvData;
 
+	// Default values for segmentation Image record reader
+	private int defaultHeight = 224;
+	private int defaultWidth = 224;
 
+	private int datasetSize;
+	private int labelIndex;
+	private int numberLabels;
+	private int numSkipLines;
+	private float fractionTrain;
 
 
 
@@ -124,8 +135,6 @@ public class CNNDatasetGenerator {
 	/**
 	 * Load image dataset
 	 * @param path - Path to image dataset
-	 * @param imagewidth - Width of image dataset
-	 * @param imageheight - Height of image dataset
 	 * @param channels - Channel of image dataset
 	 * @param numLabels - Number of labels
 	 * @param batchsize - Iterator batch size
@@ -162,7 +171,7 @@ public class CNNDatasetGenerator {
         testData = filesInDirSplit[1];
 	}
 
-	public void setIterator_segmentation(String path, int batchSize, double trainPerc, int imagewidth, int imageheight,
+	public void setIterator_segmentation(String path, int batchSize, double trainPerc,
 										 int channels, String maskFileName){
 		// set transform
 		ImageTransform rgb2gray = new ColorConversionTransform(CV_RGB2GRAY);
@@ -173,8 +182,6 @@ public class CNNDatasetGenerator {
 		transform =  new PipelineImageTransform(pipeline, false);
 
 		batchsize = batchSize;
-		height = imageheight;
-		width = imagewidth;
 		this.channels = channels;
 
 		File imagesPath = new File(path);
@@ -185,7 +192,7 @@ public class CNNDatasetGenerator {
 				new Pair<>(".jpg", "_mask.png")
 		);
 
-		labelMaker = new CustomLabelGenerator(imageheight, imagewidth, channels, replacement);
+		labelMaker = new CustomLabelGenerator(defaultHeight, defaultWidth, channels, replacement);
 		BalancedPathFilter imageSplitPathFilter = new BalancedPathFilter(new Random(12345), NativeImageLoader.ALLOWED_FORMATS, labelMaker);
 		InputSplit[] imagesSplits = imageFileSplit.sample(imageSplitPathFilter, trainPerc, 1 - trainPerc);
 
@@ -371,10 +378,6 @@ public class CNNDatasetGenerator {
 				1
 		);
 
-//		model.setListeners(statsListener, scoreIterationListener);
-
-
-
 
 		if(Desktop.isDesktopSupported())
 		{
@@ -523,7 +526,11 @@ public class CNNDatasetGenerator {
 		return iter;
 	}
 
-	public void LoadCsvDataAutoSplit(String path) throws IOException, InterruptedException {
+	public void LoadCsvDataAutoSplitGeneral(String path, int labelIndex, int numLabels, int numSkipLines, float fractionTrain) throws IOException, InterruptedException {
+		this.labelIndex = labelIndex;
+		this.numberLabels = numLabels;
+		this.numSkipLines = numSkipLines;
+		this.fractionTrain = fractionTrain;
 		File csvFile = new File(path);
 		FileSplit fileSplit = new FileSplit(csvFile);
 		//set CSV Record Reader and initialize it
@@ -531,28 +538,37 @@ public class CNNDatasetGenerator {
 			csvRecordReader.initialize(fileSplit);
 	}
 
-	public DataSet[] configureCSVData(int labelIndex, int numberLabels, float fractionTrain) throws IOException, InterruptedException {
+	public void ConfigureCSVData() throws IOException, InterruptedException {
 		//File split
 
 		List<List<Writable>> allData = new ArrayList<>();
 		while (csvRecordReader.hasNext()) {
 			allData.add(csvRecordReader.next());
 		}
-
+ 		datasetSize = allData.size();
 		CollectionRecordReader collectionRR = new CollectionRecordReader(allData);
 		DataSetIterator dataSetIterator = new RecordReaderDataSetIterator(collectionRR, allData.size(), labelIndex, numberLabels);
 
-		//        //Create Iterator and shuffle the dat
+		//Create Iterator and shuffle the dat
 		DataSet fullDataset = dataSetIterator.next();
 		Random random = new Random(System.currentTimeMillis());
 		int seed = random.nextInt();
 		fullDataset.shuffle(seed);
+
         //Input split ratio
 		SplitTestAndTrain testAndTrain = fullDataset.splitTestAndTrain(fractionTrain);
-
-		return new DataSet[]{testAndTrain.getTrain(), testAndTrain.getTest()};
-
+		DataNormalization normalizer = new NormalizerMinMaxScaler();
+		trainCsvData = testAndTrain.getTrain();
+		testCsvData = testAndTrain.getTest();
+		normalizer.fit(trainCsvData);
+		normalizer.transform(trainCsvData);
+		normalizer.transform(testCsvData);
 	}
+
+	public DataSet getTrainCsvData(){return trainCsvData;}
+	public DataSet getTestCsvData(){return testCsvData;}
+	public int getDatasetSize(){return datasetSize;}
+
 }
 
 

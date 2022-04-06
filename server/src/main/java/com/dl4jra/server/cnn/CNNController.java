@@ -1594,7 +1594,51 @@ public class CNNController {
 	// Load Csv Data
 
 	// Configure Csv Data
+	/**
+	 * Configure Pretrained Model (SqueezeNet)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/loadcsvdatageneral")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted loadcsvdata(Loaddatasetnode data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.LoadCSVDataGeneral(data.getPath(), data.getLabelIndex(), data.getNumLabels(),data.getNumSkipLines(), data.getFractionTrain());
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for image classification done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to load csv data!", data.getNodeId());
+		}
+	}
+
 	// Normalize Csv Data?
+
+	/**
+	 * Configure Pretrained Model (SqueezeNet)
+	 * @param data - Node data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/generatetrainingdatasetiteratorcsvgeneral")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted generatetrainingdatasetiterator_csv_general(Nodeclass data) throws Exception {
+		try
+		{
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
+			this.cnn.ConfigureCsvData();
+			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
+			return new RBProcessCompleted("Configuration transfer learning for image classification done! ");
+		}
+		catch (Exception exception)
+		{
+			throw new CNNException("Failed to configure csv data!", data.getNodeId());
+		}
+	}
 
 
 

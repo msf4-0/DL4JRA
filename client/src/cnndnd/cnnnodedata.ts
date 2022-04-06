@@ -131,6 +131,9 @@ class CNNNodeService {
         return { name: "Import Yolo2" };
       case "ConfigTransferLearning_IClassification":
         return this.prepareConfigTransferLearning_IClassification();
+      case "LoadCsvDataGeneral":
+        return this.prepareLoadDatasetCSVGeneral();
+
       default:
         return { name: nodetype };
     }
@@ -349,6 +352,17 @@ class CNNNodeService {
       numLabels,
       batchsize,
     };
+  };
+
+  prepareLoadDatasetCSVGeneral = (): Dictionary => {
+    let name = "Load dataset";
+    let path = "C://Users//Luke Yeo//Downloads//bird.csv";
+    let labelIndex = -1;
+    let numLabels = 6;
+    let numSkipLines = 0;
+    let fractionTrain = 0.8;
+    // let delimeterInString = ",";
+    return { name, path, labelIndex, numLabels, numSkipLines, fractionTrain};
   };
 
   prepareLoadDatasetCSV = (): Dictionary => {

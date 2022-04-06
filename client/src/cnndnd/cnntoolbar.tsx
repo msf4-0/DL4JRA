@@ -271,6 +271,9 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                     {/* ConfigTransferLearning_IClassification */}
                     <ToolboxNode nodetype="ConfigTransferLearning_IClassification" nodename="Config Transfer Learning IClassification" />
+
+                    {/* LOAD TRAINING DATASET CSV General */}
+                    <ToolboxNode nodetype="LoadCsvDataGeneral" nodename="LoadCsvDataGeneral" />
                     
                     </div>
             </aside>
