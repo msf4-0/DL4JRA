@@ -817,8 +817,20 @@ public class CNN {
 									new StatsListener(statsStorage, 5)
 							);
 						}
+						while (TrainingDatasetIterator.hasNext()) {
+							if (Thread.currentThread().isInterrupted()) {
+
+								uiServer.detach(statsStorage);
+								statsStorage.close();
+								System.out.println("stopping ui server");
+								uiServer.stop();
+								break;
+							}
+							DataSet imageSet = TrainingDatasetIterator.next();
+							multiLayerNetwork.fit(imageSet);
+						}
 						TrainingDatasetIterator.reset();
-						multiLayerNetwork.fit(TrainingDatasetIterator);
+
 						template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
 						if (counter % scoreListener == 0) {
 							String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
@@ -830,7 +842,18 @@ public class CNN {
 								new ScoreIterationListener((scoreListener)),
 								new StatsListener(statsStorage, 5)
 						);
-						computationGraph.fit(TrainingDatasetIterator);
+						while (TrainingDatasetIterator.hasNext()) {
+							if (Thread.currentThread().isInterrupted()) {
+
+								uiServer.detach(statsStorage);
+								statsStorage.close();
+								System.out.println("stopping ui server");
+								uiServer.stop();
+								break;
+							}
+							DataSet imageSet = TrainingDatasetIterator.next();
+							computationGraph.fit(imageSet);
+						}
 						System.out.println("After fit");
 						TrainingDatasetIterator.reset();
 						template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(counter + 1, epochs));
@@ -1248,6 +1271,7 @@ public class CNN {
 					Desktop.getDesktop(
 					).browse(new URI("http://localhost:9000"));
 				}
+				epochLoop:
 				for (int i = 1; i < epochs + 1; i++) {
 					// Check if the current thread is interrupted, if so, break the loop.
 					if (Thread.currentThread().isInterrupted()) {
@@ -1256,10 +1280,20 @@ public class CNN {
 						statsStorage.close();
 						System.out.println("stopping ui server");
 						uiServer.stop();
-
-						break;
+						break epochLoop;
 					}
-					computationGraph.fit(trainGenerator);
+					while (trainGenerator.hasNext()) {
+						if (Thread.currentThread().isInterrupted()) {
+
+							uiServer.detach(statsStorage);
+							statsStorage.close();
+							System.out.println("stopping ui server");
+							uiServer.stop();
+							break epochLoop;
+						}
+						DataSet imageSet = trainGenerator.next();
+						computationGraph.fit(imageSet);
+					}
 					System.out.println("*** Completed epoch {" + i + " } ***");
 				}
 				uiServer.detach(statsStorage);
