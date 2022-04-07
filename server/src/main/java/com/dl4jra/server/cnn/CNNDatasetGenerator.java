@@ -534,7 +534,7 @@ public class CNNDatasetGenerator {
 		File csvFile = new File(path);
 		FileSplit fileSplit = new FileSplit(csvFile);
 		//set CSV Record Reader and initialize it
-		this.csvRecordReader = new CSVRecordReader(1, ',');
+		this.csvRecordReader = new CSVRecordReader(numSkipLines, ',');
 			csvRecordReader.initialize(fileSplit);
 	}
 
