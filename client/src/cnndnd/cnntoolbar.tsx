@@ -256,8 +256,12 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <div style={{ margin: 5, padding: 5, }}>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
-                    <div className='description'>OBJECT DETECTION</div>
-                    <div className='description'>DATASET</div>
+                    <div className='description'style={{ fontSize:20, }}>Object Detection</div>
+
+                    {/* Train_Test_PretrainedModel */}
+                    <ToolboxNode nodetype="Train_Test_PretrainedModel" nodename=" Train & Test" />
+                    
+                    <div className='description'> OD Dataset</div>
                     {/* ODetectionStartNode */}
                     <ToolboxNode nodetype="ODetectionStartNode" nodename=" Dataset ODetection (S)" />
 
@@ -267,15 +271,15 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     {/* GenerateDatasetIteratorODetection */}
                     <ToolboxNode nodetype="GenerateDatasetIteratorODetection" nodename="Dataset Iterator ODetection" />
 
-                    <div className='description' >TRAIN</div>
-                    <div className='description' >PRETRAINED MODEL</div>
+                    <div className='description' >Train</div>
+                    <div className='description' >Pretrained Model</div>
                     {/* EditPretrainedStartNode */}
                     <ToolboxNode nodetype="EditPretrainedStartNode" nodename=" StartNode (S) " />
 
 
                     {/* ImportTinyYolo */}
                     <ToolboxNode nodetype="ImportTinyYolo" nodename="Import New TinyYolo" />
-                    
+
                     {/* ImportYolo2 */}
                     <ToolboxNode nodetype="ImportYolo2" nodename="Import Yolo2" />
 
@@ -285,8 +289,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                      {/* ConfigTransferLearningNetwork_ODetection */}
                      <ToolboxNode nodetype="ConfigTransferLearningNetwork_ODetection" nodename=" Configure Transfer Learning" />
                     
-                     {/* Train_Test_PretrainedModel */}
-                     <ToolboxNode nodetype="Train_Test_PretrainedModel" nodename=" Train & Test" />
+
 
 
 
