@@ -34,6 +34,26 @@ public class DenseLayerBuilder {
 		}
 		return denseLayer.build();
 	}
+
+	public static DenseLayer GenerateLayer(int nIn, int nOut, Activation activationFunction, double dropOut, double biasInit,
+										   WeightInit weightInit){
+		DenseLayer.Builder denseLayer = new DenseLayer.Builder();
+		denseLayer.nIn(nIn);
+		denseLayer.nOut(nOut);
+		if(activationFunction != null) {
+			denseLayer.activation(activationFunction);
+		}
+		if(weightInit != null) {
+			denseLayer.weightInit(weightInit);
+		}
+		if(dropOut != 0){
+			denseLayer.dropOut(dropOut);
+		}
+		if(biasInit != 0){
+			denseLayer.biasInit(biasInit);
+		}
+		return denseLayer.build();
+	}
 	
 	public static DenseLayer GenerateLayer(int nIn, int nOut, Activation activationFunction, WeightInit weightInit) {
 		DenseLayer.Builder denseLayer = new DenseLayer.Builder();
