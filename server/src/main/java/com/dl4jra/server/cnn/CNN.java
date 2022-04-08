@@ -586,6 +586,7 @@ public class CNN {
 				new ScoreIterationListener(5),
 				new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
 		);
+		networkconstructed = true;
 	}
 
 	public class EvaluateModel_CG implements Callable<Void> {
@@ -632,7 +633,7 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
-			System.out.println(TrainingDatasetIterator.getLabels().size());
+//			System.out.println(TrainingDatasetIterator.getLabels().size());
 
 			if (TrainingDatasetIterator == null) {
 				throw new Exception("Training dataset not set");
@@ -640,7 +641,7 @@ public class CNN {
 			if (!networkconstructed) {
 				throw new Exception("Neural network is not constructed");
 			}
-
+			System.out.println("startingTraining");
 			// start ui server
 			System.out.println("Starting UI server");
 			UIServer uiServer = UIServer.getInstance();
@@ -849,12 +850,10 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
-			if (!networkconstructed) {
-				throw new Exception("Neural network is not constructed");
-			}
-			if (TrainingDatasetIterator == null) {
-				throw new Exception("Training dataset not set");
-			}
+			System.out.println("starting Training");
+//			if (TrainingDatasetIterator == null) {
+//				throw new Exception("Training dataset not set");
+//			}
 			if (!networkconstructed) {
 				throw new Exception("Neural network is not constructed");
 			}
@@ -1526,9 +1525,9 @@ public class CNN {
 	}
 
 
-	public void TestCsvDataMultilayer(){
-
-	}
+	/**
+	 * CODE FOR TESTING
+	 */
 
 	public void getMultilayerCsvTest(int numInputs, int numOutputs, double learningRate) {
 		System.out.println(trainDataCsv.getLabels().size(1));
@@ -1680,6 +1679,7 @@ public class CNN {
 		trainDataCsv = null;
 		testDataCsv = null;
 	}
+
 
 
 }
