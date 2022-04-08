@@ -1,6 +1,12 @@
 package com.dl4jra.server.testing;
 
 import com.dl4jra.server.cnn.CNN;
+import org.deeplearning4j.nn.api.OptimizationAlgorithm;
+import org.deeplearning4j.nn.conf.ConvolutionMode;
+import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.weights.WeightInit;
+import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.lossfunctions.LossFunctions;
 
 import java.util.Arrays;
 
@@ -56,11 +62,28 @@ public class CnnTest {
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
 			// CSV DatasetGenerator Test
-
-			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
-
-			cnn.ConfigureCsvData();
 //
+			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
+			cnn.ConfigureCsvData();
+
+			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT, ConvolutionMode.Same.Truncate, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer );
+//
+//			cnn.AppendConvolutionLayer(0,10, 10, 2, 2, 1, 1, 0, 0, Activation.RELU, 0, 0, ConvolutionMode.Truncate);
+//
+			cnn.AppendDenseLayer(0, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+//
+			cnn.AppendDenseLayer(1, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+//
+			cnn.AppendDenseLayer(2, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+//
+//
+			cnn.AppendOutputLayer(3,10, Activation.SOFTMAX, LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD, WeightInit.XAVIER);
+//
+			cnn.ConstructNetwork();
+//			cnn.getMultilayerCsvTest(10, 6, 0.001);
+
+			cnn.testTrain(10, 1);
+
 
 //			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\train",
 //					"E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\test");

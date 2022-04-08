@@ -103,7 +103,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 <div style={{ margin: 5, padding: 5, }}>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
                     {/* <div className='description'>MultiLayer</div> */}
-                    <div className='description'>Image classification</div>
+                    <div className='description'>Multilayer Graph</div>
                     <div className='description'>Configuration Network</div>
                     
                     {/* CNN START NODE */}
@@ -111,7 +111,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
 
                     {/* CNN CONFIGURATION */}
                     {/* <ToolboxNode nodetype="CNNConfiguration" nodename="MultiLayer Config" /> */}
-                    <ToolboxNode nodetype="CNNConfiguration" nodename="Image classification Config" />
+                    <ToolboxNode nodetype="CNNConfiguration" nodename="Multilayer Config" />
 
 
                     {/* CONVOLUTION LAYER */}
