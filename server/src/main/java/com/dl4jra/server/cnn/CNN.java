@@ -872,12 +872,19 @@ public class CNN {
 
 
 			if (trainDataCsv != null){
-				for (int counter = 0; counter < epochs; counter++) {
-					if (multiLayerNetwork != null) {
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener((scoreListener)),
-								new StatsListener(statsStorage, 5)
-						);
+				if (multiLayerNetwork != null) {
+					multiLayerNetwork.setListeners(
+							new ScoreIterationListener((scoreListener)),
+							new StatsListener(statsStorage, 5)
+					);
+					for (int counter = 0; counter < epochs; counter++) {
+						if (Thread.currentThread().isInterrupted()) {
+							uiServer.detach(statsStorage);
+							statsStorage.close();
+							System.out.println("stopping ui server");
+							uiServer.stop();
+							break;
+						}
 						multiLayerNetwork.fit(trainDataCsv);
 						Evaluation eval;
 						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
@@ -1588,12 +1595,19 @@ public class CNN {
 
 
 		if (trainDataCsv != null){
+			if (multiLayerNetwork != null) {
+				multiLayerNetwork.setListeners(
+						new ScoreIterationListener((scoreListener)),
+						new StatsListener(statsStorage, 5)
+				);
 			for (int counter = 0; counter < epochs; counter++) {
-				if (multiLayerNetwork != null) {
-					multiLayerNetwork.setListeners(
-							new ScoreIterationListener((scoreListener)),
-							new StatsListener(statsStorage, 5)
-					);
+				if (Thread.currentThread().isInterrupted()) {
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
+					break;
+				}
 					multiLayerNetwork.fit(trainDataCsv);
 					Evaluation eval;
 					eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
