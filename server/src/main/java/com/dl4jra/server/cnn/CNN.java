@@ -85,6 +85,9 @@ public class CNN {
 	private DataSet trainDataCsv;
 	private DataSet testDataCsv;
 
+	private StatsStorage statsStorage = null;
+	private UIServer uiServer = null;
+
 
 
 	// Constructor
@@ -859,9 +862,20 @@ public class CNN {
 			}
 
 			// start ui server
+
 			System.out.println("Starting UI server");
-			UIServer uiServer = UIServer.getInstance();
-			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			if (uiServer == null) {
+				uiServer = UIServer.getInstance();
+			} else{
+				uiServer.stop();
+				uiServer = UIServer.getInstance();
+			}
+			if (statsStorage == null) {
+				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			} else{
+				statsStorage.close();
+				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			}
 			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
 			if(Desktop.isDesktopSupported())
 			{
@@ -1358,8 +1372,18 @@ public class CNN {
 			@Override
 			public Void call() throws Exception {
 
-				UIServer uiServer = UIServer.getInstance();
-				StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+				if (uiServer == null) {
+					uiServer = UIServer.getInstance();
+				} else{
+					uiServer.stop();
+					uiServer = UIServer.getInstance();
+				}
+				if (statsStorage == null) {
+					statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+				} else{
+					statsStorage.close();
+					statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+				}
 				uiServer.attach(statsStorage);
 
 				computationGraph.setListeners(new ScoreIterationListener(1),
