@@ -1642,6 +1642,7 @@ public class CNN {
 		} else {
 
 			if (TrainingDatasetIterator != null) {
+				epochLoop:
 				for (int counter = 0; counter < epochs; counter++) {
 					// Check if the current thread is interrupted, if so, break the loop.
 					if (Thread.currentThread().isInterrupted()) {
