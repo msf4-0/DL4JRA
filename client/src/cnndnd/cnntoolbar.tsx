@@ -56,7 +56,8 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <div className='description' > Train & Validate </div>
                     {/* TRAIN CNN */}
                      <ToolboxNode nodetype='TrainNN' nodename='Train' />
-
+                    {/* TRAIN CNN No Ui */}
+                    <ToolboxNode nodetype='TrainNNNoUi' nodename='Train No Ui' />
                     {/* VALIDATE */}
                     <ToolboxNode nodetype='ValidateNN' nodename="Validate" />
                     <div className='description'style={{ fontSize:17, }}>NN Datasets</div>

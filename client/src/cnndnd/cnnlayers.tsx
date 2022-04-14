@@ -471,6 +471,23 @@ export class TrainNN extends Component<NodeProps>{
     }
 }
 
+// TrainCNN node
+export class TrainNNNoUi extends Component<NodeProps>{
+    render = () => {
+        return (
+            <div 
+                className="cnn-node"
+                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.TrainCNN, 
+                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.TrainCNN, 
+            }}>
+                <IncomingConnectionHandle />
+                <div>{this.props.data.name}</div>
+                <OutgoingConnectionHandle />
+            </div>
+        )
+    }
+}
+
 // ValidateCNN node
 export class ValidateNN extends Component<NodeProps> {
     render = () => {
