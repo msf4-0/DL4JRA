@@ -658,6 +658,32 @@ public class CNNController {
 	}
 
 	/**
+	 * Train network wihout ui
+	 * @param data - Network training data
+	 * @return ProcessCompleted message
+	 * @throws Exception
+	 */
+	@MessageMapping("/cnn/trainnetworknoui")
+	@SendTo("/response/cnn/currentprocessdone")
+	public RBProcessCompleted TrainNetworkNoUi(Trainnetworknode data) throws Exception {
+		try
+		{
+			System.out.println(new RBProcessCompleted("START TRAINING"));
+			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplateNoUi(data.getEpochs(), data.getScoreListener(), template));
+			this.future.get();
+			return new RBProcessCompleted("Network training completed");
+		}
+		catch (ExecutionException ee){
+			return null;
+		}
+		catch (Exception exception)
+		{
+			System.out.println(exception.toString());
+			throw new CNNException(exception.getMessage(), data.getNodeId());
+		}
+	}
+
+	/**
 	 * Validate network
 	 * @param data - Validate network node data
 	 * @return ProcessCompleted message
