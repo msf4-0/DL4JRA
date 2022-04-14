@@ -1127,7 +1127,8 @@ public class CNNController {
 		{
 			System.out.println("START TRAINING");
 			System.out.println("Details on command prompt");
-			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
+//			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
+			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), 5, template));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
 		}
@@ -1150,7 +1151,8 @@ public class CNNController {
 		try
 		{
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
-			this.future = this.executor.submit(cnn.new validation_segmentation());
+//			this.future = this.executor.submit(cnn.new validation_segmentation());
+			this.future = this.executor.submit(cnn.new ValidateNetworkSimpMessagingTemplate(this.template));
 			this.future.get();
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
 			return new RBProcessCompleted("Network validation completed");
@@ -1696,6 +1698,8 @@ public class CNNController {
 		}
 		this.executor = Executors.newSingleThreadExecutor();
 	}
+
+
 
 }
 
