@@ -19,7 +19,7 @@ import {FlipImage, RotateImage, ResizeImage,
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
     generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
-    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral } from './cnnlayers' 
+    ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral, TrainNNNoUi} from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
 import "./cnn.css"
 
@@ -142,7 +142,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
             ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, 
-            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral
+            ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral,
+            TrainNNNoUi
         }
         this.nodeinmodification = "";
         this.seqcancontinue = true;
@@ -719,6 +720,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/constructnetwork", element.id, element.data);
                     } else if (element.type === "TrainNN") {
                         await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ValidateNN") {
                         await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                     } else if (element.type === "ExportNN") {
@@ -728,6 +731,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 }
                 return;
             }
+
             else if (importVgg16 != null){
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
@@ -738,6 +742,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/configurevgg", element.id, element.data);
                     } else if (element.type === "TrainNN") {
                         await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ValidateNN") {
                         await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                     } else if (element.type === "ExportNN") {
@@ -758,6 +764,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/configurevgg", element.id, element.data);
                     } else if (element.type === "TrainNN") {
                         await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ValidateNN") {
                         await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                     } else if (element.type === "ExportNN") {
@@ -777,6 +785,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/configuresqueezenet", element.id, element.data);
                     } else if (element.type === "TrainNN") {
                         await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ValidateNN") {
                         await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                     } else if (element.type === "ExportNN") {
@@ -821,6 +831,8 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/constructnetwork_rnn", element.id, element.data);
                 } else if (element.type === "TrainNN") {
                     await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                } else if (element.type === "TrainNNNoUi") {
+                    await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                 } else if (element.type === "ValidateNN") {
                     await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                 } else if (element.type === "ExportNN") {

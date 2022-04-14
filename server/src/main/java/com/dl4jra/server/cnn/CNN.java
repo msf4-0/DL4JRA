@@ -55,6 +55,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import com.dl4jra.server.cnn.response.UpdateResponse;
 import com.dl4jra.server.globalresponse.Messageresponse;
 
+import javax.swing.*;
+
 import static org.bytedeco.opencv.global.opencv_imgproc.*;
 import static org.bytedeco.opencv.global.opencv_imgproc.FONT_HERSHEY_DUPLEX;
 import static org.bytedeco.opencv.helper.opencv_core.RGB;
@@ -87,6 +89,8 @@ public class CNN {
 
 	private StatsStorage statsStorage = null;
 	private UIServer uiServer = null;
+
+	private int height, width;
 
 
 
@@ -619,222 +623,11 @@ public class CNN {
 	}
 
 
-
-	public class TrainNetwork implements Callable<Void> {
-		private final int epochs;
-		private final int scoreListener;
-
-		/**
-		 * Network training
-		 * @param epochs - Number of epoch for network training
-		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
-		 * @throws Exception
-		 */
-		@Deprecated
-		public TrainNetwork (int epochs, int scoreListener) {
-			this.epochs = epochs;
-			this.scoreListener = scoreListener;
-		}
-		@Override
-		public Void call() throws Exception {
-//			System.out.println(TrainingDatasetIterator.getLabels().size());
-
-			if (TrainingDatasetIterator == null) {
-				throw new Exception("Training dataset not set");
-			}
-			if (!networkconstructed) {
-				throw new Exception("Neural network is not constructed");
-			}
-			System.out.println("startingTraining");
-			// start ui server
-			System.out.println("Starting UI server");
-			UIServer uiServer = UIServer.getInstance();
-			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
-			if(Desktop.isDesktopSupported())
-			{
-				Desktop.getDesktop(
-				).browse(new URI("http://localhost:9000"));
-			}
-
-
-			if (trainDataCsv != null){
-				for (int counter = 0; counter < epochs; counter++) {
-					if (multiLayerNetwork != null) {
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener((scoreListener)),
-								new StatsListener(statsStorage, 5)
-						);
-						multiLayerNetwork.fit(trainDataCsv);
-						Evaluation eval;
-						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
-						System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
-					}
-				}
-
-			} else{
-				for (int counter = 0; counter < epochs; counter++) {
-					// Check if the current thread is interrupted, if so, break the loop.
-					if (Thread.currentThread().isInterrupted()){
-						uiServer.detach(statsStorage);
-						statsStorage.close();
-						System.out.println("stopping ui server");
-						uiServer.stop();
-						break;
-					}
-
-					if(multiLayerNetwork != null) {
-						if (ValidationDatasetIterator != null){
-							multiLayerNetwork.setListeners(
-									new ScoreIterationListener(scoreListener),
-									new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
-									new StatsListener(statsStorage, 5)
-							);
-						}
-						else{
-							multiLayerNetwork.setListeners(
-									new ScoreIterationListener(scoreListener),
-									new StatsListener(statsStorage, 5)
-							);
-						}
-						while (TrainingDatasetIterator.hasNext()) {
-							if (Thread.currentThread().isInterrupted()) {
-
-								uiServer.detach(statsStorage);
-								statsStorage.close();
-								System.out.println("stopping ui server");
-								uiServer.stop();
-								break;
-							}
-							DataSet imageSet = TrainingDatasetIterator.next();
-							multiLayerNetwork.fit(imageSet);
-						}
-						TrainingDatasetIterator.reset();
-
-						if (counter % scoreListener == 0) {
-							String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
-						}
-					}
-					if(computationGraph != null) {
-						computationGraph.setListeners(
-								new ScoreIterationListener((scoreListener)),
-								new StatsListener(statsStorage, 5)
-						);
-						while (TrainingDatasetIterator.hasNext()) {
-							if (Thread.currentThread().isInterrupted()) {
-
-								uiServer.detach(statsStorage);
-								statsStorage.close();
-								System.out.println("stopping ui server");
-								uiServer.stop();
-								break;
-							}
-							DataSet imageSet = TrainingDatasetIterator.next();
-							computationGraph.fit(imageSet);
-						}
-						System.out.println("After fit");
-						TrainingDatasetIterator.reset();
-						if (counter % scoreListener == 0) {
-							String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
-						}
-					}
-				}
-			}
-			uiServer.detach(statsStorage);
-			statsStorage.close();
-			System.out.println("stopping ui server");
-			uiServer.stop();
-			trainDataCsv = null;
-			testDataCsv = null;
-			return null;
-		}
-	}
-
-
-
-
-
-
-
-
-	public class TrainNetworkSSEmitter implements Callable<Void> {
-		private final int epochs;
-		private final int scoreListener;
-		private final SseEmitter sseEmitter;
-
-		/**
-		 * Training (Respond using SseEmitter)
-		 * @param epochs - Number of epoch for network training
-		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
-		 * @param sseEmitter
-		 * @throws Exception
-		 */
-		@Deprecated
-		public TrainNetworkSSEmitter(int epochs, int scoreListener, SseEmitter sseEmitter) {
-			this.epochs = epochs;
-			this.scoreListener = scoreListener;
-			this.sseEmitter = sseEmitter;
-		}
-		@Override
-		public Void call() throws Exception {
-			Object message;
-			if (TrainingDatasetIterator == null) {
-				message = "Training dataset not set";
-				sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
-				throw new Exception("Training dataset not set");
-			}
-			if (!networkconstructed) {
-				message = "Neural network is not constructed";
-				sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
-				throw new Exception("Neural network is not constructed");
-			}
-
-			for (int counter = 0; counter < epochs; counter++) {
-
-				// Check if the current thread is interrupted, if so, break the loop.
-				if (Thread.currentThread().isInterrupted()){
-					break;
-				}
-
-				if(multiLayerNetwork != null) {
-					if (ValidationDatasetIterator != null){
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener(scoreListener),
-								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
-						);
-					}
-					else{
-						multiLayerNetwork.setListeners(
-								new ScoreIterationListener(scoreListener)
-						);
-					}
-
-
-					TrainingDatasetIterator.reset();
-					multiLayerNetwork.fit(TrainingDatasetIterator);
-					message = counter;
-					sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
-					if (counter % scoreListener == 0) {
-						message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
-						sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
-					}
-				}
-				if(computationGraph != null){
-					TrainingDatasetIterator.reset();
-					computationGraph.fit(TrainingDatasetIterator);
-					message = counter;
-					sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
-					if (counter % scoreListener == 0) {
-						message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
-						sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
-					}
-				}
-			}
-			message = "Network Training completed";
-			sseEmitter.send(SseEmitter.event().name("TrainingCompleteEvent").data(message));
-			return null;
-		}
-	}
+	/**
+	 * main training funtion
+	 *
+	 * TODO: abstract the training functionality to a different function and if statements to call train on different datasets
+	 */
 
 	public class TrainNetworkSimpMessagingTemplate implements Callable<Void> {
 		private final int epochs;
@@ -854,6 +647,9 @@ public class CNN {
 		}
 		@Override
 		public Void call() throws Exception {
+			JFrame trainFrame = null;
+			JPanel trainPanel = null;
+
 			System.out.println("starting Training");
 //			if (TrainingDatasetIterator == null) {
 //				throw new Exception("Training dataset not set");
@@ -863,12 +659,14 @@ public class CNN {
 			}
 
 			// start ui server
-
 			System.out.println("Starting UI server");
 			if (uiServer == null) {
 				uiServer = UIServer.getInstance();
 			} else{
+
+				System.out.println("stopping ui server");
 				uiServer.stop();
+				System.out.println("restarting ui server");
 				uiServer = UIServer.getInstance();
 			}
 			if (statsStorage == null) {
@@ -877,6 +675,7 @@ public class CNN {
 				statsStorage.close();
 				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
 			}
+
 			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
 			if(Desktop.isDesktopSupported())
 			{
@@ -957,22 +756,64 @@ public class CNN {
 									new ScoreIterationListener((scoreListener)),
 									new StatsListener(statsStorage, 5)
 							);
-							while (TrainingDatasetIterator.hasNext()) {
-								if (Thread.currentThread().isInterrupted()) {
+							if (TrainingDatasetIterator != null) {
+								while (TrainingDatasetIterator.hasNext()) {
+									if (Thread.currentThread().isInterrupted()) {
 
-									uiServer.detach(statsStorage);
-									statsStorage.close();
-									System.out.println("stopping ui server");
-									uiServer.stop();
-									break epochLoop;
+										uiServer.detach(statsStorage);
+										statsStorage.close();
+										System.out.println("stopping ui server");
+										uiServer.stop();
+										break epochLoop;
+									}
+									DataSet imageSet = TrainingDatasetIterator.next();
+									computationGraph.fit(imageSet);
 								}
-								DataSet imageSet = TrainingDatasetIterator.next();
-								computationGraph.fit(imageSet);
-							}
-							System.out.println("After fit");
-							TrainingDatasetIterator.reset();
-							if (counter % scoreListener == 0) {
-								String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+								System.out.println("After fit");
+								TrainingDatasetIterator.reset();
+								if (counter % scoreListener == 0) {
+									String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+								}
+							} else if (trainGenerator != null){
+
+								trainFrame = Visualization.initFrame("Training Visualization");
+								trainPanel = Visualization.initPanel(
+										trainFrame,
+										trainGenerator.batch(),
+										height,
+										width,
+										1
+								);
+
+								while (trainGenerator.hasNext()) {
+									// Check if the current thread is interrupted, if so, break the loop.
+									if (Thread.currentThread().isInterrupted()){
+										uiServer.detach(statsStorage);
+										statsStorage.close();
+										System.out.println("stopping ui server");
+										uiServer.stop();
+										trainFrame.setVisible(false);
+										trainFrame.dispose();
+										break epochLoop;
+									}
+
+									DataSet imageSet = trainGenerator.next();
+									computationGraph.fit(imageSet);
+
+									INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
+									Visualization.visualize(
+											imageSet.getFeatures(),
+											imageSet.getLabels(),
+											predict,
+											trainFrame,
+											trainPanel,
+											trainGenerator.batch(),
+											224,
+											224
+									);
+
+								}
+								trainGenerator.reset();
 							}
 						}
 					}
@@ -980,6 +821,11 @@ public class CNN {
 					throw new Exception("Training dataset not set");
 				}
 			}
+			if (trainFrame != null) {
+				trainFrame.setVisible(false);
+				trainFrame.dispose();
+			}
+
 			uiServer.detach(statsStorage);
 			statsStorage.close();
 			System.out.println("stopping ui server");
@@ -989,76 +835,9 @@ public class CNN {
 			return null;
 		}
 	}
-	
-	/**
-	 * Evaluation & validation
-	 */
-	@Deprecated
-	public class ValidateNetwork implements Callable<Void> {
 
-		@Override
-		public Void call() throws Exception {
-			Evaluation evaluation;
-			if (ValidationDatasetIterator == null)
-				throw new Exception("There is no validation dataset");
-			if (! networkconstructed)
-				throw new Exception("Neural network is not constructed");
-			if(multiLayerNetwork != null) {
-				evaluation = multiLayerNetwork.evaluate(ValidationDatasetIterator);
-				System.out.println("Accuracy - " + evaluation.accuracy());
-				System.out.println("Network stats - \n" + evaluation.stats());
-			}
-			if(computationGraph != null){
-				evaluation = computationGraph.evaluate(ValidationDatasetIterator);
-				System.out.println("Accuracy - " + evaluation.accuracy());
-				System.out.println("Network stats - \n" + evaluation.stats());
-			}
-			return null;
-		}
-	}
 
-	@Deprecated
-	public class ValidateNetworkSSEmitter implements Callable<Void> {
-		private SseEmitter sseEmitter;
 
-		/**
-		 * Evaluation & validation (Respond using SseEmitter)
-		 * @param sseEmitter
-		 */
-		public ValidateNetworkSSEmitter(SseEmitter sseEmitter) {
-			this.sseEmitter = sseEmitter;
-		}
-		@Override
-		public Void call() throws Exception {
-			if (ValidationDatasetIterator == null) {
-				Object message = "Validation dataset not set";
-				sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
-				throw new Exception("Validation dataset not set");
-			}
-			if (! networkconstructed) {
-				Object message = "Neural network is not constructed";
-				sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
-				throw new Exception("Neural network is not constructed");
-			}
-			if(multiLayerNetwork != null) {
-				Evaluation evaluation = multiLayerNetwork.evaluate(ValidationDatasetIterator);
-				Object accuracy = "Network accuracy : " + evaluation.accuracy();
-				sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
-				Object message = "Network Validation Completed";
-				sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
-			}
-
-			if(computationGraph != null) {
-				Evaluation evaluation = computationGraph.evaluate(ValidationDatasetIterator);
-				Object accuracy = "Network accuracy : " + evaluation.accuracy();
-				sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
-				Object message = "Network Validation Completed";
-				sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
-			}
-			return null;
-		}
-	}
-	
 
 	public class ValidateNetworkSimpMessagingTemplate implements Callable<Void> {
 		private SimpMessagingTemplate template;
@@ -1083,9 +862,69 @@ public class CNN {
 				template.convertAndSend("/response/cnn/message", new Messageresponse(message));
 			}
 			if(computationGraph != null) {
-				Evaluation evaluation = computationGraph.evaluate(ValidationDatasetIterator);
-				String message = "Network accuracy : " + evaluation.accuracy();
-				template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+				if (ValidationDatasetIterator != null) {
+					Evaluation evaluation = computationGraph.evaluate(ValidationDatasetIterator);
+					String message = "Network accuracy : " + evaluation.accuracy();
+					template.convertAndSend("/response/cnn/message", new Messageresponse(message));
+				}
+				// Validation for image segmentation
+				else if (validationGenerator != null){
+					// VISUALISATION -  validation
+					JFrame validateFrame = Visualization.initFrame("Validation Visualization");
+					JPanel validatePanel = Visualization.initPanel(
+							validateFrame,
+							1,
+							height,
+							width,
+							1
+					);
+
+					Evaluation eval = new Evaluation(2);
+
+					float IOUTotal = 0;
+					int count = 0;
+					while (validationGenerator.hasNext()) {
+						// Check if the current thread is interrupted, if so, break the loop.
+						if (Thread.currentThread().isInterrupted()){
+							break;
+						}
+
+						DataSet imageSetVal = validationGenerator.next();
+
+						INDArray predictVal = computationGraph.output(imageSetVal.getFeatures())[0];
+						INDArray labels = imageSetVal.getLabels();
+
+						count++;
+
+						eval.eval(labels, predictVal);
+						System.out.println(eval.stats());
+
+						//Intersection over Union:  TP / (TP + FN + FP)
+						float IOU = (float) eval.truePositives().get(1) / ((float) eval.truePositives().get(1) + (float) eval.falsePositives().get(1) + (float) eval.falseNegatives().get(1));
+						IOUTotal = IOUTotal + IOU;
+
+						System.out.println("IOU Cell " + String.format("%.3f", IOU));
+
+						eval.reset();
+
+						for (int n = 0; n < imageSetVal.asList().size(); n++) {
+							Visualization.visualize(
+									imageSetVal.get(n).getFeatures(),
+									imageSetVal.get(n).getLabels(),
+									predictVal,
+									validateFrame,
+									validatePanel,
+									1,
+									224,
+									224
+							);
+						}
+					}
+					System.out.println("Mean IOU: " + IOUTotal / count);
+					validateFrame.setVisible(false);
+					validateFrame.dispose();
+				}
+
 			}
 			return null;
 		}
@@ -1160,7 +999,9 @@ public class CNN {
 		}
 	}
 
-
+	/**
+	 * Generation of iterator for segmentation
+	 */
 	public class generateIterator implements Callable<Void> {
 		@Override
 		public Void call() throws Exception {
@@ -1169,29 +1010,6 @@ public class CNN {
 			return null;
 		}
 	}
-
-
-	public class train_segmentation implements Callable<Void> {
-		private int epoch;
-		public train_segmentation(int epoch) {
-			this.epoch = epoch;
-		}
-		@Override
-		public Void call() throws Exception {
-			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, computationGraph);
-			return null;
-		}
-	}
-
-
-	public class validation_segmentation implements Callable<Void> {
-		@Override
-		public Void call() throws Exception {
-			TrainingDatasetGenerator.validation_segmentation(validationGenerator, computationGraph);
-			return null;
-		}
-	}
-
 
 
 	// Object detection with pre trained model
@@ -1600,6 +1418,679 @@ public class CNN {
 
 
 
+	public void addTransformCsv(String columnName, List<String> labelNames){
+		TrainingDatasetGenerator.addTransformCsv(columnName, labelNames);
+	}
+
+
+
+
+
+
+	/**
+	 * main training funtion
+	 *
+	 * TODO: abstract the training functionality to a different function and if statements to call train on different datasets
+	 */
+
+	public class TrainNetworkSimpMessagingTemplateNoUi implements Callable<Void> {
+		private int epochs;
+		private int scoreListener;
+		private SimpMessagingTemplate template;
+		/**
+		 * Training (Respond using Websocket)
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @param template
+		 * @throws Exception
+		 */
+		public TrainNetworkSimpMessagingTemplateNoUi(int epochs, int scoreListener, SimpMessagingTemplate template) {
+			this.epochs = epochs;
+			this.scoreListener = scoreListener;
+			this.template = template;
+		}
+		@Override
+		public Void call() throws Exception {
+			JFrame trainFrame = null;
+			JPanel trainPanel = null;
+
+			System.out.println("starting Training");
+//			if (TrainingDatasetIterator == null) {
+//				throw new Exception("Training dataset not set");
+//			}
+			if (!networkconstructed) {
+				throw new Exception("Neural network is not constructed");
+			}
+
+			// start ui server
+			System.out.println("Starting UI server");
+
+
+
+			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
+
+
+			if (trainDataCsv != null){
+				if (multiLayerNetwork != null) {
+					multiLayerNetwork.setListeners(
+							new ScoreIterationListener((scoreListener))
+					);
+					for (int counter = 0; counter < epochs; counter++) {
+						if (Thread.currentThread().isInterrupted()) {
+							break;
+						}
+						multiLayerNetwork.fit(trainDataCsv);
+						Evaluation eval;
+						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
+						System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
+					}
+				}
+
+			} else {
+
+				if (TrainingDatasetIterator != null) {
+					epochLoop:
+					for (int counter = 0; counter < epochs; counter++) {
+						// Check if the current thread is interrupted, if so, break the loop.
+						if (Thread.currentThread().isInterrupted()) {
+							break;
+						}
+
+						if (multiLayerNetwork != null) {
+							if (ValidationDatasetIterator != null) {
+								multiLayerNetwork.setListeners(
+										new ScoreIterationListener(scoreListener),
+										new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+								);
+							} else {
+								multiLayerNetwork.setListeners(
+										new ScoreIterationListener(scoreListener)
+								);
+							}
+							while (TrainingDatasetIterator.hasNext()) {
+								if (Thread.currentThread().isInterrupted()) {
+
+									break epochLoop;
+								}
+								DataSet imageSet = TrainingDatasetIterator.next();
+								multiLayerNetwork.fit(imageSet);
+							}
+							TrainingDatasetIterator.reset();
+
+							if (counter % scoreListener == 0) {
+								String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
+							}
+						}
+						if (computationGraph != null) {
+							computationGraph.setListeners(
+									new ScoreIterationListener((scoreListener)),
+									new StatsListener(statsStorage, 5)
+							);
+							if (TrainingDatasetIterator != null) {
+								while (TrainingDatasetIterator.hasNext()) {
+									if (Thread.currentThread().isInterrupted()) {
+										break epochLoop;
+									}
+									DataSet imageSet = TrainingDatasetIterator.next();
+									computationGraph.fit(imageSet);
+								}
+								System.out.println("After fit");
+								TrainingDatasetIterator.reset();
+								if (counter % scoreListener == 0) {
+									String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+								}
+							} else if (trainGenerator != null){
+
+								trainFrame = Visualization.initFrame("Training Visualization");
+								trainPanel = Visualization.initPanel(
+										trainFrame,
+										trainGenerator.batch(),
+										height,
+										width,
+										1
+								);
+
+								while (trainGenerator.hasNext()) {
+									// Check if the current thread is interrupted, if so, break the loop.
+									if (Thread.currentThread().isInterrupted()){
+										break epochLoop;
+									}
+
+									DataSet imageSet = trainGenerator.next();
+									computationGraph.fit(imageSet);
+
+									INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
+									Visualization.visualize(
+											imageSet.getFeatures(),
+											imageSet.getLabels(),
+											predict,
+											trainFrame,
+											trainPanel,
+											trainGenerator.batch(),
+											224,
+											224
+									);
+
+								}
+								trainGenerator.reset();
+							}
+						}
+					}
+				} else {
+					throw new Exception("Training dataset not set");
+				}
+			}
+			if (trainFrame != null) {
+				trainFrame.setVisible(false);
+				trainFrame.dispose();
+			}
+
+
+			trainDataCsv = null;
+			testDataCsv = null;
+			return null;
+		}
+	}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+	/**
+	 * DEPRECIATED FUNCTIONS DO NOT USE
+	 */
+	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph computationGraph) throws IOException, InterruptedException, URISyntaxException {
+
+		// ui
+
+
+		// TODO
+		// Set listeners
+//
+
+//		StatsStorage statsStorage = new InMemoryStatsStorage();
+//		StatsListener statsListener = new StatsListener(statsStorage);
+//		ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
+
+		//Configure where the network information (gradients, activations, score vs. time etc) is to be stored
+		//Then add the StatsListener to collect this information from the network, as it trains
+
+//		Thread UiThread = new Thread(() -> {
+//			try {
+		UIServer uiServer = UIServer.getInstance();
+		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+//		StatsStorage statsStorage = new InMemoryStatsStorage();
+		int listenerFrequency = 5;
+		computationGraph.setListeners(new ScoreIterationListener(1),new StatsListener(statsStorage, listenerFrequency));
+		uiServer.attach(statsStorage);
+//				while (true){
+//					if (Thread.currentThread().isInterrupted()){
+//						uiServer.stop();
+//					}
+//				}
+//			} catch (Exception e) {
+//				e.printStackTrace();
+//			}
+//		});
+//		UiThread.start();
+
+
+
+
+
+
+		JFrame trainFrame = Visualization.initFrame("Training Visualization");
+		JPanel trainPanel = Visualization.initPanel(
+				trainFrame,
+				trainGenerator.batch(),
+				height,
+				width,
+				1
+		);
+
+
+		if(Desktop.isDesktopSupported())
+		{
+			Desktop.getDesktop().browse(new URI("http://localhost:9000"));
+		}
+
+//		if( Desktop.isDesktopSupported() )
+//		{
+//			Thread BrowserThread = new Thread(() -> {
+//				try {
+//					Desktop.getDesktop().browse( new URI( "http://localhost:9000" ) );
+//				} catch (IOException | URISyntaxException e1) {
+//					e1.printStackTrace();
+//				}
+//			});
+//			BrowserThread.start();
+//			BrowserThread.interrupt();
+//		}
+
+
+		// Label to allow for thread breaking
+		epochLoop:
+		for (int i = 0; i < epoch; i++) {
+
+			System.out.println("Epoch: " + i);
+
+			while (trainGenerator.hasNext()) {
+				// Check if the current thread is interrupted, if so, break the loop.
+				if (Thread.currentThread().isInterrupted()){
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
+					trainFrame.setVisible(false);
+					trainFrame.dispose();
+					break epochLoop;
+				}
+
+				DataSet imageSet = trainGenerator.next();
+				computationGraph.fit(imageSet);
+
+				INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
+				Visualization.visualize(
+						imageSet.getFeatures(),
+						imageSet.getLabels(),
+						predict,
+						trainFrame,
+						trainPanel,
+						trainGenerator.batch(),
+						224,
+						224
+				);
+
+			}
+			trainGenerator.reset();
+		}
+
+//		UiThread.interrupt();
+		uiServer.detach(statsStorage);
+		statsStorage.close();
+		uiServer.stop();
+		trainFrame.setVisible(false);
+		trainFrame.dispose();
+	}
+
+	public class train_segmentation implements Callable<Void> {
+		private int epoch;
+		public train_segmentation(int epoch) {
+			this.epoch = epoch;
+		}
+		@Override
+		public Void call() throws Exception {
+			TrainingDatasetGenerator.train_segmentation(epoch, trainGenerator, computationGraph);
+			return null;
+		}
+	}
+
+	public class validation_segmentation implements Callable<Void> {
+		@Override
+		public Void call() throws Exception {
+			TrainingDatasetGenerator.validation_segmentation(validationGenerator, computationGraph);
+			return null;
+		}
+	}
+
+	public void validation_segmentation(RecordReaderDataSetIterator validationGenerator, ComputationGraph computationGraph) throws IOException {
+		// VISUALISATION -  validation
+		JFrame validateFrame = Visualization.initFrame("Validation Visualization");
+		JPanel validatePanel = Visualization.initPanel(
+				validateFrame,
+				1,
+				height,
+				width,
+				1
+		);
+
+		Evaluation eval = new Evaluation(2);
+
+		float IOUTotal = 0;
+		int count = 0;
+		while (validationGenerator.hasNext()) {
+			// Check if the current thread is interrupted, if so, break the loop.
+			if (Thread.currentThread().isInterrupted()){
+				break;
+			}
+
+			DataSet imageSetVal = validationGenerator.next();
+
+			INDArray predictVal = computationGraph.output(imageSetVal.getFeatures())[0];
+			INDArray labels = imageSetVal.getLabels();
+
+			count++;
+
+			eval.eval(labels, predictVal);
+			System.out.println(eval.stats());
+
+			//Intersection over Union:  TP / (TP + FN + FP)
+			float IOU = (float) eval.truePositives().get(1) / ((float) eval.truePositives().get(1) + (float) eval.falsePositives().get(1) + (float) eval.falseNegatives().get(1));
+			IOUTotal = IOUTotal + IOU;
+
+			System.out.println("IOU Cell " + String.format("%.3f", IOU));
+
+			eval.reset();
+
+			for (int n = 0; n < imageSetVal.asList().size(); n++) {
+				Visualization.visualize(
+						imageSetVal.get(n).getFeatures(),
+						imageSetVal.get(n).getLabels(),
+						predictVal,
+						validateFrame,
+						validatePanel,
+						1,
+						224,
+						224
+				);
+			}
+		}
+		System.out.println("Mean IOU: " + IOUTotal / count);
+		validateFrame.setVisible(false);
+		validateFrame.dispose();
+	}
+
+
+
+
+	public class TrainNetworkSSEmitter implements Callable<Void> {
+		private final int epochs;
+		private final int scoreListener;
+		private final SseEmitter sseEmitter;
+
+		/**
+		 * Training (Respond using SseEmitter)
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @param sseEmitter
+		 * @throws Exception
+		 */
+		@Deprecated
+		public TrainNetworkSSEmitter(int epochs, int scoreListener, SseEmitter sseEmitter) {
+			this.epochs = epochs;
+			this.scoreListener = scoreListener;
+			this.sseEmitter = sseEmitter;
+		}
+		@Override
+		public Void call() throws Exception {
+			Object message;
+			if (TrainingDatasetIterator == null) {
+				message = "Training dataset not set";
+				sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
+				throw new Exception("Training dataset not set");
+			}
+			if (!networkconstructed) {
+				message = "Neural network is not constructed";
+				sseEmitter.send(SseEmitter.event().name("TrainingErrorEvent").data(message));
+				throw new Exception("Neural network is not constructed");
+			}
+
+			for (int counter = 0; counter < epochs; counter++) {
+
+				// Check if the current thread is interrupted, if so, break the loop.
+				if (Thread.currentThread().isInterrupted()){
+					break;
+				}
+
+				if(multiLayerNetwork != null) {
+					if (ValidationDatasetIterator != null){
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+						);
+					}
+					else{
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener)
+						);
+					}
+
+
+					TrainingDatasetIterator.reset();
+					multiLayerNetwork.fit(TrainingDatasetIterator);
+					message = counter;
+					sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
+					if (counter % scoreListener == 0) {
+						message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
+						sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
+					}
+				}
+				if(computationGraph != null){
+					TrainingDatasetIterator.reset();
+					computationGraph.fit(TrainingDatasetIterator);
+					message = counter;
+					sseEmitter.send(SseEmitter.event().name("TrainingEpochUpdateEvent").data(message));
+					if (counter % scoreListener == 0) {
+						message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+						sseEmitter.send(SseEmitter.event().name("TrainingScoreEvent").data(message));
+					}
+				}
+			}
+			message = "Network Training completed";
+			sseEmitter.send(SseEmitter.event().name("TrainingCompleteEvent").data(message));
+			return null;
+		}
+	}
+
+
+
+	public class TrainNetwork implements Callable<Void> {
+		private final int epochs;
+		private final int scoreListener;
+
+		/**
+		 * Network training
+		 * @param epochs - Number of epoch for network training
+		 * @param scoreListener - Get the score of network (classifier) after (scoreListener)
+		 * @throws Exception
+		 */
+		@Deprecated
+		public TrainNetwork (int epochs, int scoreListener) {
+			this.epochs = epochs;
+			this.scoreListener = scoreListener;
+		}
+		@Override
+		public Void call() throws Exception {
+//			System.out.println(TrainingDatasetIterator.getLabels().size());
+
+			if (TrainingDatasetIterator == null) {
+				throw new Exception("Training dataset not set");
+			}
+			if (!networkconstructed) {
+				throw new Exception("Neural network is not constructed");
+			}
+			System.out.println("startingTraining");
+			// start ui server
+			System.out.println("Starting UI server");
+			UIServer uiServer = UIServer.getInstance();
+			StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
+			if(Desktop.isDesktopSupported())
+			{
+				Desktop.getDesktop(
+				).browse(new URI("http://localhost:9000"));
+			}
+
+
+			if (trainDataCsv != null){
+				for (int counter = 0; counter < epochs; counter++) {
+					if (multiLayerNetwork != null) {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener((scoreListener)),
+								new StatsListener(statsStorage, 5)
+						);
+						multiLayerNetwork.fit(trainDataCsv);
+						Evaluation eval;
+						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
+						System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
+					}
+				}
+
+			} else{
+				for (int counter = 0; counter < epochs; counter++) {
+					// Check if the current thread is interrupted, if so, break the loop.
+					if (Thread.currentThread().isInterrupted()){
+						uiServer.detach(statsStorage);
+						statsStorage.close();
+						System.out.println("stopping ui server");
+						uiServer.stop();
+						break;
+					}
+
+					if(multiLayerNetwork != null) {
+						if (ValidationDatasetIterator != null){
+							multiLayerNetwork.setListeners(
+									new ScoreIterationListener(scoreListener),
+									new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+									new StatsListener(statsStorage, 5)
+							);
+						}
+						else{
+							multiLayerNetwork.setListeners(
+									new ScoreIterationListener(scoreListener),
+									new StatsListener(statsStorage, 5)
+							);
+						}
+						while (TrainingDatasetIterator.hasNext()) {
+							if (Thread.currentThread().isInterrupted()) {
+
+								uiServer.detach(statsStorage);
+								statsStorage.close();
+								System.out.println("stopping ui server");
+								uiServer.stop();
+								break;
+							}
+							DataSet imageSet = TrainingDatasetIterator.next();
+							multiLayerNetwork.fit(imageSet);
+						}
+						TrainingDatasetIterator.reset();
+
+						if (counter % scoreListener == 0) {
+							String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
+						}
+					}
+					if(computationGraph != null) {
+						computationGraph.setListeners(
+								new ScoreIterationListener((scoreListener)),
+								new StatsListener(statsStorage, 5)
+						);
+						while (TrainingDatasetIterator.hasNext()) {
+							if (Thread.currentThread().isInterrupted()) {
+
+								uiServer.detach(statsStorage);
+								statsStorage.close();
+								System.out.println("stopping ui server");
+								uiServer.stop();
+								break;
+							}
+							DataSet imageSet = TrainingDatasetIterator.next();
+							computationGraph.fit(imageSet);
+						}
+						System.out.println("After fit");
+						TrainingDatasetIterator.reset();
+						if (counter % scoreListener == 0) {
+							String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+						}
+					}
+				}
+			}
+			uiServer.detach(statsStorage);
+			statsStorage.close();
+			System.out.println("stopping ui server");
+			uiServer.stop();
+			trainDataCsv = null;
+			testDataCsv = null;
+			return null;
+		}
+	}
+
+
+	/**
+	 * Evaluation & validation
+	 */
+	@Deprecated
+	public class ValidateNetwork implements Callable<Void> {
+
+		@Override
+		public Void call() throws Exception {
+			Evaluation evaluation;
+			if (ValidationDatasetIterator == null)
+				throw new Exception("There is no validation dataset");
+			if (! networkconstructed)
+				throw new Exception("Neural network is not constructed");
+			if(multiLayerNetwork != null) {
+				evaluation = multiLayerNetwork.evaluate(ValidationDatasetIterator);
+				System.out.println("Accuracy - " + evaluation.accuracy());
+				System.out.println("Network stats - \n" + evaluation.stats());
+			}
+			if(computationGraph != null){
+				evaluation = computationGraph.evaluate(ValidationDatasetIterator);
+				System.out.println("Accuracy - " + evaluation.accuracy());
+				System.out.println("Network stats - \n" + evaluation.stats());
+			}
+			return null;
+		}
+	}
+
+	@Deprecated
+	public class ValidateNetworkSSEmitter implements Callable<Void> {
+		private SseEmitter sseEmitter;
+
+		/**
+		 * Evaluation & validation (Respond using SseEmitter)
+		 * @param sseEmitter
+		 */
+		public ValidateNetworkSSEmitter(SseEmitter sseEmitter) {
+			this.sseEmitter = sseEmitter;
+		}
+		@Override
+		public Void call() throws Exception {
+			if (ValidationDatasetIterator == null) {
+				Object message = "Validation dataset not set";
+				sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
+				throw new Exception("Validation dataset not set");
+			}
+			if (! networkconstructed) {
+				Object message = "Neural network is not constructed";
+				sseEmitter.send(SseEmitter.event().name("ValidationErrorEvent").data(message));
+				throw new Exception("Neural network is not constructed");
+			}
+			if(multiLayerNetwork != null) {
+				Evaluation evaluation = multiLayerNetwork.evaluate(ValidationDatasetIterator);
+				Object accuracy = "Network accuracy : " + evaluation.accuracy();
+				sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
+				Object message = "Network Validation Completed";
+				sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
+			}
+
+			if(computationGraph != null) {
+				Evaluation evaluation = computationGraph.evaluate(ValidationDatasetIterator);
+				Object accuracy = "Network accuracy : " + evaluation.accuracy();
+				sseEmitter.send(SseEmitter.event().name("ValidationAccuracyEvent").data(accuracy));
+				Object message = "Network Validation Completed";
+				sseEmitter.send(SseEmitter.event().name("ValidationCompleteEvent").data(message));
+			}
+			return null;
+		}
+	}
+
+
+
 	public void testTrain(int epochs, int scoreListener) throws Exception {
 //		System.out.println(TrainingDatasetIterator.getLabels().size());
 
@@ -1626,14 +2117,14 @@ public class CNN {
 						new ScoreIterationListener((scoreListener)),
 						new StatsListener(statsStorage, 5)
 				);
-			for (int counter = 0; counter < epochs; counter++) {
-				if (Thread.currentThread().isInterrupted()) {
-					uiServer.detach(statsStorage);
-					statsStorage.close();
-					System.out.println("stopping ui server");
-					uiServer.stop();
-					break;
-				}
+				for (int counter = 0; counter < epochs; counter++) {
+					if (Thread.currentThread().isInterrupted()) {
+						uiServer.detach(statsStorage);
+						statsStorage.close();
+						System.out.println("stopping ui server");
+						uiServer.stop();
+						break;
+					}
 					multiLayerNetwork.fit(trainDataCsv);
 					Evaluation eval;
 					eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
@@ -1721,6 +2212,8 @@ public class CNN {
 		trainDataCsv = null;
 		testDataCsv = null;
 	}
+
+
 
 
 
