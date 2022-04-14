@@ -495,11 +495,12 @@ public class CNN {
 	public void AppendDenseLayer(int ordering, int nOut, Activation activationfunction, double dropOut, double biasInit,
 								 WeightInit weightInit) throws Exception {
 		boolean isFirstLayer = (ordering == 0);
-		if (trainDataCsv == null){throw new Exception("Training Dataset is not initialized");
-		}
+
 		if (isFirstLayer) {
-			System.out.println(trainDataCsv.numInputs());
-			this.cnnconfig.AppendDenseFirstLayer(ordering, trainDataCsv.numInputs(), nOut, activationfunction, dropOut, biasInit, weightInit);
+			if (trainDataCsv != null ){
+				this.cnnconfig.AppendDenseFirstLayer(ordering, trainDataCsv.numInputs(), nOut, activationfunction, dropOut, biasInit, weightInit);
+			}else{
+				throw new Exception("Training Dataset is not initialized");}
 		} else {
 			this.cnnconfig.AppendDenseLayer(ordering, nOut, activationfunction, dropOut, biasInit, weightInit);
 		}
@@ -1712,6 +1713,7 @@ public class CNN {
 				throw new Exception("Training dataset not set");
 			}
 		}
+
 		uiServer.detach(statsStorage);
 		statsStorage.close();
 		System.out.println("stopping ui server");
