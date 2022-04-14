@@ -56,6 +56,8 @@ class CNNNodeService {
         return { name: "Construct" };
       case "TrainNN":
         return this.prepareTrainNN();
+      case "TrainNNNoUi":
+        return this.prepareTrainNNNoUi();
       case "ValidateNN":
         return { name: "Validate" };
       case "ExportNN":
@@ -534,6 +536,18 @@ class CNNNodeService {
    */
   prepareTrainNN = (): Dictionary => {
     let name = "Train NN";
+    let epochs = 200;
+    let scoreListener = 10;
+    return { name, epochs, scoreListener };
+  };
+
+/**
+ * TrainCNN node data
+ * 1. epochs - Number of epochs for training (Default = 200)
+ * 2. scorelistener - Interval to calculate/evaluate the score of network (Default = 10)
+ */
+    prepareTrainNNNoUi = (): Dictionary => {
+    let name = "TrainNNNoUi";
     let epochs = 200;
     let scoreListener = 10;
     return { name, epochs, scoreListener };
