@@ -1723,5 +1723,10 @@ public class CNN {
 	}
 
 
+	public void addTransformCsv(String columnName, List<String> labelNames){
+		TrainingDatasetGenerator.addTransformCsv(columnName, labelNames);
+	}
+
+
 
 }
