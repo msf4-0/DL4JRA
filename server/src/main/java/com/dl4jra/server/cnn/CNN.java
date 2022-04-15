@@ -662,7 +662,7 @@ public class CNN {
 			System.out.println("Starting UI server");
 			if (uiServer == null) {
 				uiServer = UIServer.getInstance();
-			} else{
+			} else {
 
 				System.out.println("stopping ui server");
 				uiServer.stop();
@@ -671,21 +671,20 @@ public class CNN {
 			}
 			if (statsStorage == null) {
 				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-			} else{
+			} else {
 				statsStorage.close();
 				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
 			}
 
-			uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
-			if(Desktop.isDesktopSupported())
-			{
+			uiServer.attach(statsStorage);                // Check if the current thread is interrupted, if so, break the loop.
+			if (Desktop.isDesktopSupported()) {
 				Desktop.getDesktop(
 				).browse(new URI("http://localhost:9000"));
 			}
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
 
 
-			if (trainDataCsv != null){
+			if (trainDataCsv != null) {
 				if (multiLayerNetwork != null) {
 					multiLayerNetwork.setListeners(
 							new ScoreIterationListener((scoreListener)),
@@ -707,7 +706,24 @@ public class CNN {
 				}
 
 			} else {
-
+				if (multiLayerNetwork != null) {
+					if (ValidationDatasetIterator != null) {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+								new StatsListener(statsStorage, 5)
+						);
+					} else {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new StatsListener(statsStorage, 5));
+					}
+				} else if (computationGraph != null) {
+					computationGraph.setListeners(
+							new ScoreIterationListener((scoreListener)),
+							new StatsListener(statsStorage, 5)
+					);
+				}
 				if (TrainingDatasetIterator != null) {
 					epochLoop:
 					for (int counter = 0; counter < epochs; counter++) {
@@ -721,18 +737,6 @@ public class CNN {
 						}
 
 						if (multiLayerNetwork != null) {
-							if (ValidationDatasetIterator != null) {
-								multiLayerNetwork.setListeners(
-										new ScoreIterationListener(scoreListener),
-										new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
-										new StatsListener(statsStorage, 5)
-								);
-							} else {
-								multiLayerNetwork.setListeners(
-										new ScoreIterationListener(scoreListener),
-										new StatsListener(statsStorage, 5)
-								);
-							}
 							while (TrainingDatasetIterator.hasNext()) {
 								if (Thread.currentThread().isInterrupted()) {
 
@@ -752,10 +756,7 @@ public class CNN {
 							}
 						}
 						if (computationGraph != null) {
-							computationGraph.setListeners(
-									new ScoreIterationListener((scoreListener)),
-									new StatsListener(statsStorage, 5)
-							);
+
 							if (TrainingDatasetIterator != null) {
 								while (TrainingDatasetIterator.hasNext()) {
 									if (Thread.currentThread().isInterrupted()) {
@@ -774,7 +775,7 @@ public class CNN {
 								if (counter % scoreListener == 0) {
 									String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
 								}
-							} else if (trainGenerator != null){
+							} else if (trainGenerator != null) {
 
 								trainFrame = Visualization.initFrame("Training Visualization");
 								trainPanel = Visualization.initPanel(
@@ -787,7 +788,7 @@ public class CNN {
 
 								while (trainGenerator.hasNext()) {
 									// Check if the current thread is interrupted, if so, break the loop.
-									if (Thread.currentThread().isInterrupted()){
+									if (Thread.currentThread().isInterrupted()) {
 										uiServer.detach(statsStorage);
 										statsStorage.close();
 										System.out.println("stopping ui server");
@@ -1418,9 +1419,9 @@ public class CNN {
 
 
 
-	public void addTransformCsv(String columnName, List<String> labelNames){
-		TrainingDatasetGenerator.addTransformCsv(columnName, labelNames);
-	}
+//	public void addTransformCsv(String columnName, List<String> labelNames){
+//		TrainingDatasetGenerator.addTransformCsv(columnName, labelNames);
+//	}
 
 
 
@@ -1462,11 +1463,6 @@ public class CNN {
 				throw new Exception("Neural network is not constructed");
 			}
 
-			// start ui server
-			System.out.println("Starting UI server");
-
-
-
 			template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, epochs));
 
 
@@ -1488,6 +1484,24 @@ public class CNN {
 
 			} else {
 
+				//	Setting listeners
+				if (computationGraph != null) {
+					computationGraph.setListeners(
+							new ScoreIterationListener((scoreListener))
+					);
+				} else if (multiLayerNetwork != null) {
+					if (ValidationDatasetIterator != null) {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener),
+								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
+						);
+					} else {
+						multiLayerNetwork.setListeners(
+								new ScoreIterationListener(scoreListener)
+						);
+					}
+				}
+				// starting training
 				if (TrainingDatasetIterator != null) {
 					epochLoop:
 					for (int counter = 0; counter < epochs; counter++) {
@@ -1497,16 +1511,6 @@ public class CNN {
 						}
 
 						if (multiLayerNetwork != null) {
-							if (ValidationDatasetIterator != null) {
-								multiLayerNetwork.setListeners(
-										new ScoreIterationListener(scoreListener),
-										new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END)
-								);
-							} else {
-								multiLayerNetwork.setListeners(
-										new ScoreIterationListener(scoreListener)
-								);
-							}
 							while (TrainingDatasetIterator.hasNext()) {
 								if (Thread.currentThread().isInterrupted()) {
 
@@ -1522,10 +1526,7 @@ public class CNN {
 							}
 						}
 						if (computationGraph != null) {
-							computationGraph.setListeners(
-									new ScoreIterationListener((scoreListener)),
-									new StatsListener(statsStorage, 5)
-							);
+
 							if (TrainingDatasetIterator != null) {
 								while (TrainingDatasetIterator.hasNext()) {
 									if (Thread.currentThread().isInterrupted()) {

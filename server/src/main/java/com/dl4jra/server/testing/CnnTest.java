@@ -64,8 +64,9 @@ public class CnnTest {
 			// CSV DatasetGenerator Test
 //
 			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
+//
+//			cnn.addTransformCsv("type", Arrays.asList("SW","W","T", "R", "P", "SO"));
 			cnn.ConfigureCsvData();
-
 			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT, ConvolutionMode.Same.Truncate, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer );
 //
 //			cnn.AppendConvolutionLayer(0,10, 10, 2, 2, 1, 1, 0, 0, Activation.RELU, 0, 0, ConvolutionMode.Truncate);
