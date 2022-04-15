@@ -18,6 +18,8 @@ import org.datavec.api.records.reader.impl.csv.CSVSequenceRecordReader;
 import org.datavec.api.split.FileSplit;
 import org.datavec.api.split.InputSplit;
 import org.datavec.api.split.NumberedFileInputSplit;
+import org.datavec.api.transform.TransformProcess;
+import org.datavec.api.transform.schema.Schema;
 import org.datavec.api.writable.Writable;
 import org.datavec.image.loader.BaseImageLoader;
 import org.datavec.image.loader.NativeImageLoader;
@@ -25,6 +27,7 @@ import org.datavec.image.recordreader.ImageRecordReader;
 import org.datavec.image.recordreader.objdetect.ObjectDetectionRecordReader;
 //import org.datavec.image.recordreader.objdetect.impl.VocLabelProvider;
 import org.datavec.image.transform.*;
+import org.datavec.local.transforms.LocalTransformExecutor;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.datasets.datavec.SequenceRecordReaderDataSetIterator;
 import org.deeplearning4j.nn.graph.ComputationGraph;
@@ -331,6 +334,7 @@ public class CNNDatasetGenerator {
 	}
 
 
+	@Deprecated
 	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph model) throws IOException, InterruptedException, URISyntaxException {
 
 		// ui
@@ -365,6 +369,8 @@ public class CNNDatasetGenerator {
 //			}
 //		});
 //		UiThread.start();
+
+
 
 
 
@@ -546,6 +552,25 @@ public class CNNDatasetGenerator {
 			allData.add(csvRecordReader.next());
 		}
  		datasetSize = allData.size();
+
+		// doing transformations to data
+		if (schemaList.size() != 0) {
+			TransformProcess tp;
+			System.out.println(schemaList.size());
+			try {
+				for (int i = 0; i < schemaList.size(); i++) {
+					tp = new TransformProcess.Builder(schemaList.get(i))
+							.categoricalToInteger(schemaList.get(i).getName(0))
+							.build();
+					allData = LocalTransformExecutor.execute(allData, tp);
+				}
+			}catch(Exception e) {
+				System.out.println(e.getMessage());
+				e.printStackTrace();
+			}
+		}
+
+
 		CollectionRecordReader collectionRR = new CollectionRecordReader(allData);
 		DataSetIterator dataSetIterator = new RecordReaderDataSetIterator(collectionRR, allData.size(), labelIndex, numberLabels);
 
@@ -554,6 +579,8 @@ public class CNNDatasetGenerator {
 		Random random = new Random(System.currentTimeMillis());
 		int seed = random.nextInt();
 		fullDataset.shuffle(seed);
+
+
 
         //Input split ratio
 		SplitTestAndTrain testAndTrain = fullDataset.splitTestAndTrain(fractionTrain);
@@ -569,6 +596,16 @@ public class CNNDatasetGenerator {
 	public DataSet getTestCsvData(){return testCsvData;}
 	public int getDatasetSize(){return datasetSize;}
 
+
+	ArrayList<Schema> schemaList = new ArrayList<>();
+
+
+	public void addTransformCsv(String columnName, List<String> labelNames){
+		Schema sc = new Schema.Builder()
+				.addColumnCategorical(columnName, labelNames)
+				.build();
+		schemaList.add(sc);
+	}
 }
 
 

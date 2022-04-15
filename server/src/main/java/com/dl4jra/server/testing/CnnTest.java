@@ -4,7 +4,9 @@ import com.dl4jra.server.cnn.CNN;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
@@ -61,11 +63,14 @@ public class CnnTest {
 			CNN cnn = new CNN();
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
+			MultiLayerNetwork multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("C:\\Users\\Luke Yeo\\.deeplearning4j\\models\\yolo2\\yolo2_dl4j_inference.v3.zip", true);
+
 			// CSV DatasetGenerator Test
 //
 			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
+//
+//			cnn.addTransformCsv("type", Arrays.asList("SW","W","T", "R", "P", "SO"));
 			cnn.ConfigureCsvData();
-
 			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT, ConvolutionMode.Same.Truncate, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer );
 //
 //			cnn.AppendConvolutionLayer(0,10, 10, 2, 2, 1, 1, 0, 0, Activation.RELU, 0, 0, ConvolutionMode.Truncate);
