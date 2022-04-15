@@ -71,7 +71,7 @@ export default class Mainpage extends Component <MainpageProps, MainpageStates>{
                     </Col>
                     <Col sm={6}>
                         <Card body>
-                            <CardTitle tag="h5">OBJECT CLASSIFICATION</CardTitle>
+                            <CardTitle tag="h5">IMAGE CLASSIFICATION</CardTitle>
                             <CardText>Classify images (through webcam) using CNN</CardText>
                             <Button color='primary' onClick={this.navigateclassificationpage}>Continue</Button>
                         </Card>
