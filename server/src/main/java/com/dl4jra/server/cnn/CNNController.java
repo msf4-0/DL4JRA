@@ -643,7 +643,7 @@ public class CNNController {
 		try 
 		{
 			System.out.println(new RBProcessCompleted("START TRAINING"));
-			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), data.getScoreListener(), template));
+			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), data.getScoreListener(), template, true));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
 		}
@@ -669,7 +669,8 @@ public class CNNController {
 		try
 		{
 			System.out.println(new RBProcessCompleted("START TRAINING"));
-			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplateNoUi(data.getEpochs(), data.getScoreListener(), template));
+//			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplateNoUi(data.getEpochs(), data.getScoreListener(), template));
+			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), data.getScoreListener(), template, false));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
 		}
@@ -1128,7 +1129,7 @@ public class CNNController {
 			System.out.println("START TRAINING");
 			System.out.println("Details on command prompt");
 //			this.future = this.executor.submit(cnn.new train_segmentation(data.getEpochs()));
-			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), 5, template));
+			this.future = this.executor.submit(cnn.new TrainNetworkSimpMessagingTemplate(data.getEpochs(), data.getScoreListener(), template, true));
 			this.future.get();
 			return new RBProcessCompleted("Network training completed");
 		}

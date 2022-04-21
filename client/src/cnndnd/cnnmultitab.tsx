@@ -885,10 +885,17 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/setupiterator", element.id, element.data);
                 } else if (element.type === "generateIterator") {
                     await this.processnode("/server/cnn/generateiteratorsegmentation", element.id, element.data);
-                } else if (element.type === "train_segmentation") {
-                    await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
-                } else if (element.type === "validation_segmentation") {
-                    await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
+                // } else if (element.type === "train_segmentation") {
+                //     await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
+                // } else if (element.type === "validation_segmentation") {
+                //     await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
+
+                } else if (element.type === "TrainNN") {
+                    await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                } else if (element.type === "TrainNNNoUi") {
+                    await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
+                } else if (element.type === "ValidateNN") {
+
                 } else if (element.type === "ExportNN") {
                     await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 }
@@ -920,16 +927,15 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         if (cnnstartnodeId !== null) {
             let cnntinyyolonode : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportTinyYolo");
             let cnnyolo2node : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("ImportYolo2");
+            let importNode : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("LoadPretrainedModel");
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
-            if(cnntinyyolonode != null && cnnyolo2node == null){
+            if(cnntinyyolonode !== null && cnnyolo2node === null && importNode === null){
                 console.log("Im dancing in the rain");
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
                     let element = cnnsequences[index];
                     if (element.type === "ImportTinyYolo") {
                         await this.processnode("/server/cnn/importtinyyolo", element.id, element.data);
-                    } else if (element.type === "LoadPretrainedModel") {
-                        await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
                     } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
                         await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
                     } else if (element.type === "Train_Test_PretrainedModel") {
@@ -939,14 +945,28 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     }
                 }
             }
-            else if(cnnyolo2node != null && cnntinyyolonode == null){
+            else if(cnntinyyolonode === null && cnnyolo2node !== null && importNode === null){
                 console.log("Im not dancing in the rain");
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
                     let element = cnnsequences[index];
                     if (element.type === "ImportYolo2") {
                         await this.processnode("/server/cnn/importyolo2", element.id, element.data);
-                    } else if (element.type === "LoadPretrainedModel") {
+                    } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
+                        await this.processnode("/server/cnn/configtransferlearningodetectionyolo2", element.id, element.data);
+                    } else if (element.type === "Train_Test_PretrainedModel") {
+                        await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "ExportNN") {
+                        await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
+                    }
+                }
+            }
+            else if(cnntinyyolonode === null && cnnyolo2node === null && importNode !== null){
+                console.log("Im not dancing in the rain");
+                for (let index = 0; index < cnnsequences.length; index ++) {
+                    if (! this.seqcancontinue) return;
+                    let element = cnnsequences[index];
+                    if (element.type === "LoadPretrainedModel") {
                         await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
                     } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
                         await this.processnode("/server/cnn/configtransferlearningodetectionyolo2", element.id, element.data);

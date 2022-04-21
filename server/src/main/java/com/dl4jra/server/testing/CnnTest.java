@@ -4,7 +4,9 @@ import com.dl4jra.server.cnn.CNN;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
+import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
+import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 
@@ -60,6 +62,8 @@ public class CnnTest {
 		try {
 			CNN cnn = new CNN();
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
+
+			MultiLayerNetwork multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("C:\\Users\\Luke Yeo\\.deeplearning4j\\models\\yolo2\\yolo2_dl4j_inference.v3.zip", true);
 
 			// CSV DatasetGenerator Test
 //
