@@ -5,7 +5,10 @@ import java.io.File;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import com.dl4jra.server.cnn.utilities.UiServerHelper;
@@ -14,6 +17,14 @@ import org.bytedeco.opencv.opencv_core.Mat;
 import org.bytedeco.opencv.opencv_core.Point;
 import org.bytedeco.opencv.opencv_core.Scalar;
 import org.bytedeco.opencv.opencv_core.Size;
+import org.datavec.api.io.filters.BalancedPathFilter;
+import org.datavec.api.split.FileSplit;
+import org.datavec.api.split.InputSplit;
+import org.datavec.image.loader.NativeImageLoader;
+import org.datavec.image.recordreader.ImageRecordReader;
+import org.datavec.image.transform.ColorConversionTransform;
+import org.datavec.image.transform.ImageTransform;
+import org.datavec.image.transform.PipelineImageTransform;
 import org.deeplearning4j.core.storage.StatsStorage;
 import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
@@ -33,9 +44,12 @@ import org.deeplearning4j.optimize.listeners.ScoreIterationListener;
 import org.deeplearning4j.ui.api.UIServer;
 import org.deeplearning4j.ui.model.stats.StatsListener;
 import org.deeplearning4j.ui.model.storage.FileStatsStorage;
+import org.deeplearning4j.ui.model.storage.InMemoryStatsStorage;
+import org.deeplearning4j.util.CrashReportingUtil;
 import org.deeplearning4j.zoo.PretrainedType;
 import org.deeplearning4j.zoo.ZooModel;
 import org.deeplearning4j.zoo.model.*;
+import org.nd4j.common.primitives.Pair;
 import org.nd4j.evaluation.classification.Evaluation;
 import org.nd4j.linalg.activations.Activation;
 import org.nd4j.linalg.api.buffer.DataType;
@@ -43,6 +57,8 @@ import org.nd4j.linalg.api.ndarray.INDArray;
 import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.dataset.ViewIterator;
 import org.nd4j.linalg.dataset.api.iterator.DataSetIterator;
+import org.nd4j.linalg.dataset.api.preprocessor.DataNormalization;
+import org.nd4j.linalg.dataset.api.preprocessor.ImagePreProcessingScaler;
 import org.nd4j.linalg.dataset.api.preprocessor.VGG16ImagePreProcessor;
 import org.nd4j.linalg.factory.Nd4j;
 import org.nd4j.linalg.learning.config.Adam;
@@ -50,6 +66,8 @@ import org.nd4j.linalg.learning.config.Nesterovs;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
 import org.nd4j.linalg.lossfunctions.LossFunctions.LossFunction;
 import org.nd4j.linalg.lossfunctions.impl.LossMCXENT;
+import org.nd4j.linalg.schedule.ScheduleType;
+import org.nd4j.linalg.schedule.StepSchedule;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -73,7 +91,6 @@ public class CNN {
 	// Training dataset properties
 	private DataSetIterator TrainingDatasetIterator;
 	private CNNDatasetGenerator TrainingDatasetGenerator;
-	
 	// Validation dataset properties
 	private CNNDatasetGenerator ValidationDatasetGenerator;
 	private DataSetIterator ValidationDatasetIterator;
@@ -798,9 +815,7 @@ public class CNN {
 							if (counter % scoreListener == 0) {
 								String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
 							}
-						}
-						if (computationGraph != null) {
-
+						} else if (computationGraph != null) {
 							if (TrainingDatasetIterator != null) {
 								while (TrainingDatasetIterator.hasNext()) {
 									if (Thread.currentThread().isInterrupted()) {
@@ -840,7 +855,7 @@ public class CNN {
 //										statsStorage.close();
 //										System.out.println("stopping ui server");
 //										uiServer.stop();
-										if (enableUi) {
+										if (	enableUi) {
 											uiServerHelper.stopUiServer();
 										}
 										trainFrame.setVisible(false);
@@ -1094,6 +1109,161 @@ public class CNN {
 			this.computationGraph.save(new File(path + "/" + name + ".zip"), true);
 	}
 
+
+//	public void evaluate_TINYYOLO(int epochs) throws Exception {
+//
+//		computationGraph.setListeners(new ScoreIterationListener(1));
+//		for (int i = 1; i < epochs + 1; i++) {
+//			// Check if the current thread is interrupted, if so, break the loop.
+//			if (Thread.currentThread().isInterrupted()){
+//				break;
+//			}
+//			computationGraph.fit(trainGenerator);
+//			System.out.println("*** Completed epoch {" + i+ " } ***");
+//		}
+
+
+
+		// Testing through visualization
+//		NativeImageLoader imageLoader = new NativeImageLoader();
+//		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
+//		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
+//		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
+//		Mat convertedMat = new Mat();
+//		Mat convertedMat_big = new Mat();
+//
+//		while (validationGenerator.hasNext()) {
+//			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
+//			INDArray features = ds.getFeatures();
+//			INDArray results = computationGraph.outputSingle(features);
+//			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
+//			YoloUtils.nms(objs, 0.4);
+//			Mat mat = imageLoader.asMat(features);
+//			mat.convertTo(convertedMat, CV_8U, 255, 0);
+//			int w = mat.cols() * 2;
+//			int h = mat.rows() * 2;
+//			resize(convertedMat, convertedMat_big, new Size(w, h));
+//			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
+//			canvas.showImage(converter.convert(convertedMat_big));
+//			canvas.waitKey();
+//		}
+//		canvas.dispose();
+//	}
+
+
+	public void loadDatasetObjectDetection(String trainDirAddress, String testDirAddress){
+		this.TrainingDatasetGenerator.loadDatasetObjectDetection(trainDirAddress, testDirAddress);
+	}
+
+	public void generateDataIteratorObjectDetection(int batchSize) throws Exception {
+		trainGenerator = TrainingDatasetGenerator.trainIterator_ObjectDetection( batchSize);
+		validationGenerator = TrainingDatasetGenerator.testIterator_ObjectDetection(1);
+	}
+//	private String labeltext = null;
+	private Mat drawResults(List<DetectedObject> objects, Mat mat, int w, int h) {
+		for (DetectedObject obj : objects) {
+			// Check if the current thread is interrupted, if so, break the loop.
+			if (Thread.currentThread().isInterrupted()){
+				break;
+			}
+
+			double[] xy1 = obj.getTopLeftXY();
+			double[] xy2 = obj.getBottomRightXY();
+			String label = trainGenerator.getLabels().get(obj.getPredictedClass());
+			int x1 = (int) Math.round(w * xy1[0] / 13);
+			int y1 = (int) Math.round(h * xy1[1] / 13);
+			int x2 = (int) Math.round(w * xy2[0] / 13);
+			int y2 = (int) Math.round(h * xy2[1] / 13);
+			//Draw bounding box
+			Scalar GREEN = RGB(0, 255.0, 0);
+			Scalar YELLOW = RGB(255, 255, 0);
+			Scalar b1 = RGB(0, 0, 255);
+			Scalar b2 = RGB(255, 0, 0);
+			Scalar b3 = RGB(0, 255, 255);
+			Scalar[] colormap = {GREEN, YELLOW, b1, b2, b3};
+			rectangle(mat, new Point(x1, y1), new Point(x2, y2), colormap[obj.getPredictedClass()], 2, 0, 0);
+			//Display label text
+			String labeltext = label + " " + String.format("%.2f", obj.getConfidence() * 100) + "%";
+			int[] baseline = {0};
+			Size textSize = getTextSize(labeltext, FONT_HERSHEY_DUPLEX, 1, 1, baseline);
+			rectangle(mat, new Point(x1 + 2, y2 - 2), new Point(x1 + 2 + textSize.get(0), y2 - 2 - textSize.get(1)), colormap[obj.getPredictedClass()], FILLED, 0, 0);
+			putText(mat, labeltext, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, RGB(0, 0, 0));
+		}
+		return mat;
+	}
+
+	/**
+	 *
+	 * NEW FEATURES THAT SHOULD BE REFACTORED
+	 */
+
+
+	public class evaluate_TINYYOLO implements Callable<Void> {
+		private int epochs;
+
+		public evaluate_TINYYOLO(int epochs) {
+			this.epochs = epochs;
+		}
+
+		@Override
+		public Void call() throws Exception {
+
+			if (uiServer == null) {
+				uiServer = UIServer.getInstance();
+			} else{
+				uiServer.stop();
+				uiServer = UIServer.getInstance();
+			}
+			if (statsStorage == null) {
+				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			} else{
+				statsStorage.close();
+				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+			}
+			uiServer.attach(statsStorage);
+
+			computationGraph.setListeners(new ScoreIterationListener(1),
+					new StatsListener(statsStorage, 5));
+			if(Desktop.isDesktopSupported())
+			{
+				Desktop.getDesktop(
+				).browse(new URI("http://localhost:9000"));
+			}
+			epochLoop:
+			for (int i = 1; i < epochs + 1; i++) {
+				// Check if the current thread is interrupted, if so, break the loop.
+				if (Thread.currentThread().isInterrupted()) {
+
+					uiServer.detach(statsStorage);
+					statsStorage.close();
+					System.out.println("stopping ui server");
+					uiServer.stop();
+					break epochLoop;
+				}
+				while (trainGenerator.hasNext()) {
+					if (Thread.currentThread().isInterrupted()) {
+
+						uiServer.detach(statsStorage);
+						statsStorage.close();
+						System.out.println("stopping ui server");
+						uiServer.stop();
+						break epochLoop;
+					}
+					DataSet imageSet = trainGenerator.next();
+					computationGraph.fit(imageSet);
+				}
+				trainGenerator.reset();
+				System.out.println("*** Completed epoch {" + i + " } ***");
+			}
+			uiServer.detach(statsStorage);
+			statsStorage.close();
+			System.out.println("stopping ui server");
+			uiServer.stop();
+			return null;
+		}
+	}
+
+
 	/**
 	 * Load CNN model
 	 * @param path - Path to classifier
@@ -1149,11 +1319,7 @@ public class CNN {
 
 	}
 
-	/**
-	 *
-	 * NEW FEATURES THAT SHOULD BE REFACTORED
-	 */
-	//
+
 	public void configTransferLearningNetwork_ODetection_Yolo2(double learningRate){
 
 		FineTuneConfiguration fineTuneConfiguration = new FineTuneConfiguration.Builder()
@@ -1196,150 +1362,6 @@ public class CNN {
 
 	}
 
-//	public void evaluate_TINYYOLO(int epochs) throws Exception {
-//
-//		computationGraph.setListeners(new ScoreIterationListener(1));
-//		for (int i = 1; i < epochs + 1; i++) {
-//			// Check if the current thread is interrupted, if so, break the loop.
-//			if (Thread.currentThread().isInterrupted()){
-//				break;
-//			}
-//			computationGraph.fit(trainGenerator);
-//			System.out.println("*** Completed epoch {" + i+ " } ***");
-//		}
-
-
-
-		// Testing through visualization
-//		NativeImageLoader imageLoader = new NativeImageLoader();
-//		CanvasFrame canvas = new CanvasFrame("Validate Test Dataset");
-//		OpenCVFrameConverter.ToMat converter = new OpenCVFrameConverter.ToMat();
-//		org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer yout = (org.deeplearning4j.nn.layers.objdetect.Yolo2OutputLayer) computationGraph.getOutputLayer(0);
-//		Mat convertedMat = new Mat();
-//		Mat convertedMat_big = new Mat();
-//
-//		while (validationGenerator.hasNext()) {
-//			org.nd4j.linalg.dataset.DataSet ds = validationGenerator.next();
-//			INDArray features = ds.getFeatures();
-//			INDArray results = computationGraph.outputSingle(features);
-//			List<DetectedObject> objs = yout.getPredictedObjects(results, 0.3);
-//			YoloUtils.nms(objs, 0.4);
-//			Mat mat = imageLoader.asMat(features);
-//			mat.convertTo(convertedMat, CV_8U, 255, 0);
-//			int w = mat.cols() * 2;
-//			int h = mat.rows() * 2;
-//			resize(convertedMat, convertedMat_big, new Size(w, h));
-//			convertedMat_big = drawResults(objs, convertedMat_big, w, h);
-//			canvas.showImage(converter.convert(convertedMat_big));
-//			canvas.waitKey();
-//		}
-//		canvas.dispose();
-//	}
-
-	public class evaluate_TINYYOLO implements Callable<Void> {
-			private int epochs;
-
-			public evaluate_TINYYOLO(int epochs) {
-				this.epochs = epochs;
-			}
-
-			@Override
-			public Void call() throws Exception {
-
-				if (uiServer == null) {
-					uiServer = UIServer.getInstance();
-				} else{
-					uiServer.stop();
-					uiServer = UIServer.getInstance();
-				}
-				if (statsStorage == null) {
-					statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-				} else{
-					statsStorage.close();
-					statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-				}
-				uiServer.attach(statsStorage);
-
-				computationGraph.setListeners(new ScoreIterationListener(1),
-						 					  new StatsListener(statsStorage, 5));
-				if(Desktop.isDesktopSupported())
-				{
-					Desktop.getDesktop(
-					).browse(new URI("http://localhost:9000"));
-				}
-				epochLoop:
-				for (int i = 1; i < epochs + 1; i++) {
-					// Check if the current thread is interrupted, if so, break the loop.
-					if (Thread.currentThread().isInterrupted()) {
-
-						uiServer.detach(statsStorage);
-						statsStorage.close();
-						System.out.println("stopping ui server");
-						uiServer.stop();
-						break epochLoop;
-					}
-					while (trainGenerator.hasNext()) {
-						if (Thread.currentThread().isInterrupted()) {
-
-							uiServer.detach(statsStorage);
-							statsStorage.close();
-							System.out.println("stopping ui server");
-							uiServer.stop();
-							break epochLoop;
-						}
-						DataSet imageSet = trainGenerator.next();
-						computationGraph.fit(imageSet);
-					}
-					System.out.println("*** Completed epoch {" + i + " } ***");
-				}
-				uiServer.detach(statsStorage);
-				statsStorage.close();
-				System.out.println("stopping ui server");
-				uiServer.stop();
-				return null;
-			}
-		}
-
-	public void loadDatasetObjectDetection(String trainDirAddress, String testDirAddress){
-		this.TrainingDatasetGenerator.loadDatasetObjectDetection(trainDirAddress, testDirAddress);
-	}
-
-	public void generateDataIteratorObjectDetection(int batchSize) throws Exception {
-		trainGenerator = TrainingDatasetGenerator.trainIterator_ObjectDetection( batchSize);
-		validationGenerator = TrainingDatasetGenerator.testIterator_ObjectDetection(1);
-	}
-//	private String labeltext = null;
-	private Mat drawResults(List<DetectedObject> objects, Mat mat, int w, int h) {
-		for (DetectedObject obj : objects) {
-			// Check if the current thread is interrupted, if so, break the loop.
-			if (Thread.currentThread().isInterrupted()){
-				break;
-			}
-
-			double[] xy1 = obj.getTopLeftXY();
-			double[] xy2 = obj.getBottomRightXY();
-			String label = trainGenerator.getLabels().get(obj.getPredictedClass());
-			int x1 = (int) Math.round(w * xy1[0] / 13);
-			int y1 = (int) Math.round(h * xy1[1] / 13);
-			int x2 = (int) Math.round(w * xy2[0] / 13);
-			int y2 = (int) Math.round(h * xy2[1] / 13);
-			//Draw bounding box
-			Scalar GREEN = RGB(0, 255.0, 0);
-			Scalar YELLOW = RGB(255, 255, 0);
-			Scalar b1 = RGB(0, 0, 255);
-			Scalar b2 = RGB(255, 0, 0);
-			Scalar b3 = RGB(0, 255, 255);
-			Scalar[] colormap = {GREEN, YELLOW, b1, b2, b3};
-			rectangle(mat, new Point(x1, y1), new Point(x2, y2), colormap[obj.getPredictedClass()], 2, 0, 0);
-			//Display label text
-			String labeltext = label + " " + String.format("%.2f", obj.getConfidence() * 100) + "%";
-			int[] baseline = {0};
-			Size textSize = getTextSize(labeltext, FONT_HERSHEY_DUPLEX, 1, 1, baseline);
-			rectangle(mat, new Point(x1 + 2, y2 - 2), new Point(x1 + 2 + textSize.get(0), y2 - 2 - textSize.get(1)), colormap[obj.getPredictedClass()], FILLED, 0, 0);
-			putText(mat, labeltext, new Point(x1 + 2, y2 - 2), FONT_HERSHEY_DUPLEX, 1, RGB(0, 0, 0));
-		}
-		return mat;
-	}
 
 	public void configTransferLearningNetwork_vgg(double learningRate){
 		// STEP 2: Configure the model configurations for layers that are not frozen by using FineTuneConfiguration
@@ -1489,6 +1511,8 @@ public class CNN {
 	/**
 	 * Do not use this
 	 */
+
+
 
 	public class TrainNetworkSimpMessagingTemplateNoUi implements Callable<Void> {
 		private int epochs;
@@ -1669,7 +1693,7 @@ public class CNN {
 
 
 	/**
-	 * DEPRECIATED FUNCTIONS DO NOT USE
+	 * DEPRECIATED AND DEBUGGING FUNCTIONS DO NOT USE
 	 */
 	public void train_segmentation(int epoch, RecordReaderDataSetIterator trainGenerator, ComputationGraph computationGraph) throws IOException, InterruptedException, URISyntaxException {
 
@@ -2148,128 +2172,441 @@ public class CNN {
 
 
 
-	public void testTrain(int epochs, int scoreListener) throws Exception {
+	public void testTrain(int epochs, int scoreListener, boolean enableUi) throws Exception {
 //		System.out.println(TrainingDatasetIterator.getLabels().size());
 
 
-		if (!networkconstructed) {
-			throw new Exception("Neural network is not constructed");
-		}
-
-		// start ui server
-		System.out.println("Starting UI server");
-		UIServer uiServer = UIServer.getInstance();
-		StatsStorage statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
-		uiServer.attach(statsStorage);				// Check if the current thread is interrupted, if so, break the loop.
-		if(Desktop.isDesktopSupported())
-		{
-			Desktop.getDesktop(
-			).browse(new URI("http://localhost:9000"));
-		}
-
-
-		if (trainDataCsv != null){
-			if (multiLayerNetwork != null) {
-				multiLayerNetwork.setListeners(
-						new ScoreIterationListener((scoreListener)),
-						new StatsListener(statsStorage, 5)
-				);
-				for (int counter = 0; counter < epochs; counter++) {
-					if (Thread.currentThread().isInterrupted()) {
-						uiServer.detach(statsStorage);
-						statsStorage.close();
-						System.out.println("stopping ui server");
-						uiServer.stop();
-						break;
-					}
-					multiLayerNetwork.fit(trainDataCsv);
-					Evaluation eval;
-					eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
-					System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
-				}
+			JFrame trainFrame = null;
+			JPanel trainPanel = null;
+			UiServerHelper uiServerHelper = new UiServerHelper();
+			System.out.println("starting Training");
+//			if (TrainingDatasetIterator == null) {
+//				throw new Exception("Training dataset not set");
+//			}
+			if (!networkconstructed) {
+				throw new Exception("Neural network is not constructed");
 			}
-		} else {
 
-			if (TrainingDatasetIterator != null) {
-				epochLoop:
-				for (int counter = 0; counter < epochs; counter++) {
-					// Check if the current thread is interrupted, if so, break the loop.
-					if (Thread.currentThread().isInterrupted()) {
-						uiServer.detach(statsStorage);
-						statsStorage.close();
-						System.out.println("stopping ui server");
-						uiServer.stop();
-						break;
-					}
 
-					if (multiLayerNetwork != null) {
-						if (ValidationDatasetIterator != null) {
-							multiLayerNetwork.setListeners(
-									new ScoreIterationListener(scoreListener),
-									new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
-									new StatsListener(statsStorage, 5)
-							);
-						} else {
-							multiLayerNetwork.setListeners(
-									new ScoreIterationListener(scoreListener),
-									new StatsListener(statsStorage, 5)
-							);
-						}
-						while (TrainingDatasetIterator.hasNext()) {
-							if (Thread.currentThread().isInterrupted()) {
 
-								uiServer.detach(statsStorage);
-								statsStorage.close();
-								System.out.println("stopping ui server");
-								uiServer.stop();
-								break epochLoop;
-							}
-							DataSet imageSet = TrainingDatasetIterator.next();
-							multiLayerNetwork.fit(imageSet);
-						}
-						TrainingDatasetIterator.reset();
+			if (enableUi) {
+				System.out.println("Ui Enabled");
+				statsStorage = uiServerHelper.startUiServer();
+			}
 
-						if (counter % scoreListener == 0) {
-							String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
-						}
-					}
-					if (computationGraph != null) {
-						computationGraph.setListeners(
-								new ScoreIterationListener((scoreListener)),
-								new StatsListener(statsStorage, 5)
-						);
-						while (TrainingDatasetIterator.hasNext()) {
-							if (Thread.currentThread().isInterrupted()) {
+//			// start ui server
+//			System.out.println("Starting UI server");
+//			if (uiServer == null) {
+//				uiServer = UIServer.getInstance();
+//			} else {
+//
+//				System.out.println("stopping ui server");
+//				uiServer.stop();
+//				System.out.println("restarting ui server");
+//				uiServer = UIServer.getInstance();
+//			}
+//			if (statsStorage == null) {
+//				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+//			} else {
+//				statsStorage.close();
+//				statsStorage = new FileStatsStorage(new File(System.getProperty("java.io.tmpdir"), "ui-stats.dl4j"));
+//			}
+//
+//			uiServer.attach(statsStorage);                // Check if the current thread is interrupted, if so, break the loop.
+//			if (Desktop.isDesktopSupported()) {
+//				Desktop.getDesktop(
+//				).browse(new URI("http://localhost:9000"));
+//			}
 
-								uiServer.detach(statsStorage);
-								statsStorage.close();
-								System.out.println("stopping ui server");
-								uiServer.stop();
-								break epochLoop;
-							}
-							DataSet imageSet = TrainingDatasetIterator.next();
-							computationGraph.fit(imageSet);
-						}
-						System.out.println("After fit");
-						TrainingDatasetIterator.reset();
-						if (counter % scoreListener == 0) {
-							String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
-						}
-					}
+			if (enableUi) {
+				if (multiLayerNetwork != null) {
+					multiLayerNetwork.setListeners(
+							new ScoreIterationListener((scoreListener)),
+							new StatsListener(statsStorage, 5)
+					);
+				} else if (computationGraph != null) {
+					computationGraph.setListeners(
+							new ScoreIterationListener((scoreListener)),
+							new StatsListener(statsStorage, 5)
+					);
 				}
 			} else {
-				throw new Exception("Training dataset not set");
+				if (multiLayerNetwork != null) {
+					multiLayerNetwork.setListeners(
+							new ScoreIterationListener((scoreListener))
+					);
+				} else if (computationGraph != null) {
+					computationGraph.setListeners(
+							new ScoreIterationListener((scoreListener))
+					);
+				}
 			}
+			System.out.println("Completed Ui Initialization");;
+			if (trainDataCsv != null) {
+				if (multiLayerNetwork != null) {
+					for (int counter = 0; counter < epochs; counter++) {
+						if (Thread.currentThread().isInterrupted()) {
+//							uiServer.detach(statsStorage);
+//							statsStorage.close();
+//							System.out.println("stopping ui server");
+//							uiServer.stop();
+							if (enableUi) {
+								uiServerHelper.stopUiServer();
+							}
+							break;
+						}
+						multiLayerNetwork.fit(trainDataCsv);
+						Evaluation eval;
+						eval = multiLayerNetwork.evaluate(new ViewIterator(testDataCsv, TrainingDatasetGenerator.getDatasetSize()));
+						System.out.println("EPOCH: " + counter + " Accuracy: " + eval.accuracy());
+					}
+				}
+
+			}
+			else {
+//				if (multiLayerNetwork != null) {
+//					if (ValidationDatasetIterator != null) {
+//						multiLayerNetwork.setListeners(
+//								new ScoreIterationListener(scoreListener),
+//								new EvaluativeListener(ValidationDatasetIterator, 1, InvocationType.EPOCH_END),
+//								new StatsListener(statsStorage, 5)
+//						);
+//					} else {
+//						multiLayerNetwork.setListeners(
+//								new ScoreIterationListener(scoreListener),
+//								new StatsListener(statsStorage, 5));
+//					}
+//				} else if (computationGraph != null) {
+//					computationGraph.setListeners(
+//							new ScoreIterationListener((scoreListener)),
+//							new StatsListener(statsStorage, 5)
+//					);
+//				}
+				if (TrainingDatasetIterator != null || trainGenerator != null) {
+					epochLoop:
+					for (int counter = 0; counter < epochs; counter++) {
+						// Check if the current thread is interrupted, if so, break the loop.
+						if (Thread.currentThread().isInterrupted()) {
+//							uiServer.detach(statsStorage);
+//							statsStorage.close();
+//							System.out.println("stopping ui server");
+//							uiServer.stop();
+							if (enableUi) {
+								uiServerHelper.stopUiServer();
+							}
+							break;
+						}
+
+						if (multiLayerNetwork != null) {
+							while (TrainingDatasetIterator.hasNext()) {
+								if (Thread.currentThread().isInterrupted()) {
+
+//									uiServer.detach(statsStorage);
+//									statsStorage.close();
+//									System.out.println("stopping ui server");
+//									uiServer.stop();
+									if (enableUi) {
+										uiServerHelper.stopUiServer();
+									}
+									break epochLoop;
+								}
+								DataSet imageSet = TrainingDatasetIterator.next();
+								multiLayerNetwork.fit(imageSet);
+							}
+							TrainingDatasetIterator.reset();
+
+							if (counter % scoreListener == 0) {
+								String message = "Score in epoch " + counter + " : " + String.format("%.2f", multiLayerNetwork.score());
+							}
+						} else if (computationGraph != null) {
+							if (TrainingDatasetIterator != null) {
+								while (TrainingDatasetIterator.hasNext()) {
+									if (Thread.currentThread().isInterrupted()) {
+
+//										uiServer.detach(statsStorage);
+//										statsStorage.close();
+//										System.out.println("stopping ui server");
+//										uiServer.stop();
+										if (enableUi) {
+											uiServerHelper.stopUiServer();
+										}
+										break epochLoop;
+									}
+									DataSet imageSet = TrainingDatasetIterator.next();
+									computationGraph.fit(imageSet);
+								}
+								System.out.println("After fit");
+								TrainingDatasetIterator.reset();
+								if (counter % scoreListener == 0) {
+									String message = "Score in epoch " + counter + " : " + String.format("%.2f", computationGraph.score());
+								}
+							} else if (trainGenerator != null) {
+
+								trainFrame = Visualization.initFrame("Training Visualization");
+								trainPanel = Visualization.initPanel(
+										trainFrame,
+										trainGenerator.batch(),
+										height,
+										width,
+										1
+								);
+
+								while (trainGenerator.hasNext()) {
+									// Check if the current thread is interrupted, if so, break the loop.
+									if (Thread.currentThread().isInterrupted()) {
+//										uiServer.detach(statsStorage);
+//										statsStorage.close();
+//										System.out.println("stopping ui server");
+//										uiServer.stop();
+										if (enableUi) {
+											uiServerHelper.stopUiServer();
+										}
+										trainFrame.setVisible(false);
+										trainFrame.dispose();
+										break epochLoop;
+									}
+
+									DataSet imageSet = trainGenerator.next();
+									computationGraph.fit(imageSet);
+
+									INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
+									Visualization.visualize(
+											imageSet.getFeatures(),
+											imageSet.getLabels(),
+											predict,
+											trainFrame,
+											trainPanel,
+											trainGenerator.batch(),
+											224,
+											224
+									);
+								}
+								trainGenerator.reset();
+							}
+						}
+					}
+				} else {
+					throw new Exception("Training dataset not set");
+				}
+			}
+			if (trainFrame != null) {
+				trainFrame.setVisible(false);
+				trainFrame.dispose();
+			}
+
+//			uiServer.detach(statsStorage);
+//			statsStorage.close();
+//			System.out.println("stopping ui server");
+//			uiServer.stop();
+			if (enableUi) {
+				uiServerHelper.stopUiServer();
+			}
+			trainDataCsv = null;
+			testDataCsv = null;
 		}
 
-		uiServer.detach(statsStorage);
-		statsStorage.close();
-		System.out.println("stopping ui server");
-		uiServer.stop();
-		trainDataCsv = null;
-		testDataCsv = null;
+		public void setcnnTrainingDatasetGenerator(CNNDatasetGenerator TrainingDatasetGenerator) throws Exception {
+			this.TrainingDatasetGenerator = TrainingDatasetGenerator;
+			this.trainGenerator = TrainingDatasetGenerator.trainIterator_segmentation();
+			this.validationGenerator = TrainingDatasetGenerator.testIterator_segmentation();
+		}
+
+		public void segmentationInitModel(){
+			cnnconfig.configureFineTune(123);
+
+		}
+
+
+
+		public void testTrainSegmentation(){
+			for (int i = 0; i < 4; i++) {
+
+				System.out.println(("Epoch: " + i));
+
+				while (trainGenerator.hasNext()) {
+					DataSet imageSet = trainGenerator.next();
+
+					computationGraph.fit(imageSet);
+
+					INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
+
+
+				}
+
+				trainGenerator.reset();
+			}
+
+//				@Override
+//				public boolean send(Message<?> message, long l) {
+//					return false;
+//				}
+//			});
+		}
+
+		public void randomTest() throws IOException {
+			//STEP 1: Import pretrained UNET (provided in model zoo)
+			ZooModel zooModel = UNet.builder().build();
+
+			ComputationGraph unet = (ComputationGraph) zooModel.initPretrained(PretrainedType.SEGMENT);
+			System.out.println(unet.summary());
+
+			// Set listeners
+			StatsStorage statsStorage = new InMemoryStatsStorage();
+			StatsListener statsListener = new StatsListener(statsStorage);
+			ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
+
+			//STEP 2: Configuration of transfer learning
+			//STEP 2.1: Set updater and learning rate)
+			FineTuneConfiguration fineTuneConf = new FineTuneConfiguration.Builder()
+					.trainingWorkspaceMode(WorkspaceMode.ENABLED)
+					.updater(new Adam(new StepSchedule(ScheduleType.EPOCH, 3e-4, 0.5, 5)))
+					.seed(seed)
+					.build();
+
+			//Construct a new model with the intended architecture and print summary
+			//STEP 2.2: Set which pre-trained layer to freeze and use as feature extractor
+			//STEP 2.3: Add a CnnLossLayer to form a Fully Convolutional Network
+			ComputationGraph unetTransfer = new TransferLearning.GraphBuilder(unet)
+					.fineTuneConfiguration(fineTuneConf)
+					.setFeatureExtractor("conv2d_4")
+					.removeVertexAndConnections("activation_23")
+					.nInReplace("conv2d_1", 1, WeightInit.XAVIER)
+					.nOutReplace("conv2d_23", 1, WeightInit.XAVIER)
+					.addLayer("output",
+							new CnnLossLayer.Builder(LossFunctions.LossFunction.XENT)
+									.activation(Activation.SIGMOID).build(),
+							"conv2d_23")
+					.setOutputs("output")
+					.build();
+
+				System.out.println(unetTransfer.summary());
+
+				unetTransfer.setListeners(statsListener, scoreIterationListener);
+
+		//        Initialize the user interface backend
+		//        UIServer uiServer = UIServer.getInstance();
+		//        uiServer.attach(statsStorage);
+
+			// STEP 3: Load data into RecordReaderDataSetIterator
+
+
+		//        downloadLink = Helper.getPropValues("dataset.segmentationCar.url");
+		//        inputDir = Paths.get(
+		//                System.getProperty("user.home"),
+		//                Helper.getPropValues("dl4j_home.data")
+		//        ).toString();
+		//
+		//        File dataZip = new File(Paths.get(inputDir, "carvana-masking-challenge.zip").toString());
+		//        File classFolder = new File(Paths.get(inputDir, "carvana-masking-challenge").toString());
+		//
+		//        if (!dataZip.exists()) {
+		//            log.info(String.format("Downloading %s from %s.", dataZip.getAbsolutePath(), downloadLink));
+		//            DataUtilities.downloadFile(downloadLink, dataZip.getAbsolutePath());
+		//        }
+		//
+		//        if (!classFolder.exists()) {
+		//            log.info(String.format("Extracting %s into %s.", dataZip.getAbsolutePath(), classFolder.getAbsolutePath()));
+		//
+		//            if(!Helper.getCheckSum(dataZip.getAbsolutePath())
+		//                    .equalsIgnoreCase(Helper.getPropValues("dataset.segmentationCar.hash"))){
+		//                System.out.println("Downloaded file is incomplete");
+		//                System.exit(0);
+		//            }
+		//
+		//            DataUtilities.extractZip(dataZip.getAbsolutePath(), classFolder.getAbsolutePath());
+		//        }
+		//
+		//        batchSize = batchSizeArg;
+		//
+		//        inputDir = Paths.get(
+		//                System.getProperty("user.home"),
+		//                Helper.getPropValues("dl4j_home.data")
+		//        ).toString();
+
+					File imagesPath = new File("C://Users//Luke Yeo//.deeplearning4j//data//data-science-bowl-2018//data-science-bowl-2018//data-science-bowl-2018-2//train//inputs");
+		//        File imagesPath = new File(Paths.get(inputDir, "carvana-masking-challenge", "carvana-masking-challenge", "train", "inputs").toString());
+					FileSplit imageFileSplit = new FileSplit(imagesPath, NativeImageLoader.ALLOWED_FORMATS, new Random(1234));
+
+					List<Pair<String, String>> replacement = Arrays.asList(
+		//            new Pair<>("inputs", "masks_png"),
+		//            new Pair<>(".jpg", "_mask.png")
+							new Pair<>("inputs", "masks"),
+							new Pair<>(".jpg", "_mask.png")
+					);
+					CustomLabelGenerator labelMaker = new CustomLabelGenerator(224, 224, 1, replacement);
+
+					BalancedPathFilter imageSplitPathFilter = new BalancedPathFilter(new Random(1234), NativeImageLoader.ALLOWED_FORMATS, labelMaker);
+					InputSplit[] imagesSplits = imageFileSplit.sample(imageSplitPathFilter, 0.8, 1 - 0.8);
+					InputSplit trainData, valData;
+					trainData = imagesSplits[0];
+					valData = imagesSplits[1];
+
+
+					ImageTransform rgb2gray = new ColorConversionTransform(CV_RGB2GRAY);
+
+					List<Pair<ImageTransform, Double>> pipeline = Arrays.asList(
+							new Pair<>(rgb2gray, 1.0)
+					);
+					ImageTransform transform = new PipelineImageTransform(pipeline, false);
+
+			//Create iterators
+					ImageRecordReader recordReader = new ImageRecordReader(224, 224, 1, labelMaker);
+		//        Both train and val iterator need the preprocessing of converting RGB to Grayscale
+					recordReader.initialize(trainData, transform);
+		//        batchSize = 2;
+					RecordReaderDataSetIterator iter = new RecordReaderDataSetIterator(recordReader, 2, 1, 1, true);
+					DataNormalization scaler = new ImagePreProcessingScaler(0, 1);
+
+					iter.setPreProcessor(scaler);
+					RecordReaderDataSetIterator imageDataSetTrain = iter;
+		//			RecordReaderDataSetIterator imageDataSetVal = CarDataSetIterator.valIterator();
+
+			// Visualisation -  training
+			JFrame frame = Visualization.initFrame("Viz");
+			JPanel panel = Visualization.initPanel(
+					frame,
+					2,
+					224,
+					224,
+					1
+			);
+
+			//STEP 4: Run training
+				for (int i = 0; i < 10; i++) {
+
+					System.out.println("Epoch: " + i);
+
+				while (imageDataSetTrain.hasNext()) {
+					System.out.println("another Dance");
+					DataSet imageSet = imageDataSetTrain.next();
+
+					boolean hasMaskArrays = imageSet.hasMaskArrays();
+					if (hasMaskArrays) {
+						INDArray[] fMask = imageSet.getFeaturesMaskArray() != null ? new INDArray[]{imageSet.getFeaturesMaskArray()} : null;
+						INDArray[] lMask = imageSet.getLabelsMaskArray() != null ? new INDArray[]{imageSet.getLabelsMaskArray()} : null;
+					}
+
+					unetTransfer.fit(imageSet);
+
+					INDArray predict = unetTransfer.output(imageSet.getFeatures())[0];
+
+					Visualization.visualize(
+							imageSet.getFeatures(),
+							imageSet.getLabels(),
+							predict,
+							frame,
+							panel,
+							2,
+							224,
+							224
+					);
+				}
+
+				imageDataSetTrain.reset();
 	}
 
+
+	}
 
 
 

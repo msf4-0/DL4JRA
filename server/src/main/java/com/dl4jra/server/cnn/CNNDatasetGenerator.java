@@ -324,7 +324,7 @@ public class CNNDatasetGenerator {
 	}
 
 	private RecordReaderDataSetIterator makeIterator_segmentation(InputSplit split) throws Exception {
-		recordReader = new ImageRecordReader(height, width, channels, labelMaker);
+		recordReader = new ImageRecordReader(defaultHeight, defaultWidth, channels, labelMaker);
 
 		recordReader.initialize(split, transform);
 		RecordReaderDataSetIterator dataIter = new RecordReaderDataSetIterator(recordReader, batchsize, 1, 1, true);
