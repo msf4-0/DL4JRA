@@ -895,7 +895,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 } else if (element.type === "TrainNNNoUi") {
                     await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                 } else if (element.type === "ValidateNN") {
-
+                    await this.processnode("/server/cnn/validatenetwork", element.id, element.data);
                 } else if (element.type === "ExportNN") {
                     await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                 }
@@ -940,6 +940,10 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
                     } else if (element.type === "Train_Test_PretrainedModel") {
                         await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ExportNN") {
                         await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                     }
@@ -956,6 +960,10 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                         await this.processnode("/server/cnn/configtransferlearningodetectionyolo2", element.id, element.data);
                     } else if (element.type === "Train_Test_PretrainedModel") {
                         await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ExportNN") {
                         await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                     }
@@ -969,9 +977,13 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     if (element.type === "LoadPretrainedModel") {
                         await this.processnode("/server/cnn/loadpretrainedmodel", element.id, element.data);
                     } else if (element.type === "ConfigTransferLearningNetwork_ODetection") {
-                        await this.processnode("/server/cnn/configtransferlearningodetectionyolo2", element.id, element.data);
+                        await this.processnode("/server/cnn/configtransferlearningodetection", element.id, element.data);
                     } else if (element.type === "Train_Test_PretrainedModel") {
                         await this.processnode("/server/cnn/traintestpretrainedmodel", element.id, element.data);
+                    } else if (element.type === "TrainNN") {
+                        await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
+                    } else if (element.type === "TrainNNNoUi") {
+                        await this.processnode("/server/cnn/trainnetworknoui", element.id, element.data);
                     } else if (element.type === "ExportNN") {
                         await this.processnode("/server/cnn/exportnetwork", element.id, element.data);
                     }
