@@ -1,6 +1,8 @@
 package com.dl4jra.server.testing;
 
 import com.dl4jra.server.cnn.CNN;
+import com.dl4jra.server.cnn.CNNDatasetGenerator;
+import org.deeplearning4j.datasets.datavec.RecordReaderDataSetIterator;
 import org.deeplearning4j.nn.api.OptimizationAlgorithm;
 import org.deeplearning4j.nn.conf.ConvolutionMode;
 import org.deeplearning4j.nn.conf.GradientNormalization;
@@ -8,8 +10,14 @@ import org.deeplearning4j.nn.multilayer.MultiLayerNetwork;
 import org.deeplearning4j.nn.weights.WeightInit;
 import org.deeplearning4j.util.ModelSerializer;
 import org.nd4j.linalg.activations.Activation;
+import org.nd4j.linalg.api.ndarray.INDArray;
+import org.nd4j.linalg.dataset.DataSet;
 import org.nd4j.linalg.lossfunctions.LossFunctions;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
+import java.io.IOException;
 import java.util.Arrays;
 
 public class CnnTest {
@@ -25,7 +33,7 @@ public class CnnTest {
 	 * 7. Train network
 	 * 8. Save model
 	 */
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		/* Please change the values accordingly to your dataset */
 //		DOG BREED CNN
 //		String datasetpath = "C:\\Users\\User\\.deeplearning4j\\data\\dog-breed-identification";
@@ -63,31 +71,55 @@ public class CnnTest {
 			CNN cnn = new CNN();
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
-			MultiLayerNetwork multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("C:\\Users\\Luke Yeo\\.deeplearning4j\\models\\yolo2\\yolo2_dl4j_inference.v3.zip", true);
 
-			// CSV DatasetGenerator Test
-//
-			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
-//
-//			cnn.addTransformCsv("type", Arrays.asList("SW","W","T", "R", "P", "SO"));
-			cnn.ConfigureCsvData();
-			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT, ConvolutionMode.Same.Truncate, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer );
-//
-//			cnn.AppendConvolutionLayer(0,10, 10, 2, 2, 1, 1, 0, 0, Activation.RELU, 0, 0, ConvolutionMode.Truncate);
-//
-			cnn.AppendDenseLayer(0, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
-//
-			cnn.AppendDenseLayer(1, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
-//
-			cnn.AppendDenseLayer(2, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
-//
-//
-			cnn.AppendOutputLayer(3,10, Activation.SOFTMAX, LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD, WeightInit.XAVIER);
-//
-			cnn.ConstructNetwork();
-//			cnn.getMultilayerCsvTest(10, 6, 0.001);
+			/**
+			 * Image Segmentation Test
+			 */
 
-			cnn.testTrain(10, 1);
+//			cnn.randomTest();
+
+			cnn.importPretrainedModel();
+			cnn.segmentationInitModel();
+			cnn.configureTranferLearning("conv2d_4", "activation_23", "conv2d_1", 1, WeightInit.XAVIER, "conv2d_23", 1, WeightInit.XAVIER);
+			cnn.addCnnLossLayer("output", LossFunctions.LossFunction.XENT, Activation.SIGMOID, "conv2d_23");
+			cnn.setOutput("output");
+			cnn.build_TransferLearning();
+			CNNDatasetGenerator TrainingDatasetGenerator = new CNNDatasetGenerator();
+			TrainingDatasetGenerator.setIterator_segmentation("C://Users//Luke Yeo//.deeplearning4j//data//data-science-bowl-2018//data-science-bowl-2018//data-science-bowl-2018-2//train//inputs", 3, 0.8, 1,
+					"masks");
+			cnn.setcnnTrainingDatasetGenerator(TrainingDatasetGenerator);
+			cnn.testTrainSegmentation();
+			cnn.testTrain(4, 5, false);
+
+
+			/**
+			 * Multilayer Test
+			 */
+//			MultiLayerNetwork multiLayerNetwork = ModelSerializer.restoreMultiLayerNetwork("C:\\Users\\Luke Yeo\\.deeplearning4j\\models\\yolo2\\yolo2_dl4j_inference.v3.zip", true);
+//
+//			// CSV DatasetGenerator Test
+////
+//			cnn.LoadCSVDataGeneral("C:\\Users\\Luke Yeo\\SHRDC\\DataSets\\TestDatasets\\csv\\bird.csv", -1, 6, 1, (float) 0.8);
+////
+////			cnn.addTransformCsv("type", Arrays.asList("SW","W","T", "R", "P", "SO"));
+//			cnn.ConfigureCsvData();
+//			cnn.InitializeConfigurations(123, 0.001, OptimizationAlgorithm.STOCHASTIC_GRADIENT_DESCENT, ConvolutionMode.Same.Truncate, Activation.RELU, WeightInit.XAVIER, GradientNormalization.RenormalizeL2PerLayer );
+////
+////			cnn.AppendConvolutionLayer(0,10, 10, 2, 2, 1, 1, 0, 0, Activation.RELU, 0, 0, ConvolutionMode.Truncate);
+////
+//			cnn.AppendDenseLayer(0, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+////
+//			cnn.AppendDenseLayer(1, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+////
+//			cnn.AppendDenseLayer(2, 10, Activation.RELU, 0, 0, WeightInit.XAVIER);
+////
+////
+//			cnn.AppendOutputLayer(3,10, Activation.SOFTMAX, LossFunctions.LossFunction.NEGATIVELOGLIKELIHOOD, WeightInit.XAVIER);
+////
+//			cnn.ConstructNetwork();
+////			cnn.getMultilayerCsvTest(10, 6, 0.001);
+//
+//			cnn.testTrain(10, 1);
 
 
 //			cnn.loadDatasetObjectDetection("E:\\SHRDC\\my_datasets\\project-4-at-2022-02-28-15-42-f9d7c25e\\train",
@@ -169,7 +201,8 @@ public class CnnTest {
 
 
 		} catch (Exception exception) {
-			System.out.println(Arrays.toString(exception.getStackTrace()));
+			exception.getStackTrace();
+			System.out.println(exception.getCause());
 			System.out.println("EXCEPTION : " + exception.getMessage());
 		}
 

@@ -15,6 +15,7 @@
 	<description>Server for DL4J-Reactapp</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<dl4j.version>1.0.0-beta7</dl4j.version>
 	</properties>
 
 	<dependencies>
@@ -41,7 +42,8 @@
 		<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-ui</artifactId>
-			<version>1.0.0-beta7</version>
+			<version>${dl4j.version}</version>
+
 		</dependency>
 
 		<dependency>
@@ -116,42 +118,42 @@
 		<dependency>
 	  		<groupId>org.deeplearning4j</groupId>
 	  		<artifactId>deeplearning4j-core</artifactId>
-	  		<version>1.0.0-beta7</version>
+	  		<version>${dl4j.version}</version>
 	  	</dependency>
 
-		<!-- DATAVEC MODULE FOR DATASET MANIPULATION -->
-		<dependency>
-			<groupId>org.datavec</groupId>
-			<artifactId>datavec-local</artifactId>
-			<version>1.0.0-beta7</version>
-		</dependency>
+<!--		&lt;!&ndash; DATAVEC MODULE FOR DATASET MANIPULATION &ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>org.datavec</groupId>-->
+<!--			<artifactId>datavec-local</artifactId>-->
+<!--			<version>${dl4j.version}</version>-->
+<!--		</dependency>-->
 
 	  	<!-- DL4J PRETRAINED MODEL -->
 	  	<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-zoo</artifactId>
-			<version>1.0.0-beta7</version>
+			<version>${dl4j.version}</version>
 		</dependency>
 
 		<!-- DL4J CUDNN -->
 		<dependency>
 		    <groupId>org.deeplearning4j</groupId>
 		    <artifactId>deeplearning4j-cuda-10.2</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
 
 		<!-- GPU BACKEND -->
 		<dependency>
 		    <groupId>org.nd4j</groupId>
 		    <artifactId>nd4j-cuda-10.2-platform</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
 
 		<!-- CPU BACKEND -->
 		<dependency>
 		    <groupId>org.nd4j</groupId>
 		    <artifactId>nd4j-native-platform</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
 
 		<!-- JAVACPP PRESETS PLATFORM FOR CUDA -->
