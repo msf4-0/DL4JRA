@@ -201,6 +201,7 @@ public class CNNDatasetGenerator {
 
 		trainData = imagesSplits[0];
 		testData = imagesSplits[1];
+
 	}
 
 	public void LoadTrainDataCSV(String path, int numSkipLines, int numClassLabels, int batchsize) throws IOException, InterruptedException {
