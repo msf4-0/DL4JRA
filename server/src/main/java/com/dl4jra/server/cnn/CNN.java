@@ -905,8 +905,6 @@ public class CNN {
 	}
 
 
-
-
 	public class ValidateNetworkSimpMessagingTemplate implements Callable<Void> {
 		private SimpMessagingTemplate template;
 
@@ -920,16 +918,13 @@ public class CNN {
 
 		@Override
 		public Void call() throws Exception {
-			if (ValidationDatasetIterator == null)
-				throw new Exception("There is no validation dataset");
 			if (!networkconstructed)
 				throw new Exception("Neural network is not constructed");
 			if(multiLayerNetwork != null) {
 				Evaluation evaluation = multiLayerNetwork.evaluate(ValidationDatasetIterator);
 				String message = "Network accuracy : " + evaluation.accuracy();
 				template.convertAndSend("/response/cnn/message", new Messageresponse(message));
-			}
-			if(computationGraph != null) {
+			} else if(computationGraph != null) {
 				if (ValidationDatasetIterator != null) {
 					Evaluation evaluation = computationGraph.evaluate(ValidationDatasetIterator);
 					String message = "Network accuracy : " + evaluation.accuracy();
@@ -999,8 +994,6 @@ public class CNN {
 	}
 
 	// SEGMENTATION
-
-
 
 	public void importPretrainedModel() throws IOException {
 		pretrained = (ComputationGraph) UNet.builder().build().initPretrained(PretrainedType.SEGMENT);
@@ -2419,7 +2412,7 @@ public class CNN {
 
 
 		public void testTrainSegmentation(){
-			for (int i = 0; i < 4; i++) {
+			for (int i = 0; i < 1; i++) {
 
 				System.out.println(("Epoch: " + i));
 
@@ -2429,11 +2422,12 @@ public class CNN {
 					computationGraph.fit(imageSet);
 
 					INDArray predict = computationGraph.output(imageSet.getFeatures())[0];
-
+					break;
 
 				}
 
 				trainGenerator.reset();
+
 			}
 
 //				@Override

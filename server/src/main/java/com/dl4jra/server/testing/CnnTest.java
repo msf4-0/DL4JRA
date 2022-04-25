@@ -19,6 +19,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 
 public class CnnTest {
 
@@ -71,6 +74,9 @@ public class CnnTest {
 			CNN cnn = new CNN();
 			//SAVE AND IMPORT AND TRAIN AND PRETRAINED
 
+			/**
+			 * VGG test
+			 */
 
 			/**
 			 * Image Segmentation Test
@@ -89,7 +95,10 @@ public class CnnTest {
 					"masks");
 			cnn.setcnnTrainingDatasetGenerator(TrainingDatasetGenerator);
 			cnn.testTrainSegmentation();
-			cnn.testTrain(4, 5, false);
+			ExecutorService executor = Executors.newSingleThreadExecutor();
+			Future<?> future;
+			future = executor.submit(cnn.new ValidateNetworkSimpMessagingTemplate( new SimpMessagingTemplate((message, l) -> false)));
+//			cnn.testTrain(4, 5, false);
 
 
 			/**
