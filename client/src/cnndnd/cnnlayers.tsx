@@ -809,39 +809,39 @@ export class generateIterator extends Component<NodeProps> {
         )
     }
 }
-
-//train_segmentation node
-export class train_segmentation extends Component<NodeProps> {
-    render = () => {
-        return (
-            <div 
-                className="cnn-node"
-                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
-                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
-            }}>
-                <IncomingConnectionHandle />
-                <div>{this.props.data.name}</div>
-                <OutgoingConnectionHandle />
-            </div>
-        )
-    }
-}
-//validation_segmentation node
-export class validation_segmentation extends Component<NodeProps> {
-    render = () => {
-        return (
-            <div 
-                className="cnn-node"
-                style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
-                color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
-            }}>
-                <IncomingConnectionHandle />
-                <div>{this.props.data.name}</div>
-                <OutgoingConnectionHandle />
-            </div>
-        )
-    }
-}
+// DEPRECIATED 
+// //train_segmentation node
+// export class train_segmentation extends Component<NodeProps> {
+//     render = () => {
+//         return (
+//             <div 
+//                 className="cnn-node"
+//                 style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+//                 color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+//             }}>
+//                 <IncomingConnectionHandle />
+//                 <div>{this.props.data.name}</div>
+//                 <OutgoingConnectionHandle />
+//             </div>
+//         )
+//     }
+// }
+// //validation_segmentation node
+// export class validation_segmentation extends Component<NodeProps> {
+//     render = () => {
+//         return (
+//             <div 
+//                 className="cnn-node"
+//                 style={{ backgroundColor: this.props.data.error? NodeBackgroundColors.ErrorBackground : NodeBackgroundColors.lightPurple, 
+//                 color: this.props.data.error? NodeTextColors.Error : NodeTextColors.white, 
+//             }}>
+//                 <IncomingConnectionHandle />
+//                 <div>{this.props.data.name}</div>
+//                 <OutgoingConnectionHandle />
+//             </div>
+//         )
+//     }
+// }
 //segmentationDataStartNode
 export class segmentationDataStartNode extends Component<NodeProps> {
     render = () => {

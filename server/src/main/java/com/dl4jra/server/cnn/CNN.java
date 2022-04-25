@@ -738,7 +738,6 @@ public class CNN {
 					);
 				}
 			}
-			System.out.println("Completed Ui Initialization");;
 			if (trainDataCsv != null) {
 				if (multiLayerNetwork != null) {
 					for (int counter = 0; counter < epochs; counter++) {
@@ -2234,7 +2233,6 @@ public class CNN {
 					);
 				}
 			}
-			System.out.println("Completed Ui Initialization");;
 			if (trainDataCsv != null) {
 				if (multiLayerNetwork != null) {
 					for (int counter = 0; counter < epochs; counter++) {

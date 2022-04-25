@@ -205,13 +205,6 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                 <div className='description' style={{ fontSize:20, }}>------------------</div>
                     <div className='description' style={{ fontSize:20, }}>------------------</div>
                     <div className='description'style={{ fontSize:20, }}>Segmentation</div>
-                    <div className='description' > Train & Validate </div>
-                    {/* train_segmentation */}
-                    <ToolboxNode nodetype="train_segmentation" nodename=" Train " />
-
-                    {/* validation_segmentation */}
-                    <ToolboxNode nodetype="validation_segmentation" nodename="Validate" />
-
                     <div className='description'>Segmentation Load </div>
                     <div className='description'>Data </div>
                     {/* segmentationDataStartNode */}
