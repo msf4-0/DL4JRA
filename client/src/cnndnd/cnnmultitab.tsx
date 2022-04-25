@@ -17,7 +17,7 @@ import {FlipImage, RotateImage, ResizeImage,
     AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN, 
     segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-    generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+    generateIterator, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
     ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral, TrainNNNoUi} from './cnnlayers' 
 import CNNNodeService from "./cnnnodedata"
@@ -139,7 +139,7 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN,
             segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
             addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-            generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+            generateIterator, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
             ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel, 
             ImportVgg16, ImportVgg19, ImportSqueezeNet, ImportYolo2, ConfigTransferLearning_IClassification, LoadCsvDataGeneral,
@@ -629,7 +629,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
         let startnodeId : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("TrainingDatasetStartNodeCSV");
         if (startnodeId === null) return;
         let trainingsequences : FlowElement[] = this.dndref.current.getEntireSequence(startnodeId);
-
         let loadCsvDataGeneral : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("LoadCsvDataGeneral");
         if(loadCsvDataGeneral !== null ){
             for(let index = 0; index < trainingsequences.length; index++) {
@@ -885,11 +884,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                     await this.processnode("/server/cnn/setupiterator", element.id, element.data);
                 } else if (element.type === "generateIterator") {
                     await this.processnode("/server/cnn/generateiteratorsegmentation", element.id, element.data);
-                // } else if (element.type === "train_segmentation") {
-                //     await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
-                // } else if (element.type === "validation_segmentation") {
-                //     await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
-
                 } else if (element.type === "TrainNN") {
                     await this.processnode("/server/cnn/trainnetwork", element.id, element.data);
                 } else if (element.type === "TrainNNNoUi") {
@@ -930,7 +924,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
             let importNode : string | null = this.dndref.current.searchFirstOccuranceOfNodeType("LoadPretrainedModel");
             cnnsequences = this.dndref.current.getEntireSequence(cnnstartnodeId);
             if(cnntinyyolonode !== null && cnnyolo2node === null && importNode === null){
-                console.log("Im dancing in the rain");
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
                     let element = cnnsequences[index];
@@ -950,7 +943,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 }
             }
             else if(cnntinyyolonode === null && cnnyolo2node !== null && importNode === null){
-                console.log("Im not dancing in the rain");
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
                     let element = cnnsequences[index];
@@ -970,7 +962,6 @@ export default class CNNMultitab extends Component <CNNProps, CNNStates> {
                 }
             }
             else if(cnntinyyolonode === null && cnnyolo2node === null && importNode !== null){
-                console.log("Im not dancing in the rain");
                 for (let index = 0; index < cnnsequences.length; index ++) {
                     if (! this.seqcancontinue) return;
                     let element = cnnsequences[index];

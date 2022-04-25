@@ -725,7 +725,7 @@ public class CNNController {
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(0, 1));
 			this.cnn.SaveModal(data.getPath(), data.getFilename());
 			this.template.convertAndSend("/response/cnn/progressupdate", new UpdateResponse(1, 1));
-			return new RBProcessCompleted("Network Modal has been saved");
+			return new RBProcessCompleted("Network Model has been saved");
 		}
 
 		catch (Exception exception)

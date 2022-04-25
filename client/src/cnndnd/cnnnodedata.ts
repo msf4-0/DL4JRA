@@ -102,10 +102,6 @@ class CNNNodeService {
         return this.prepareSetIterator();
       case "generateIterator":
         return { name: "Generate Iterator" };
-      case "train_segmentation":
-        return this.prepareTrain();
-      case "validation_segmentation":
-        return { name: "Validate Segmentation" };
       //================= RETRAIN PRETRAINED MODEL FOR ODETECTION=================
       case "ODetectionStartNode":
         return { name: "Dataset ODetection (S) " };
@@ -221,12 +217,6 @@ class CNNNodeService {
     let channels = 1;
     let maskFolderName = "masks";
     return { name, path, batchsize, trainPerc, channels, maskFolderName };
-  };
-
-  prepareTrain = (): Dictionary => {
-    let name = "Train Segmentation";
-    let epochs = 1;
-    return { name, epochs };
   };
 
   // RNN
