@@ -32,6 +32,9 @@ Features include:
 3. Model testing and deployment for object detection and image classification
 4. Ability to route video output through the MQTT protocol
 
+https://user-images.githubusercontent.com/72961684/165240897-55f93f8e-70a3-4897-bafd-59929143901b.mp4
+
+
 This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved.
 
 <!-- omit in toc -->
