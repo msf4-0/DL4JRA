@@ -19,7 +19,7 @@
 </a>
 
 A no-code app for the training of custom machine learning models in Java using DeepLearning4J.
-<i>Note: the app is currently in open beta, and is still undergoing active development. If you encounter a bug, please file and issue [here](https://github.com/msf4-0/DL4JRA/issues). </i>
+<i>Note: the app is currently in open beta, and is still undergoing active development. If you encounter a bug, please file an issue [here](https://github.com/msf4-0/DL4JRA/issues). </i>
 <br>
 
 Features include:

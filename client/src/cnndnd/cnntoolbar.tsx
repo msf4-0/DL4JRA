@@ -174,7 +174,7 @@ export default class Toolbar extends Component <CNNToolbarprops> {
                     <div className='description'>Computation Graph</div>
                     <div className='description'>Configuration Network</div>
                     {/* RNN STARTNODE */}
-                    <ToolboxNode nodetype="RNNStartNode" nodename=" ComputatinGraph StartNode" />
+                    <ToolboxNode nodetype="RNNStartNode" nodename=" ComputationGraph StartNode" />
 
                     {/* RNN CONFIGURATION */}
                     <ToolboxNode nodetype="RNNConfiguration" nodename="ComputationGraph Config" />
