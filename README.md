@@ -5,12 +5,6 @@
 <a href="https://github.com/msf4-0/DL4JRA/blob/main/LICENSE">
     <img alt="GitHub" src="https://img.shields.io/github/license/msf4-0/DL4JRA.svg?color=blue">
 </a>
-<a href="https://github.com/msf4-0/DL4JRA/releases">
-    <img alt="Releases" src="https://img.shields.io/github/release/msf4-0/DL4JRA?color=success" />
-</a>
-<a href="https://github.com/msf4-0/DL4JRA/releases">
-    <img alt="Downloads" src="https://img.shields.io/github/downloads/msf4-0/DL4JRA/total.svg?color=success" />
-</a>
 <a href="https://github.com/msf4-0/DL4JRA/issues">
       <img alt="Issues" src="https://img.shields.io/github/issues/msf4-0/DL4JRA?color=blue" />
 </a>
