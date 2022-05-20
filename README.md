@@ -33,11 +33,11 @@ This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor H
 
 <!-- omit in toc -->
 ## **Basic Installation**
-- [x] Download and install [Git] (https://git-scm.com/)
+- [x] Download and install [Git](https://git-scm.com/)
 - [x] Clone the repository from github by running ```git clone https://github.com/msf4-0/DL4JRA``` 
-- [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK). Remember to [set up enviroment variables](https://mkyong.com/java/how-to-set-java_home-on-windows-10/) after downloading JAVA SE 8 .
+- [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK). Remember to [set up enviroment variables](https://mkyong.com/java/how-to-set-java_home-on-windows-10/) after downloading JAVA SE 8
 - [x] Download and install [Node.js](https://nodejs.org/en/download/)
-- [x] Download [Apache Maven](https://maven.apache.org/download.cgi). Installation steps for window [here](https://docs.wso2.com/display/IS323/Installing+Apache+Maven+on+Windows).
+- [x] Download [Apache Maven](https://maven.apache.org/download.cgi). Installation steps for window [here](https://docs.wso2.com/display/IS323/Installing+Apache+Maven+on+Windows)
 - [x] Navigate to "client" directory and install all dependencies
 
 ```
@@ -72,13 +72,13 @@ We welcome any and all contributions through pull requests, whether it be bug fi
 
 <!-- omit in toc -->
 ### **Installation steps for development**
-- [x] Download and install [IntelliJ](https://www.jetbrains.com/idea/download/#section=windows) IDE for server.
-- [x] Clone the repository from github inside IntelliJ (open from VSC).
-- [x] Download and install [Visual Code Studio](https://code.visualstudio.com/) IDE for ReactJS code. 
-- [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK). [Set up enviroment variables](https://mkyong.com/java/how-to-set-java_home-on-windows-10/) after downloading JAVA SE 8 .
+- [x] Download and install [IntelliJ](https://www.jetbrains.com/idea/download/#section=windows) IDE for server
+- [x] Clone the repository from github inside IntelliJ (open from VSC)
+- [x] Download and install [Visual Code Studio](https://code.visualstudio.com/) IDE for ReactJS code
+- [x] Go to [Oracle Java Archive](https://www.oracle.com/java/technologies/javase/javase8-archive-downloads.html) and install Java SE 8 (Used as project SDK). [Set up enviroment variables](https://mkyong.com/java/how-to-set-java_home-on-windows-10/) after downloading JAVA SE 8
 - [x] Download [OpenCV 4.5.3](https://opencv.org/opencv-4-5-3/). Install [OpenCV in IntelliJ](https://medium.com/@aadimator/how-to-set-up-opencv-in-intellij-idea-6eb103c1d45c)
 - [x] Download and install [Node.js](https://nodejs.org/en/download/)
-- [x] Download [Apache Maven](https://maven.apache.org/download.cgi). Installation steps for window [here](https://docs.wso2.com/display/IS323/Installing+Apache+Maven+on+Windows).
+- [x] Download [Apache Maven](https://maven.apache.org/download.cgi). Installation steps for window [here](https://docs.wso2.com/display/IS323/Installing+Apache+Maven+on+Windows)
 - [x] Navigate to "client" directory and install all dependencies
 
 ## **DL4JRA Guide**
