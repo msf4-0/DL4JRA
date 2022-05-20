@@ -1,5 +1,6 @@
 package com.dl4jra.server;
 
+import org.nd4j.linalg.factory.Nd4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cloud.context.restart.RestartEndpoint;
 import org.springframework.core.env.Environment;
@@ -21,8 +22,10 @@ public class ServerController {
 	@MessageMapping("/backend/gpu")
 	public void switchbackendtogpu() throws Exception {
 		System.out.println("[SERVER BACKEND] - SWITCHING TO GPU");
-		Process process = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_GPU \"20\"");
-		process.waitFor();
+		Process processSetGpu = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_GPU \"20\"");
+		processSetGpu.waitFor();
+		Process processSetCpu = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_CPU \"1\"");
+		processSetCpu.waitFor();
 		restartEndpoint.restart();
 	}
 	
@@ -30,8 +33,10 @@ public class ServerController {
 	@MessageMapping("/backend/cpu")
 	public void switchbackendtocpu() throws Exception {
 		System.out.println("[SERVER BACKEND] - SWITCHING TO CPU");
-		Process process = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_GPU \"5\"");
-		process.waitFor();
+		Process processSetGpu = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_CPU \"20\"");
+		processSetGpu.waitFor();
+		Process processSetCpu = Runtime.getRuntime().exec("SETX BACKEND_PRIORITY_GPU \"1\"");
+		processSetCpu.waitFor();
 		restartEndpoint.restart();
 	}
 	
@@ -48,11 +53,37 @@ public class ServerController {
 	@MessageMapping("/getbackend")
 	@SendTo("/response/backend")
 	public String getbackend() throws Exception {
+		// get the enviroment variables
 		String cpuprioritystring = System.getenv("BACKEND_PRIORITY_CPU");
 		String gpuprioritystring = System.getenv("BACKEND_PRIORITY_GPU");
-		if (cpuprioritystring == null || gpuprioritystring == null) return "gpu";
+
+		// if unspecified try to default to GPU
+		if (cpuprioritystring == null || gpuprioritystring == null) {
+			return checkIsBackendGpu() ? "gpu" : "cpu";
+		}
 		int cpupriority = Integer.parseInt(cpuprioritystring);
 		int gpupriority = Integer.parseInt(gpuprioritystring);
-		return gpupriority >= cpupriority? "gpu" : "cpu";
+		if (gpupriority >= cpupriority) {
+			// check if backend if gpu
+			return checkIsBackendGpu() ? "gpu" : "cpu";
+		} else{
+			return "cpu";
+		}
+	}
+
+	/**
+	 *
+	 * @return Boolean
+	 *  true if backend is gpu, and false if backend used is cpu
+	 */
+	private Boolean checkIsBackendGpu(){
+		try {
+			// check if backend used is gpu
+			if (Nd4j.backend.toString() != "org.nd4j.linalg.cpu.nativecpu.CpuBackend") return true;
+		} catch (Exception e){
+			System.out.println(e);
+			return false;
+		}
+		return false;
 	}
 }

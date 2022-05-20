@@ -16,7 +16,7 @@ import {FlipImage, RotateImage, ResizeImage,
     AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN,
     segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
     addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-    generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+    generateIterator, setOutput_segmentation,
     ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
     ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel} from './cnnlayers'
 import CNNNodeService from "./cnnnodedata"
@@ -127,7 +127,7 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
             RNNStartNode, RNNConfiguration, RnnOutputLayer, AddInput, SetOutput, Convolution1DLayer, LSTM, ConstructNetworkRNN,
             segmentationStartnode, importPretrainedModel, configureFineTune, configureTranferLearning, 
             addCnnLossLayer, build_TransferLearning, segmentationDataStartNode, setIterator_segmentation,
-            generateIterator, train_segmentation, validation_segmentation, setOutput_segmentation,
+            generateIterator, setOutput_segmentation,
             ODetectionStartNode, LoadDatasetODetection, GenerateDatasetIteratorODetection, EditPretrainedStartNode, 
             ImportTinyYolo, LoadPretrainedModel, ConfigTransferLearningNetwork_ODetection, Train_Test_PretrainedModel
         }
@@ -708,10 +708,6 @@ export default class CNNSingletab extends Component <CNNProps, CNNStates>{
                     await this.processnode("/server/cnn/setupiterator", element.id, element.data);
                 } else if (element.type === "generateIterator") {
                     await this.processnode("/server/cnn/generateiteratorsegmentation", element.id, element.data);
-                } else if (element.type === "train_segmentation") {
-                    await this.processnode("/server/cnn/trainsegmentation", element.id, element.data);
-                } else if (element.type === "validation_segmentation") {
-                    await this.processnode("/server/cnn/validatesegmentation", element.id, element.data);
                 } 
             }
         }

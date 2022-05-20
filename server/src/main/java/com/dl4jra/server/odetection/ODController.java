@@ -127,7 +127,7 @@ public class ODController {
 		int gridwidth = modeldata.getGridwidth();
 		int gridheight = modeldata.getGridheight();
 		this.detector.SetDetectorInputType(imagewidth, imageheight, channels, gridwidth, gridheight);
-		this.detector.LoadModel(modeldata.getModelpath(), 0);
+		this.detector.LoadModel(modeldata.getModelpath(), 1);
 		this.detector.SetPredictionClasses(modeldata.getClasses());
 		System.out.println("[ODCONTROLLER] MODEL CHANGED");
 		return new Modelconfigurationdata(data.getModelname(), modeldata.getModelinputwidth());

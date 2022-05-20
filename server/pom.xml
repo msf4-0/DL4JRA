@@ -15,6 +15,9 @@
 	<description>Server for DL4J-Reactapp</description>
 	<properties>
 		<java.version>1.8</java.version>
+		<dl4j.version>1.0.0-beta7</dl4j.version>
+		<datavec.version>1.0.0-beta7</datavec.version>
+		<netty.version>4.1.48.Final</netty.version>
 	</properties>
 
 	<dependencies>
@@ -30,98 +33,168 @@
 			<scope>runtime</scope>
 			<optional>true</optional>
 		</dependency>
-		
+
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
 		</dependency>
 
-<!--		&lt;!&ndash; deeplearning4j-ui is used for visualization: see http://deeplearning4j.org/visualization &ndash;&gt;-->
-<!--		<dependency>-->
-<!--			<groupId>org.deeplearning4j</groupId>-->
-<!--			<artifactId>deeplearning4j-ui</artifactId>-->
-<!--			<version>${dl4j.version}</version>-->
-<!--		</dependency>-->
+		<!-- deeplearning4j-ui is used for visualization: see http://deeplearning4j.org/visualization -->
+		<dependency>
+			<groupId>org.deeplearning4j</groupId>
+			<artifactId>deeplearning4j-ui</artifactId>
+			<version>${dl4j.version}</version>
+
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-buffer</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-transport</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-handler</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-socks</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-codec-http2</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-handler-proxy</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-resolver</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-resolver-dns</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-common</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>io.netty</groupId>
+			<artifactId>netty-all</artifactId>
+			<version>${netty.version}</version>
+		</dependency>
 
 		<!-- WEB SOCKET -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-websocket</artifactId>
 		</dependency>
-		
+
 		<!-- DL4J -->
 		<dependency>
 	  		<groupId>org.deeplearning4j</groupId>
 	  		<artifactId>deeplearning4j-core</artifactId>
-	  		<version>1.0.0-beta7</version>
+	  		<version>${dl4j.version}</version>
 	  	</dependency>
-	  	
+
+		<!-- DATAVEC MODULE FOR DATASET MANIPULATION -->
+		<dependency>
+			<groupId>org.datavec</groupId>
+			<artifactId>datavec-local</artifactId>
+			<version>${datavec.version}</version>
+		</dependency>
+
 	  	<!-- DL4J PRETRAINED MODEL -->
 	  	<dependency>
 			<groupId>org.deeplearning4j</groupId>
 			<artifactId>deeplearning4j-zoo</artifactId>
-			<version>1.0.0-beta7</version>
+			<version>${dl4j.version}</version>
 		</dependency>
-		
-		<!-- DL4J CUDNN -->		
+
+		<!-- DL4J CUDNN -->
 		<dependency>
 		    <groupId>org.deeplearning4j</groupId>
 		    <artifactId>deeplearning4j-cuda-10.2</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
-		
-		<!-- GPU BACKEND -->		
+
+		<!-- GPU BACKEND -->
 		<dependency>
 		    <groupId>org.nd4j</groupId>
 		    <artifactId>nd4j-cuda-10.2-platform</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
-		
+
 		<!-- CPU BACKEND -->
 		<dependency>
 		    <groupId>org.nd4j</groupId>
 		    <artifactId>nd4j-native-platform</artifactId>
-		    <version>1.0.0-beta7</version>
+		    <version>${dl4j.version}</version>
 		</dependency>
-		 
+
 		<!-- JAVACPP PRESETS PLATFORM FOR CUDA -->
 		<dependency>
 		    <groupId>org.bytedeco</groupId>
 		    <artifactId>cuda</artifactId>
 		    <version>10.2-7.6-1.5.3</version>
 		</dependency>
-		
+
 		<dependency>
 	    	<groupId>org.slf4j</groupId>
 	    	<artifactId>slf4j-api</artifactId>
 		</dependency>
-		
+
 		<dependency>
 		    <groupId>org.slf4j</groupId>
 		    <artifactId>slf4j-simple</artifactId>
 		</dependency>
-		
+
 		<!-- ACTUATOR -->
 		<dependency>
 		    <groupId>org.springframework.boot</groupId>
 		    <artifactId>spring-boot-starter-actuator</artifactId>
 		</dependency>
-		
+
 		<!-- SPRING CLOUD -->
 		<dependency>
 		    <groupId>org.springframework.cloud</groupId>
 		    <artifactId>spring-cloud-starter</artifactId>
 		    <version>3.0.4</version>
 		</dependency>
-		
+
 		<!-- JSON SIMPLE -->
 		<dependency>
 		    <groupId>com.googlecode.json-simple</groupId>
 		    <artifactId>json-simple</artifactId>
 		    <version>1.1.1</version>
 		</dependency>
-		
+
 		<!-- OPEN CV -->
 		<!--
 		<dependency>

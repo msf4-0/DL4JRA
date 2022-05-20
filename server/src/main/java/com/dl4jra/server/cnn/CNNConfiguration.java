@@ -105,7 +105,7 @@ public class CNNConfiguration {
 	 * @param activationfunction - Layer's activation function
 	 * @throws Exception
 	 */
-	public void AppendConvolutionLayer(int ordering, int nIn, int nOut, int kernalx, int kernaly, int stridex, int stridey,
+	public void AppendConvolutionFirstLayer(int ordering, int nIn, int nOut, int kernalx, int kernaly, int stridex, int stridey,
 									   int paddingx, int paddingy, Activation activationfunction, double dropOut, double biasInit,
 									   ConvolutionMode convolutionMode) throws Exception {
 		if (! isNetworkConfigured_List())
@@ -151,6 +151,13 @@ public class CNNConfiguration {
 	 * @param activationfunction - Layer's activation function
 	 * @throws Exception
 	 */
+	public void AppendDenseFirstLayer (int ordering, int nIn, int nOut, Activation activationfunction, double dropOut, double biasInit,
+								  WeightInit weightInit) throws Exception{
+		if (! isNetworkConfigured_List())
+			throw new Exception("Neural network is not configured yet");
+		DenseLayer denseLayer = DenseLayerBuilder.GenerateLayer(nIn, nOut, activationfunction, dropOut, biasInit, weightInit);
+		this.ListBuilder.layer(ordering, denseLayer);
+	}
 	public void AppendDenseLayer (int ordering,int nOut, Activation activationfunction, double dropOut, double biasInit,
 								  WeightInit weightInit) throws Exception{
 		if (! isNetworkConfigured_List())
@@ -280,12 +287,12 @@ public class CNNConfiguration {
 
 	public ComputationGraph build_TransferLearning(){
 		this.computationGraph = tranferlearningBuilder.build();
-		computationGraph.summary();
+//		computationGraph.summary();
 
 		// Set listeners
 		ScoreIterationListener scoreIterationListener = new ScoreIterationListener(1);
 		computationGraph.setListeners(scoreIterationListener);
-		System.out.println(computationGraph.summary());
+//		System.out.println(computationGraph.summary());
 		return this.computationGraph;
 	}
 

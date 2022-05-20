@@ -5,14 +5,17 @@ public class Loaddatasetnode extends Nodeclass{
 	
 	private String path, trainPath, testPath;
 	private char delimeter;
-	private int imagewidth, imageheight, channels, batchsize, numLabels, numSkipLines, numClassLabels;
+	private int imagewidth, imageheight, channels, batchsize, numLabels, numSkipLines, numClassLabels, labelIndex;
+	private float fractionTrain;
 	
 	public Loaddatasetnode() {
 		
 	}
-	
+
+
+
 	public Loaddatasetnode(String nodeId, String path, String trainPath, String testPath, int imagewidth, int imageheight, int channels, int batchsize, int numLabels,
-						   int numSkipLines, int numClassLabels, char delimeter) {
+						   int numSkipLines, int numClassLabels, char delimeter, int labelIndex, float fractionTrain) {
 		super(nodeId);
 		this.path = path;
 		this.trainPath = trainPath;
@@ -25,6 +28,8 @@ public class Loaddatasetnode extends Nodeclass{
 		this.numSkipLines = numSkipLines;
 		this.numClassLabels = numClassLabels;
 		this.delimeter = delimeter;
+		this.labelIndex = labelIndex;
+		this.fractionTrain = fractionTrain;
 	}
 	
 	@Override
@@ -119,6 +124,22 @@ public class Loaddatasetnode extends Nodeclass{
 
 	public void setNumLabels(int numLabels) {
 		this.numLabels = numLabels;
+	}
+
+	public int getLabelIndex() {
+		return labelIndex;
+	}
+
+	public void setLabelIndex(int labelIndex) {
+		this.labelIndex = labelIndex;
+	}
+
+	public float getFractionTrain() {
+		return fractionTrain;
+	}
+
+	public void setFractionTrain(float fractionTrain) {
+		this.fractionTrain = fractionTrain;
 	}
 
 //	public String getDelimeter() {

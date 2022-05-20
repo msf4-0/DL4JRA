@@ -19,7 +19,7 @@ public class PMRepository {
 	@SuppressWarnings("serial")
 	private static final HashMap<String, ArrayList<String>> classes = new HashMap<String, ArrayList<String>>() {{
 		put("tinyyolo", new ArrayList<String>(Arrays.asList("Aeroplane", "Bicycle", "Bird", "Boat", "Bottle", "Bus", "Car", "Cat", "Chair", "Cow", "DiningTable", "Dog", "Horse", "Motorbike", "Person", "Pottedplant", "Sheep", "Sofa", "Train", "Tvmonitor")));
-		put("yolo2", new ArrayList<String>(Arrays.asList("Aeroplane", "Bicycle", "Bird", "Boat", "Bottle", "Bus", "Car", "Cat", "Chair", "Cow", "DiningTable", "Dog", "Horse", "Motorbike", "Person", "Pottedplant", "Sheep", "Sofa", "Train", "Tvmonitor")));
+		put("yolo2", new ArrayList<String>(Arrays.asList("Person","Bicycle","Car","Motorcycle","Airplane","Bus","Train","Truck","Boat","Traffic light","Fire hydrant","Stop sign","Parking meter","Bench","Bird","Cat","Dog","Horse","Sheep","Cow","Elephant","Bear","Zebra","Giraffe","Backpack","Umbrella","Handbag","Tie","Suitcase","Frisbee","Skis","Snowboard","Sports ball","Kite","Baseball bat","Baseball glove","Skateboard","Surfboard","Tennis racket","Bottle","Wine glass","Cup","Fork","Knife","Spoon","Bowl","Banana","Apple","Sandwich","Orange","Broccoli","Carrot","Hot dog","Pizza","Donut","Cake","Chair","Couch","Potted plant","Bed","Dining table","Toilet","Tv","Laptop","Mouse","Remote","Keyboard","Cell phone","Microwave","Oven","Toaster","Sink","Refrigerator","Book","Clock","Vase","Scissors","Teddy bear","Hair drier","Toothbrush")));
 	}};
 	
 	public static ODModelConfigurationData GetPretrainedModelData(String modelname) throws Exception{
