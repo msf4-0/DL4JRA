@@ -35,7 +35,8 @@ Features include:
 https://user-images.githubusercontent.com/72961684/165240897-55f93f8e-70a3-4897-bafd-59929143901b.mp4
 
 
-This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved.
+This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved. Users that want to modify and distribute versions of DL4JRA and do not wish to conform to obligations to share the source code are free to contact SHRDC for alternative licensing options.
+
 
 <!-- omit in toc -->
 ## **Basic Installation**
@@ -75,7 +76,7 @@ Tested to work on Windows and Linux
 
 ## **Contributing**
 
-We welcome any and all contributions through pull requests, whether it be bug fixes or new features
+We welcome any and all contributions through pull requests, whether it be bug fixes or new features. 
 
 <!-- omit in toc -->
 ### **Installation steps for development**
