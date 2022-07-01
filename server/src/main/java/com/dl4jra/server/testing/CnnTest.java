@@ -84,20 +84,20 @@ public class CnnTest {
 
 //			cnn.randomTest();
 
-			cnn.importPretrainedModel();
-			cnn.segmentationInitModel();
-			cnn.configureTranferLearning("conv2d_4", "activation_23", "conv2d_1", 1, WeightInit.XAVIER, "conv2d_23", 1, WeightInit.XAVIER);
-			cnn.addCnnLossLayer("output", LossFunctions.LossFunction.XENT, Activation.SIGMOID, "conv2d_23");
-			cnn.setOutput("output");
-			cnn.build_TransferLearning();
-			CNNDatasetGenerator TrainingDatasetGenerator = new CNNDatasetGenerator();
-			TrainingDatasetGenerator.setIterator_segmentation("C://Users//Luke Yeo//.deeplearning4j//data//data-science-bowl-2018//data-science-bowl-2018//data-science-bowl-2018-2//train//inputs", 3, 0.8, 1,
-					"masks");
-			cnn.setcnnTrainingDatasetGenerator(TrainingDatasetGenerator);
-			cnn.testTrainSegmentation();
-			ExecutorService executor = Executors.newSingleThreadExecutor();
-			Future<?> future;
-			future = executor.submit(cnn.new ValidateNetworkSimpMessagingTemplate( new SimpMessagingTemplate((message, l) -> false)));
+//			cnn.importPretrainedModel();
+//			cnn.segmentationInitModel();
+//			cnn.configureTranferLearning("conv2d_4", "activation_23", "conv2d_1", 1, WeightInit.XAVIER, "conv2d_23", 1, WeightInit.XAVIER);
+//			cnn.addCnnLossLayer("output", LossFunctions.LossFunction.XENT, Activation.SIGMOID, "conv2d_23");
+//			cnn.setOutput("output");
+//			cnn.build_TransferLearning();
+//			CNNDatasetGenerator TrainingDatasetGenerator = new CNNDatasetGenerator();
+//			TrainingDatasetGenerator.setIterator_segmentation("C://Users//Luke Yeo//.deeplearning4j//data//data-science-bowl-2018//data-science-bowl-2018//data-science-bowl-2018-2//train//inputs", 3, 0.8, 1,
+//					"masks");
+//			cnn.setcnnTrainingDatasetGenerator(TrainingDatasetGenerator);
+//			cnn.testTrainSegmentation();
+//			ExecutorService executor = Executors.newSingleThreadExecutor();
+//			Future<?> future;
+//			future = executor.submit(cnn.new ValidateNetworkSimpMessagingTemplate( new SimpMessagingTemplate((message, l) -> false)));
 //			cnn.testTrain(4, 5, false);
 
 
