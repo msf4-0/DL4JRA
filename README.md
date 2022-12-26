@@ -19,7 +19,7 @@
 </a>
 
 A no-code app for the training of custom machine learning models in Java using DeepLearning4J.
-<i>Note: the app is currently in open beta, and is still undergoing active development. If you encounter a bug, please file an issue [here](https://github.com/msf4-0/DL4JRA/issues). </i>
+<i>Note: the app is currently in open beta and is still undergoing active development. If you encounter a bug, please file an issue [here](https://github.com/msf4-0/DL4JRA/issues). </i>
 <br>
 
 Features include:
@@ -35,7 +35,7 @@ Features include:
 https://user-images.githubusercontent.com/72961684/165240897-55f93f8e-70a3-4897-bafd-59929143901b.mp4
 
 
-This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved. Users that want to modify and distribute versions of DL4JRA and do not wish to conform to obligations to share the source code are free to contact SHRDC for alternative licensing options.
+This software is licensed under the [GNU GPLv3 LICENSE](/LICENSE) © [Selangor Human Resource Development Centre](http://www.shrdc.org.my/). 2021.  All Rights Reserved. Users that want to modify and distribute versions of DL4JRA but do not wish to conform to obligations to share the source code are free to contact SHRDC for alternative licensing options.
 
 
 <!-- omit in toc -->
